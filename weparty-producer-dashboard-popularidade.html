@@ -1,0 +1,423 @@
+<!-- WeParty — Espaço do Produtor — dashboard (popularidade & alcance, sem venda de ingresso) -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WeParty · Espaço do produtor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --grad: linear-gradient(120deg,#FF9D3D 0%,#FF5F8D 52%,#F0309A 100%);
+    --violet:#7C5CFF; --violet-2:#9B6BFF;
+    --ink:#221A3D; --ink-soft:#544D6E; --muted:#8C85A2;
+    --pink:#D81B7E; --green:#10A87D; --blue:#3E7BFB; --amber:#E8920C;
+    --line:rgba(34,26,61,.08); --line-2:rgba(34,26,61,.06);
+    --shadow:0 18px 50px -22px rgba(123,38,96,.35);
+    --shadow-sm:0 6px 20px -12px rgba(123,38,96,.28);
+    --r:22px;
+    font-family:"Hanken Grotesk",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.45;
+    background:
+      radial-gradient(1000px 600px at 92% -8%, #FFE3CB 0%, transparent 52%),
+      radial-gradient(900px 700px at -4% 6%, #FFD7E7 0%, transparent 48%),
+      radial-gradient(1000px 800px at 70% 115%, #EFE3FF 0%, transparent 55%),
+      #FFF4F7;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:#FF5F8D;color:#fff}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:18px;
+    padding:14px clamp(16px,3vw,34px);background:rgba(255,244,247,.78);backdrop-filter:blur(18px);border-bottom:1px solid var(--line-2)}
+  .logo{display:flex;align-items:center;gap:11px;font-family:"Bricolage Grotesque";font-weight:800;font-size:21px;letter-spacing:.02em}
+  .logo .mark{width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:18px;box-shadow:var(--shadow-sm)}
+  .logo .party{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo .div{width:1px;height:26px;background:var(--line);margin:0 4px}
+  .logo .sub{font-family:"Bricolage Grotesque";font-weight:700;font-size:16px;background:linear-gradient(120deg,var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tb-search{margin-left:auto;display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px 15px;color:var(--muted);font-weight:500;font-size:14px;min-width:230px;box-shadow:var(--shadow-sm)}
+  .icobtn{width:42px;height:42px;border-radius:12px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;position:relative;box-shadow:var(--shadow-sm);transition:.16s}
+  .icobtn:hover{color:var(--pink)}
+  .icobtn .dot{position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--pink);border:2px solid #fff}
+  .tb-user{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#7b5cff,#c54bff);display:grid;place-items:center;color:#fff;font-weight:800;border:2px solid #fff;box-shadow:var(--shadow-sm)}
+
+  .shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;max-width:1500px;margin:0 auto;padding:24px clamp(14px,3vw,34px) 60px;align-items:start}
+
+  /* SIDEBAR */
+  .side{position:sticky;top:90px;display:flex;flex-direction:column;gap:8px}
+  .side .grp{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 16px 4px}
+  .side a{display:flex;align-items:center;gap:13px;padding:13px 16px;border-radius:15px;font-weight:700;color:var(--ink-soft);transition:.16s}
+  .side a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .side a.active{background:var(--grad);color:#fff;box-shadow:0 14px 28px -14px rgba(240,48,154,.65)}
+  .side a .ico{width:22px;height:22px;display:grid;place-items:center;flex:none}
+  .side a .tag{margin-left:auto;font-size:10px;font-weight:800;background:#EEEAFF;color:var(--violet);padding:2px 8px;border-radius:8px}
+  .side a.active .tag{background:rgba(255,255,255,.25);color:#fff}
+  .promo{margin-top:10px;background:linear-gradient(150deg,#2a1340,#4a1f5e);border-radius:20px;padding:18px;color:#fff;box-shadow:var(--shadow)}
+  .promo b{font-family:"Bricolage Grotesque";font-size:15px}
+  .promo p{font-size:12.5px;opacity:.8;margin:6px 0 12px}
+  .promo button{width:100%;background:var(--grad);color:#fff;font-weight:800;border-radius:12px;padding:10px;font-size:13px}
+
+  /* MAIN */
+  .main{display:flex;flex-direction:column;gap:20px;min-width:0}
+  .hello{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .hello .av{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,#7b5cff,#c54bff);display:grid;place-items:center;color:#fff;font-family:"Bricolage Grotesque";font-weight:800;font-size:26px;border:3px solid #fff;box-shadow:var(--shadow)}
+  .hello h1{font-family:"Bricolage Grotesque";font-weight:800;font-size:30px;line-height:1.05}
+  .hello h1 span{background:linear-gradient(120deg,var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hello p{color:var(--ink-soft);font-weight:600;margin-top:2px}
+  .hello .actions{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .datepill{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px 15px;font-weight:700;font-size:14px;box-shadow:var(--shadow-sm)}
+  .btn{display:flex;align-items:center;gap:9px;border-radius:14px;padding:13px 20px;font-weight:800;transition:.16s}
+  .btn-primary{background:var(--grad);color:#fff;box-shadow:0 14px 28px -14px rgba(240,48,154,.7)}
+  .btn-primary:hover{transform:translateY(-2px)}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink);box-shadow:var(--shadow-sm)}
+  .btn-ghost:hover{border-color:var(--pink);color:var(--pink)}
+
+  /* KPI ROW */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .kpi{background:#fff;border:1px solid var(--line-2);border-radius:20px;padding:18px 20px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+  .kpi .top{display:flex;align-items:center;justify-content:space-between}
+  .kpi .ki{width:42px;height:42px;border-radius:13px;display:grid;place-items:center}
+  .kpi .trend{font-weight:800;font-size:13px}
+  .kpi .trend.up{color:var(--green)}
+  .kpi .val{font-family:"Bricolage Grotesque";font-weight:800;font-size:30px;margin-top:14px;line-height:1}
+  .kpi .lbl{color:var(--muted);font-weight:600;font-size:13.5px;margin-top:3px}
+  .kpi .spark{position:absolute;right:0;bottom:0;width:90px;height:42px;opacity:.9}
+
+  /* CONTENT GRID */
+  .cgrid{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:20px;align-items:start}
+  .colL,.colR{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+  .card{background:#fff;border:1px solid var(--line-2);border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow-sm)}
+  .card .ch{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+  .card .ch .ci{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none}
+  .card .ch h3{font-family:"Bricolage Grotesque";font-size:18px;font-weight:700}
+  .card .ch .more{margin-left:auto;font-weight:800;color:var(--pink);font-size:13px}
+
+  /* SPOTLIGHT */
+  .spot{padding:0;overflow:hidden;border:1px solid var(--line-2);border-radius:var(--r);background:#fff;box-shadow:var(--shadow)}
+  .spot-top{position:relative;height:158px;display:flex;align-items:flex-end;padding:18px 22px;
+    background:linear-gradient(to top,rgba(20,8,30,.7),transparent 70%),linear-gradient(120deg,#ff7e3d,#ff4d8d 55%,#a23bd6)}
+  .spot-top::after{content:"";position:absolute;inset:0;background:radial-gradient(400px 160px at 80% -20%,rgba(255,255,255,.35),transparent)}
+  .spot-flag{position:absolute;top:16px;left:18px;display:flex;gap:8px;z-index:2}
+  .badge{font-size:11px;font-weight:800;letter-spacing:.04em;padding:6px 12px;border-radius:999px;text-transform:uppercase}
+  .badge.live{background:#fff;color:var(--pink);display:flex;align-items:center;gap:6px}
+  .badge.live .d{width:7px;height:7px;border-radius:50%;background:var(--pink);animation:pulse 1.3s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .badge.glass{background:rgba(255,255,255,.2);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3);color:#fff}
+  .spot-title{position:relative;z-index:2;color:#fff}
+  .spot-title .e{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.85}
+  .spot-title h2{font-family:"Bricolage Grotesque";font-weight:800;font-size:28px;line-height:1.05;text-shadow:0 3px 18px rgba(0,0,0,.35)}
+  .spot-title .m{display:flex;gap:16px;margin-top:6px;font-weight:600;font-size:13.5px;opacity:.95}
+  .spot-body{padding:20px 22px}
+  .progress-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .progress{flex:1;min-width:230px}
+  .progress .pt{display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px}
+  .progress .pt .pct{color:var(--pink);font-family:"Bricolage Grotesque"}
+  .bar{height:12px;border-radius:99px;background:#F1ECF3;overflow:hidden}
+  .bar i{display:block;height:100%;width:87%;border-radius:99px;background:var(--grad)}
+  .progress small{color:var(--muted);font-weight:600;display:block;margin-top:7px;font-size:12.5px}
+  .revbox{text-align:right}
+  .revbox .e{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .revbox b{font-family:"Bricolage Grotesque";font-size:26px;display:block;color:var(--violet)}
+  .spot-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;padding-top:18px;border-top:1px solid var(--line-2)}
+  .ss{display:flex;align-items:center;gap:10px}
+  .ss .si{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none}
+  .ss b{font-family:"Bricolage Grotesque";font-size:17px;line-height:1}
+  .ss small{display:block;color:var(--muted);font-weight:600;font-size:12px}
+  .spot-act{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .chipbtn{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);border-radius:13px;padding:11px 16px;font-weight:800;font-size:14px;transition:.16s}
+  .chipbtn:hover{border-color:var(--pink);color:var(--pink)}
+  .chipbtn.fill{background:var(--grad);color:#fff;border-color:transparent;box-shadow:0 12px 24px -12px rgba(240,48,154,.7)}
+  .chipbtn.fill:hover{transform:translateY(-2px);color:#fff}
+
+  /* CHART */
+  .seg{display:flex;gap:4px;background:#F4EFF6;border-radius:12px;padding:4px;margin-left:auto}
+  .seg button{padding:7px 14px;border-radius:9px;font-weight:800;font-size:13px;color:var(--muted)}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .chart-head{display:flex;align-items:flex-end;gap:24px;margin-bottom:6px}
+  .chart-head .big{font-family:"Bricolage Grotesque";font-weight:800;font-size:30px}
+  .chart-head .big small{font-size:15px;color:var(--muted);font-weight:700}
+  .chart-head .gr{color:var(--green);font-weight:800;font-size:14px;padding-bottom:6px}
+  svg.area{width:100%;height:210px;display:block}
+
+  /* FUNNEL */
+  .funnel{display:flex;flex-direction:column;gap:10px}
+  .fstep{display:flex;align-items:center;gap:14px}
+  .fbar{height:46px;border-radius:13px;display:flex;align-items:center;padding:0 16px;color:#fff;font-weight:800;min-width:120px;overflow:hidden}
+  .fbar .fn{font-family:"Bricolage Grotesque";font-size:18px}
+  .fbar .fl{font-size:12px;font-weight:700;opacity:.92;margin-left:10px}
+  .fconv{font-weight:800;font-size:13px;color:var(--muted);white-space:nowrap}
+  .fconv b{color:var(--green)}
+
+  /* UPCOMING */
+  .evrow{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line-2);border-radius:16px;transition:.16s}
+  .evrow:hover{box-shadow:var(--shadow-sm);transform:translateY(-2px)}
+  .evrow+.evrow{margin-top:12px}
+  .evdate{width:54px;height:54px;border-radius:14px;display:grid;place-content:center;text-align:center;flex:none;color:#fff;background:linear-gradient(150deg,var(--violet),var(--violet-2))}
+  .evdate .dn{font-family:"Bricolage Grotesque";font-weight:800;font-size:20px;line-height:1}
+  .evdate .dm{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.9}
+  .evmeta{min-width:0;flex:1}
+  .evmeta .t{display:flex;align-items:center;gap:9px}
+  .evmeta b{font-size:15px}
+  .st{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:8px}
+  .st.ativo{background:#E6FBF3;color:#0c9c8c}.st.rascunho{background:#FFF1DD;color:var(--amber)}.st.agendado{background:#EEEAFF;color:var(--violet)}
+  .evmeta .sub{color:var(--muted);font-weight:600;font-size:13px;margin-top:2px;display:flex;gap:14px;flex-wrap:wrap}
+  .evmini{text-align:right;flex:none}
+  .evmini .mb{height:7px;width:120px;border-radius:99px;background:#F1ECF3;overflow:hidden;margin-left:auto}
+  .evmini .mb i{display:block;height:100%;background:var(--grad);border-radius:99px}
+  .evmini small{color:var(--muted);font-weight:700;font-size:12px}
+  .evmini b{font-family:"Bricolage Grotesque";font-size:15px;color:var(--pink);display:block;margin-top:4px}
+
+  /* RIGHT COL */
+  .disc{background:linear-gradient(150deg,#2a1340,#5b1f6e);color:#fff;border:none}
+  .disc .ch h3{color:#fff}
+  .disc .rank{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:14px;margin-bottom:12px}
+  .disc .rank .pos{font-family:"Bricolage Grotesque";font-weight:800;font-size:26px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .disc .rank b{font-size:14px}.disc .rank small{display:block;opacity:.75;font-weight:600;font-size:12px}
+  .disc .imp{display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:14px}
+  .disc .imp b{font-family:"Bricolage Grotesque";font-size:22px}
+  .disc .imp .up{color:#5BE3B0;font-weight:800;font-size:13px}
+  .disc .boost{width:100%;margin-top:14px;background:var(--grad);color:#fff;font-weight:800;border-radius:13px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;transition:.16s}
+  .disc .boost:hover{transform:translateY(-2px)}
+
+  .sug{display:flex;gap:13px;padding:14px 0;border-bottom:1px solid var(--line-2)}
+  .sug:last-of-type{border:none;padding-bottom:4px}
+  .sug .sgi{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none;font-size:18px}
+  .sug .sb{flex:1;min-width:0}
+  .sug .sb b{font-size:14px}
+  .sug .sb p{color:var(--ink-soft);font-weight:500;font-size:12.5px;margin:3px 0 9px}
+  .sug .sb .sa{font-weight:800;font-size:13px;color:var(--pink);display:inline-flex;align-items:center;gap:5px;border:1.5px solid #ffd9e6;border-radius:10px;padding:7px 12px;transition:.16s}
+  .sug .sb .sa:hover{background:#FFE0EC}
+
+  .inbox{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line-2);align-items:flex-start}
+  .inbox:last-child{border:none}
+  .inbox .ia{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:#fff;font-weight:800;flex:none;font-size:14px}
+  .inbox .ib{flex:1;min-width:0}
+  .inbox .ib p{font-size:13.5px;font-weight:600}.inbox .ib p b{font-weight:800}
+  .inbox .ib .t{color:var(--muted);font-size:12px;font-weight:600;margin-top:2px}
+  .inbox .ib .reply{margin-top:7px;font-weight:800;font-size:12.5px;color:var(--blue)}
+
+  @media(max-width:1180px){.cgrid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:880px){.shell{grid-template-columns:1fr}.side{position:static;flex-direction:row;flex-wrap:wrap;gap:8px}.side .grp,.promo{display:none}.tb-search{display:none}.spot-stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="logo"><span class="mark">🤘</span><span>WE&nbsp;</span><span class="party">PARTY</span><span class="div"></span><span class="sub">Espaço do produtor</span></div>
+  <div class="tb-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg> Buscar nos seus eventos...</div>
+  <button class="icobtn"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot"></span></button>
+  <button class="icobtn"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg></button>
+  <div class="tb-user">I</div>
+</header>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <a class="active"><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>Início</a>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M12 14v3M10.5 15.5h3"/></svg></span>Novo evento</a>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>Meus eventos<span class="tag">3</span></a>
+    <div class="grp">Crescimento</div>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8M21 7v5h-5"/></svg></span>Impulsionar</a>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>Insights</a>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>Descoberta<span class="tag">#3</span></a>
+    <div class="grp">Público</div>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="8" r="3.5"/><path d="M3 21v-1a6 6 0 0112 0v1M16 4.5a3.5 3.5 0 010 7M21 21v-1a6 6 0 00-4-5.7"/></svg></span>Audiência</a>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a4 4 0 01-4 4H8l-5 4V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg></span>Engajamento</a>
+    <div class="promo">
+      <b>✨ Impulsione com IA</b>
+      <p>A IA do WeParty escolhe o melhor momento e público pra seu evento aparecer mais na descoberta.</p>
+      <button>Ativar agora</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- GREETING -->
+    <div class="hello">
+      <div class="av">I</div>
+      <div>
+        <h1>Bem-vindo, <span>Produtor</span>! 👋</h1>
+        <p>Seus eventos alcançaram <b>38,2 mil pessoas</b> esta semana — 22% a mais que na anterior 🚀</p>
+      </div>
+      <div class="actions">
+        <div class="datepill"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Domingo, 7 de junho de 2026</div>
+        <button class="btn btn-ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h6"/></svg>Arquivados</button>
+        <button class="btn btn-primary"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>Criar evento</button>
+      </div>
+    </div>
+
+    <!-- KPIs (popularidade & alcance) -->
+    <div class="kpis">
+      <div class="kpi">
+        <div class="top"><span class="ki" style="background:#EEEAFF;color:var(--violet)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1a6 6 0 0112 0v1M16 5a3.2 3.2 0 010 6M21 20v-1a6 6 0 00-4-5.6"/></svg></span><span class="trend up">▲ 22%</span></div>
+        <div class="val">38,2k</div><div class="lbl">Pessoas alcançadas</div>
+        <svg class="spark" viewBox="0 0 90 42" preserveAspectRatio="none"><path d="M0 34 L15 30 L30 32 L45 22 L60 24 L75 12 L90 8" fill="none" stroke="#7C5CFF" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="top"><span class="ki" style="background:#FFEDD9;color:var(--amber)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8M21 7v5h-5"/></svg></span><span class="trend up">▲ 31%</span></div>
+        <div class="val">128k</div><div class="lbl">Impressões na descoberta</div>
+      </div>
+      <div class="kpi">
+        <div class="top"><span class="ki" style="background:#E6F1FF;color:var(--blue)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="trend up">▲ 12,5%</span></div>
+        <div class="val">45.892</div><div class="lbl">Visualizações</div>
+        <svg class="spark" viewBox="0 0 90 42" preserveAspectRatio="none"><path d="M0 30 L15 26 L30 28 L45 18 L60 20 L75 14 L90 10" fill="none" stroke="#3E7BFB" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <div class="kpi">
+        <div class="top"><span class="ki" style="background:#FFE9F2;color:var(--pink)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z"/></svg></span><span class="trend up">▲ 42%</span></div>
+        <div class="val">3.218</div><div class="lbl">Curtidas</div>
+      </div>
+    </div>
+
+    <!-- CONTENT GRID -->
+    <div class="cgrid">
+      <!-- LEFT -->
+      <div class="colL">
+        <!-- SPOTLIGHT -->
+        <div class="spot">
+          <div class="spot-top">
+            <div class="spot-flag"><span class="badge live"><span class="d"></span>Em alta agora</span><span class="badge glass">🔥 #3 na descoberta</span></div>
+            <div class="spot-title">
+              <div class="e">Seu evento em destaque</div>
+              <h2>Sunset Beach Party</h2>
+              <div class="m"><span>📍 Copacabana</span><span>📅 25 Jan</span><span>👥 público 18–35</span></div>
+            </div>
+          </div>
+          <div class="spot-body">
+            <div class="progress-wrap">
+              <div class="progress">
+                <div class="pt"><span>Índice de popularidade</span><span class="pct">87/100</span></div>
+                <div class="bar"><i></i></div>
+                <small>Entre os <b>5% mais populares</b> de Copacabana esta semana 🔥</small>
+              </div>
+              <div class="revbox"><span class="e">Alcance</span><b>28,4k</b><small style="color:var(--muted);font-weight:600;font-size:12px">pessoas</small></div>
+            </div>
+            <div class="spot-stats">
+              <div class="ss"><span class="si" style="background:#E6F1FF;color:var(--blue)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><div><b>12,1k</b><small>views</small></div></div>
+              <div class="ss"><span class="si" style="background:#FFE9F2;color:var(--pink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z"/></svg></span><div><b>1.918</b><small>curtidas</small></div></div>
+              <div class="ss"><span class="si" style="background:#EEEAFF;color:var(--violet)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6L9 17l-5-5"/></svg></span><div><b>820</b><small>confirmados</small></div></div>
+              <div class="ss"><span class="si" style="background:#E6FBF3;color:var(--green)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></span><div><b>410</b><small>compart.</small></div></div>
+            </div>
+            <div class="spot-act">
+              <button class="chipbtn fill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8M21 7v5h-5"/></svg>Impulsionar alcance</button>
+              <button class="chipbtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4v16h16v-7M14 4h6v6M10 14L20 4"/></svg>Ver página</button>
+              <button class="chipbtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Editar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHART -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#EEEAFF;color:var(--violet)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8M21 7v5h-5"/></svg></span><h3>Crescimento de alcance</h3>
+            <div class="seg" id="seg"><button data-k="7D" class="on">7D</button><button data-k="30D">30D</button><button data-k="90D">90D</button><button data-k="1A">1A</button></div></div>
+          <div class="chart-head"><div class="big" id="chartTotal">45,9k<small> pessoas</small></div><div class="gr" id="chartGr">▲ 12,5% vs. semana anterior</div></div>
+          <svg class="area" id="area" viewBox="0 0 640 210" preserveAspectRatio="none">
+            <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7C5CFF" stop-opacity=".28"/><stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/></linearGradient>
+            <linearGradient id="ln" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9B6BFF"/><stop offset="1" stop-color="#F0309A"/></linearGradient></defs>
+            <g stroke="#F0ECF4" stroke-width="1"><line x1="0" y1="40" x2="640" y2="40"/><line x1="0" y1="90" x2="640" y2="90"/><line x1="0" y1="140" x2="640" y2="140"/><line x1="0" y1="190" x2="640" y2="190"/></g>
+            <path id="areaFill" fill="url(#fill)"/><path id="areaLine" fill="none" stroke="url(#ln)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <g id="dots"></g>
+          </svg>
+        </div>
+
+        <!-- FUNNEL -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#FFE9F2;color:var(--pink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg></span><h3>Jornada de engajamento</h3><span class="more" style="color:var(--muted);font-weight:600;font-size:13px">onde melhorar →</span></div>
+          <div class="funnel">
+            <div class="fstep"><div class="fbar" style="width:100%;background:linear-gradient(120deg,#E8920C,#FFB347)"><span class="fn">128.000</span><span class="fl">Impressões na descoberta</span></div></div>
+            <div class="fstep"><div class="fbar" style="width:70%;background:linear-gradient(120deg,#3E7BFB,#6BA0FF)"><span class="fn">45.892</span><span class="fl">Visualizações</span></div><span class="fconv">conversão <b>35,9%</b></span></div>
+            <div class="fstep"><div class="fbar" style="width:46%;background:linear-gradient(120deg,#9B6BFF,#7C5CFF)"><span class="fn">3.218</span><span class="fl">Curtidas</span></div><span class="fconv">conversão <b>7,0%</b></span></div>
+            <div class="fstep"><div class="fbar" style="width:32%;background:linear-gradient(120deg,#F0309A,#FF5F8D)"><span class="fn">1.284</span><span class="fl">Confirmados</span></div><span class="fconv">conversão <b>39,9%</b></span></div>
+            <div class="fstep"><div class="fbar" style="width:22%;background:var(--grad)"><span class="fn">642</span><span class="fl">Compartilhamentos</span></div><span class="fconv">viralização <b>50%</b></span></div>
+          </div>
+        </div>
+
+        <!-- UPCOMING -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#E6F1FF;color:var(--blue)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><h3>Seus eventos</h3><a class="more">Ver todos</a></div>
+          <div class="evrow">
+            <div class="evdate"><span class="dn">25</span><span class="dm">Jan</span></div>
+            <div class="evmeta"><div class="t"><b>Sunset Beach Party</b><span class="st ativo">Em alta</span></div><div class="sub"><span>📍 Copacabana</span><span>👁 12,1k</span><span>♥ 1.918</span><span>✓ 820</span></div></div>
+            <div class="evmini"><div class="mb"><i style="width:87%"></i></div><small>popularidade 87</small><b>#3 no feed</b></div>
+          </div>
+          <div class="evrow">
+            <div class="evdate"><span class="dn">02</span><span class="dm">Fev</span></div>
+            <div class="evmeta"><div class="t"><b>Neon Night</b><span class="st rascunho">Rascunho</span></div><div class="sub"><span>📍 Club XYZ</span><span>👁 6,2k</span><span>♥ 410</span><span>✓ 188</span></div></div>
+            <div class="evmini"><div class="mb"><i style="width:48%"></i></div><small>popularidade 48</small><b>em crescimento</b></div>
+          </div>
+          <div class="evrow">
+            <div class="evdate"><span class="dn">15</span><span class="dm">Fev</span></div>
+            <div class="evmeta"><div class="t"><b>Carnival Pre-Party</b><span class="st agendado">Agendado</span></div><div class="sub"><span>📍 Arena Central</span><span>ainda não publicado</span></div></div>
+            <div class="evmini"><div class="mb"><i style="width:3%"></i></div><small>sem alcance</small><b>publique →</b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="colR">
+        <!-- DISCOVERY VISIBILITY -->
+        <div class="card disc">
+          <div class="ch"><span class="ci" style="background:rgba(255,255,255,.14);color:#fff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8M21 7v5h-5"/></svg></span><h3>Alcance na descoberta</h3></div>
+          <div class="rank"><span class="pos">#3</span><div><b>Sunset Beach Party</b><small>em alta no feed "O que tá rolando" · Copacabana</small></div></div>
+          <div class="imp"><span>Aparições no feed esta semana</span><span style="text-align:right"><b>12,4k</b><br><span class="up">▲ 31%</span></span></div>
+          <button class="boost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8M21 7v5h-5"/></svg>Impulsionar para o Top 1</button>
+        </div>
+
+        <!-- SMART SUGGESTIONS (popularidade + inovação no evento) -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:linear-gradient(135deg,#FFD36E,#FF9E45);color:#fff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.6.5 1 1.2 1 2h6c0-.8.4-1.5 1-2A7 7 0 0012 2z"/></svg></span><h3>Sugestões da IA</h3></div>
+          <div class="sug"><span class="sgi" style="background:#FFE9F2">🚀</span><div class="sb"><b>Impulsione a Sunset Beach Party</b><p>Está em #3 e a 1.200 impressões do Top 1. Um boost agora pode levá-la ao topo da descoberta.</p><a class="sa">Impulsionar →</a></div></div>
+          <div class="sug"><span class="sgi" style="background:#EEEAFF">🎤</span><div class="sb"><b>Adicione as atrações na Neon Night</b><p>Eventos com lineup recebem em média <b>+60% de curtidas</b>. Enriqueça a página antes de publicar.</p><a class="sa">Adicionar atrações →</a></div></div>
+          <div class="sug"><span class="sgi" style="background:#E6F1FF">💬</span><div class="sb"><b>Responda os comentários</b><p>Você tem 4 comentários sem resposta. Interagir aumenta o engajamento e o alcance do evento.</p><a class="sa">Responder →</a></div></div>
+          <div class="sug"><span class="sgi" style="background:#E6FBF3">📣</span><div class="sb"><b>Compartilhe nas redes sociais</b><p>Sem posts há 3 dias. Um story com o link do evento traz visitas direto pra sua página.</p><a class="sa">Gerar post →</a></div></div>
+        </div>
+
+        <!-- ENGAGEMENT INBOX -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#E6F1FF;color:var(--blue)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a4 4 0 01-4 4H8l-5 4V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg></span><h3>Atividade recente</h3><a class="more">Tudo</a></div>
+          <div class="inbox"><span class="ia" style="background:linear-gradient(135deg,#ff7a59,#ff4d8d)">M</span><div class="ib"><p><b>Marina A.</b> comentou na <b>Sunset Beach Party</b></p><p class="t" style="color:var(--ink-soft);font-weight:500">"Vai ter line-up de DJs? 🎧"</p><a class="reply">Responder →</a></div></div>
+          <div class="inbox"><span class="ia" style="background:#FFE9F2;color:var(--pink)">♥</span><div class="ib"><p><b>+23 curtidas</b> na Sunset Beach Party</p><div class="t">há 2 horas</div></div></div>
+          <div class="inbox"><span class="ia" style="background:#E6FBF3;color:var(--green)">↗</span><div class="ib"><p>Seu evento foi <b>compartilhado 14×</b> hoje</p><div class="t">Sunset Beach Party · há 5 horas</div></div></div>
+          <div class="inbox"><span class="ia" style="background:#EEEAFF;color:var(--violet)">✓</span><div class="ib"><p><b>+38 confirmados</b> ("Eu vou!") esta semana</p><div class="t">somando todos os eventos</div></div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ----- alcance/visualizações ao longo do tempo -----
+  const data={
+    "7D":{vals:[5.2,5.8,5.5,6.9,7.4,8.2,7.0],total:"45,9k",unit:"pessoas",gr:"▲ 12,5% vs. semana anterior"},
+    "30D":{vals:[28,33,30,38,36,44,42,50,48,58],total:"182k",unit:"pessoas",gr:"▲ 19,4% vs. mês anterior"},
+    "90D":{vals:[60,82,78,110,140,135,170],total:"512k",unit:"pessoas",gr:"▲ 38,6% vs. trimestre anterior"},
+    "1A":{vals:[90,140,120,220,260,250,360,440,400,560,640,700],total:"3,1M",unit:"pessoas",gr:"▲ 184% vs. ano anterior"}
+  };
+  const W=640,H=190,top=14;
+  function pts(vals){
+    const max=Math.max(...vals),min=Math.min(...vals),sp=(max-min)||1,n=vals.length;
+    return vals.map((v,i)=>[ i*W/(n-1), top + (H-top) * (1-(v-min)/sp) ]);
+  }
+  function smooth(p){
+    if(p.length<2)return"";let d=`M ${p[0][0]} ${p[0][1]}`;
+    for(let i=0;i<p.length-1;i++){const a=p[i-1]||p[i],b=p[i],c=p[i+1],e=p[i+2]||c;
+      d+=` C ${b[0]+(c[0]-a[0])/6} ${b[1]+(c[1]-a[1])/6} ${c[0]-(e[0]-b[0])/6} ${c[1]-(e[1]-b[1])/6} ${c[0]} ${c[1]}`;}
+    return d;
+  }
+  function render(k){
+    const p=pts(data[k].vals),line=smooth(p);
+    document.getElementById('areaLine').setAttribute('d',line);
+    document.getElementById('areaFill').setAttribute('d',line+` L ${W} ${H+18} L 0 ${H+18} Z`);
+    document.getElementById('dots').innerHTML=p.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4" fill="#fff" stroke="#F0309A" stroke-width="2.5"/>`).join('');
+    document.getElementById('chartTotal').innerHTML=data[k].total+'<small> '+data[k].unit+'</small>';
+    document.getElementById('chartGr').textContent=data[k].gr;
+  }
+  document.getElementById('seg').addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');render(b.dataset.k);
+  });
+  render('7D');
+</script>

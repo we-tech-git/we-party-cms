@@ -6,35 +6,24 @@ const CMS_PREFIX = '/cms'
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Lê o token da store Zustand (salva em cookie via zustand/middleware persist)
-  // Fallback: lê o cookie direto que setamos no login
-  const authCookie = request.cookies.get('we-party-auth')
-  let token: string | null = null
-
-  if (authCookie?.value) {
-    try {
-      const parsed = JSON.parse(authCookie.value)
-      token = parsed?.state?.token ?? null
-    } catch {
-      token = null
-    }
-  }
+  // O token é salvo no cookie 'access_token' pelo auth.store.ts após o login.
+  // O Zustand persist usa localStorage (inacessível no edge), por isso usamos
+  // um cookie dedicado só para o guard de rota.
+  const token = request.cookies.get('access_token')?.value ?? null
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p))
   const isCms = pathname.startsWith(CMS_PREFIX) || pathname === '/'
 
-  // Redireciona / → /cms/home
   if (pathname === '/') {
-    if (token) return NextResponse.redirect(new URL('/cms/home', request.url))
-    return NextResponse.redirect(new URL('/login', request.url))
+    return token
+      ? NextResponse.redirect(new URL('/cms/home', request.url))
+      : NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Rota CMS sem token → login
   if (isCms && !token) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Login com token já ativo → home
   if (isPublic && token) {
     return NextResponse.redirect(new URL('/cms/home', request.url))
   }

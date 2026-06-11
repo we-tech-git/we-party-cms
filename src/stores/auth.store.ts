@@ -16,6 +16,16 @@ interface AuthState {
   isAuthenticated: () => boolean
 }
 
+function setAuthCookie(token: string) {
+  // JWT só usa Base64URL + pontos — não precisa de encoding.
+  // O proxy.ts lê este cookie no edge para proteger rotas /cms/*.
+  document.cookie = `access_token=${token}; path=/; SameSite=Lax`
+}
+
+function clearAuthCookie() {
+  document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax'
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -25,10 +35,10 @@ export const useAuthStore = create<AuthState>()(
       saveAuthData(response: LoginResponse) {
         const { token, ...user } = response.data
         set({ token, user })
-        // espelho no localStorage para o interceptor axios e middleware
         if (typeof window !== 'undefined') {
           localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token)
           localStorage.setItem(STORAGE_KEYS.LOGGED_USER, JSON.stringify(user))
+          setAuthCookie(token)
         }
       },
 
@@ -38,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
           Object.values(STORAGE_KEYS).forEach((key) =>
             localStorage.removeItem(key),
           )
+          clearAuthCookie()
         }
       },
 

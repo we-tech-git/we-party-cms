@@ -1,11 +1,22 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Bricolage_Grotesque, Poppins } from 'next/font/google'
 import './globals.css'
 import { QueryProvider } from '@/providers/query-provider'
+import { AuthHydration } from '@/providers/auth-hydration'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+// Poppins: fonte corpo do sistema WeParty
+const poppins = Poppins({
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+})
+
+// Bricolage Grotesque: titulares e valores numéricos grandes
+const bricolage = Bricolage_Grotesque({
+  variable: '--font-bricolage',
+  subsets: ['latin'],
+  weight: ['500', '700', '800'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -17,9 +28,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} h-full antialiased`}>
+    // poppins.className aplica font-family diretamente (sem CSS variable chain)
+    // bricolage.variable expõe --font-bricolage para uso em style={{}}
+    <html lang="pt-BR" className={`${poppins.className} ${bricolage.variable} h-full`}>
       <body className="min-h-full flex flex-col">
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <AuthHydration />
+          {children}
+        </QueryProvider>
       </body>
     </html>
   )

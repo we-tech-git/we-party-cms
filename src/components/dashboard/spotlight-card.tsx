@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { GRAD } from '@/lib/brand'
 import type { TopEventDto } from '@/types/events.types'
 
@@ -52,7 +53,8 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
             Crie seu primeiro evento e comece a acumular alcance
           </p>
         </div>
-        <button
+        <Link
+          href="/cms/producer/new-event"
           className="flex items-center gap-2 rounded-[14px] px-5 py-[12px] font-extrabold text-white"
           style={{ background: GRAD, boxShadow: '0 12px 24px -12px rgba(240,48,154,.65)' }}
         >
@@ -60,7 +62,7 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
             <path d="M12 5v14M5 12h14" />
           </svg>
           Criar evento
-        </button>
+        </Link>
       </div>
     )
   }

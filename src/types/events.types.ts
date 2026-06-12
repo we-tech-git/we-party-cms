@@ -41,3 +41,27 @@ export interface ProducerDashboardResponse {
   topEvent: TopEventDto | null
   recentEvents: RecentEventDto[]
 }
+
+export interface FaqItem {
+  question: string
+  answer: string
+}
+
+export interface InterestDto {
+  id: string
+  name: string
+}
+
+export interface CreateEventPayload {
+  title: string
+  description: string
+  startDate: string
+  endDate: string
+  location: string
+  isPublic: boolean
+  allowComments: boolean
+  showInMainFeed: true
+  interestIds: string[]
+  invitedUserIds: []
+  faqs: FaqItem[]
+}

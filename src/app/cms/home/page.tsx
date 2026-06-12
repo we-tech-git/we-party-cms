@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import { GRAD } from '@/lib/brand'
 import { KpiCard } from '@/components/dashboard/kpi-card'
@@ -47,6 +48,7 @@ function fmtKpi(n?: number): string {
 
 
 export default function ProducerDashboard() {
+  const router = useRouter()
   const user = useAuthStore((s) => s.user)
   const initial = (user?.name ?? 'P')[0].toUpperCase()
   const { data, isLoading } = useProducerDashboard()
@@ -151,6 +153,7 @@ export default function ProducerDashboard() {
             Arquivados
           </button>
           <button
+            onClick={() => router.push('/cms/producer/new-event')}
             className="flex items-center gap-2 rounded-[14px] px-5 py-[13px] font-extrabold text-white transition hover:-translate-y-0.5"
             style={{ background: GRAD, boxShadow: '0 14px 28px -14px rgba(240,48,154,.7)' }}
           >

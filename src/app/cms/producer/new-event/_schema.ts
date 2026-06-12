@@ -23,7 +23,7 @@ export const createEventSchema = z.object({
       answer: z.string().min(1, 'Resposta é obrigatória'),
     })
   ),
-  photo: z.custom<File | null>((v) => v === null || v instanceof File),
+  photos: z.array(z.custom<File>((v) => v instanceof File)).max(5),
 })
 
 export type CreateEventForm = z.infer<typeof createEventSchema>
@@ -88,3 +88,5 @@ export function buildPayload(form: CreateEventForm): CreateEventPayload {
     faqs: form.faqs,
   }
 }
+
+export const MAX_PHOTOS = 5

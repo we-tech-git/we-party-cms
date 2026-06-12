@@ -37,11 +37,11 @@ export function InterestsSelector() {
   const suggestionItems = allInterests.filter(i => suggestions.includes(i.id) && !interestIds.includes(i.id))
 
   function add(id: string) {
-    setValue('interestIds', [...interestIds, id])
+    setValue('interestIds', [...interestIds, id], { shouldDirty: true })
   }
 
   function remove(id: string) {
-    setValue('interestIds', interestIds.filter(i => i !== id))
+    setValue('interestIds', interestIds.filter(i => i !== id), { shouldDirty: true })
   }
 
   function reroll() {

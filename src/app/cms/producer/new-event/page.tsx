@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useForm, FormProvider } from 'react-hook-form'
+import type { SubmitErrorHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { createEventSchema, buildPayload, type CreateEventForm } from './_schema'
@@ -16,12 +17,25 @@ import { LivePreview } from './_components/live-preview'
 import { VisibilitySettings } from './_components/visibility-settings'
 import { ActionBar } from './_components/action-bar'
 
+const FIELD_LABELS: Partial<Record<keyof CreateEventForm, string>> = {
+  title: 'Nome do evento',
+  startDate: 'Data de início',
+  faqs: 'FAQ incompleto',
+}
+
 export default function NewEventPage() {
   const router = useRouter()
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 4500)
+  }
 
   const methods = useForm<CreateEventForm>({
     resolver: zodResolver(createEventSchema),
+    mode: 'onChange',
     defaultValues: {
       title: '',
       description: '',
@@ -39,7 +53,7 @@ export default function NewEventPage() {
       allowComments: true,
       interestIds: [],
       faqs: [],
-      photo: null,
+      photos: [],
     },
   })
 
@@ -49,7 +63,7 @@ export default function NewEventPage() {
     setSubmitError(null)
     try {
       const payload = buildPayload(form)
-      await createEvent.mutateAsync({ payload, photo: form.photo })
+      await createEvent.mutateAsync({ payload, photos: form.photos })
       router.push('/cms/producer/my-events')
     } catch (err: unknown) {
       const message =
@@ -59,9 +73,31 @@ export default function NewEventPage() {
     }
   }
 
+  const onInvalid: SubmitErrorHandler<CreateEventForm> = (errors) => {
+    const missing = (Object.keys(errors) as Array<keyof CreateEventForm>)
+      .map(k => FIELD_LABELS[k])
+      .filter((v): v is string => !!v)
+
+    showToast(
+      missing.length > 0
+        ? `Preencha: ${missing.join(' e ')}`
+        : 'Verifique os campos obrigatórios antes de publicar.'
+    )
+
+    // Scroll to first error field
+    requestAnimationFrame(() => {
+      const firstId = errors.title ? 'input-title' : errors.startDate ? 'input-startDate' : null
+      if (firstId) {
+        const el = document.getElementById(firstId)
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el?.focus()
+      }
+    })
+  }
+
   return (
     <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={methods.handleSubmit(onSubmit, onInvalid)} noValidate>
         <div className="flex flex-col gap-5">
           {/* Page header */}
           <div>
@@ -111,6 +147,19 @@ export default function NewEventPage() {
           <ActionBar isSubmitting={createEvent.isPending} error={submitError} />
         </div>
       </form>
+
+      {/* Validation toast */}
+      {toast && (
+        <div
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-[16px] px-5 py-4 text-[14px] font-semibold text-white shadow-xl pointer-events-none"
+          style={{ background: 'linear-gradient(135deg,#1a0b2e,#3a1060)', border: '1px solid rgba(255,77,141,.35)', whiteSpace: 'nowrap' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff4d8d" strokeWidth="2.4">
+            <circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" />
+          </svg>
+          {toast}
+        </div>
+      )}
     </FormProvider>
   )
 }

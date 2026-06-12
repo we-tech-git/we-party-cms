@@ -66,9 +66,9 @@ export function ActionBar({ isSubmitting, error }: ActionBarProps) {
 
         <button
           type="submit"
-          disabled={!isReady || isSubmitting}
+          disabled={isSubmitting}
           className="flex items-center gap-2 rounded-[14px] px-6 py-[14px] font-extrabold text-[14px] text-white transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0"
-          style={{ background: GRAD, boxShadow: isReady ? '0 14px 28px -14px rgba(240,48,154,.7)' : 'none' }}
+          style={{ background: GRAD, boxShadow: '0 14px 28px -14px rgba(240,48,154,.7)' }}
         >
           {isSubmitting ? (
             'Publicando…'

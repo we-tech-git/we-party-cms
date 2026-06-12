@@ -1,6 +1,7 @@
 'use client'
 
-import { useFormContext } from 'react-hook-form'
+import { useState, useEffect } from 'react'
+import { useFormContext, useController } from 'react-hook-form'
 import { useInterests } from '@/hooks/use-interests'
 import type { CreateEventForm } from '../_schema'
 
@@ -20,14 +21,27 @@ export function LivePreview() {
   const startDate = watch('startDate')
   const startTime = watch('startTime')
   const city = watch('city')
-  const isPublic = watch('isPublic')
-  const allowComments = watch('allowComments')
   const interestIds = watch('interestIds') ?? []
-  const photo = watch('photo')
+  const photos = watch('photos') ?? []
+  const { field: { value: isPublic } } = useController<CreateEventForm, 'isPublic'>({ name: 'isPublic' })
+  const { field: { value: allowComments } } = useController<CreateEventForm, 'allowComments'>({ name: 'allowComments' })
+  const firstPhoto = photos.length > 0 ? photos[0] : null
+
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    let url: string | null = null
+    if (firstPhoto) {
+      url = URL.createObjectURL(firstPhoto)
+      setCoverUrl(url)
+    } else {
+      setCoverUrl(null)
+    }
+    return () => { if (url) URL.revokeObjectURL(url) }
+  }, [firstPhoto])
 
   const previewInterests = allInterests.filter(i => interestIds.includes(i.id)).slice(0, 3)
   const previewDate = formatPreviewDate(startDate, startTime)
-  const coverUrl = photo ? URL.createObjectURL(photo) : null
 
   return (
     <div>

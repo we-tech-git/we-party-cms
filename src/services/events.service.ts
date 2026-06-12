@@ -12,7 +12,7 @@ export async function createEvent(payload: CreateEventPayload): Promise<{ id: st
   return data
 }
 
-export async function createEventWithImages(payload: CreateEventPayload, photo: File): Promise<{ id: string }> {
+export async function createEventWithImages(payload: CreateEventPayload, photos: File[]): Promise<{ id: string }> {
   const form = new FormData()
   form.append('title', payload.title)
   form.append('description', payload.description)
@@ -25,7 +25,7 @@ export async function createEventWithImages(payload: CreateEventPayload, photo: 
   form.append('interestIds', JSON.stringify(payload.interestIds))
   form.append('invitedUserIds', '[]')
   form.append('faqs', JSON.stringify(payload.faqs))
-  form.append('photos', photo)
+  for (const photo of photos) form.append('photos', photo)
   const { data } = await axiosInstance.post<{ id: string }>('/events/with-images', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })

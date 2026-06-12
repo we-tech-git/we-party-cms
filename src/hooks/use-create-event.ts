@@ -4,7 +4,7 @@ import type { CreateEventPayload } from '@/types/events.types'
 
 export function useCreateEvent() {
   return useMutation({
-    mutationFn: ({ payload, photo }: { payload: CreateEventPayload; photo: File | null }) =>
-      photo ? createEventWithImages(payload, photo) : createEvent(payload),
+    mutationFn: ({ payload, photos }: { payload: CreateEventPayload; photos: File[] }) =>
+      photos.length > 0 ? createEventWithImages(payload, photos) : createEvent(payload),
   })
 }

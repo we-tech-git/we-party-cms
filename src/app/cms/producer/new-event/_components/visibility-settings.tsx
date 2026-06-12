@@ -1,6 +1,6 @@
 'use client'
 
-import { useFormContext } from 'react-hook-form'
+import { useController } from 'react-hook-form'
 import { GRAD } from '@/lib/brand'
 import type { CreateEventForm } from '../_schema'
 
@@ -39,9 +39,8 @@ function SegmentedToggle({
 }
 
 export function VisibilitySettings() {
-  const { watch, setValue } = useFormContext<CreateEventForm>()
-  const isPublic = watch('isPublic')
-  const allowComments = watch('allowComments')
+  const { field: { value: isPublic, onChange: setIsPublic } } = useController<CreateEventForm, 'isPublic'>({ name: 'isPublic' })
+  const { field: { value: allowComments, onChange: setAllowComments } } = useController<CreateEventForm, 'allowComments'>({ name: 'allowComments' })
 
   return (
     <>
@@ -65,7 +64,7 @@ export function VisibilitySettings() {
 
         <SegmentedToggle
           value={isPublic}
-          onChange={(v) => setValue('isPublic', v)}
+          onChange={setIsPublic}
           options={[
             {
               label: 'Público',
@@ -136,7 +135,7 @@ export function VisibilitySettings() {
 
         <SegmentedToggle
           value={allowComments}
-          onChange={(v) => setValue('allowComments', v)}
+          onChange={setAllowComments}
           options={[
             { label: 'Permitidos', value: true, icon: undefined },
             { label: 'Não permitidos', value: false, icon: undefined },

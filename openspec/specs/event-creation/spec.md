@@ -15,20 +15,26 @@ O sistema SHALL permitir ao produtor preencher título (obrigatório), descriç�
 - **WHEN** o produtor digita na descrição
 - **THEN** um contador "X/600" é atualizado em tempo real
 
-### Requirement: Upload de imagem de capa
-O sistema SHALL permitir upload de imagem de capa via drag-and-drop ou seleção de arquivo (apenas `image/*`).
+### Requirement: Upload de imagens de capa
+O sistema SHALL permitir upload de até **5 imagens** de capa via drag-and-drop ou seleção de arquivo (apenas `image/*`). O campo FormData enviado ao backend SHALL usar a chave `photos` (plural). Quando ao menos uma imagem estiver selecionada, o endpoint SHALL ser `POST /events/with-images`; sem imagens, `POST /events`.
 
-#### Scenario: Preview após seleção
-- **WHEN** o produtor seleciona ou arrasta uma imagem válida
-- **THEN** a dropzone exibe preview da imagem e o live preview do feed também é atualizado
+#### Scenario: Preview após seleção de uma ou mais imagens
+- **WHEN** o produtor seleciona ou arrasta imagens válidas
+- **THEN** a dropzone exibe thumbnails de preview de todas as imagens selecionadas e o live preview do feed usa a primeira imagem como capa
 
-#### Scenario: Trocar ou remover imagem
-- **WHEN** há uma imagem selecionada e o produtor clica em "Trocar imagem"
-- **THEN** o dialog de seleção de arquivo reabre
+#### Scenario: Limite de 5 imagens respeitado
+- **WHEN** o produtor já tem 5 imagens selecionadas e tenta adicionar mais
+- **THEN** as imagens excedentes são ignoradas e um feedback indica que o limite foi atingido
+
+#### Scenario: Remover imagem individual
+- **WHEN** há imagens selecionadas e o produtor clica em remover em um thumbnail
+- **THEN** apenas aquela imagem é removida; as demais permanecem
 
 #### Scenario: Arquivo inválido ignorado
 - **WHEN** o produtor tenta fazer upload de arquivo não-imagem
-- **THEN** o arquivo é ignorado e a dropzone permanece no estado anterior
+- **THEN** o arquivo é ignorado e a seleção atual permanece inalterada
+
+> **Gap identificado pós-implementação:** A análise inicial inferiu "arquivo único" do legado, mas o endpoint `/events/with-images` e o campo `photos` (plural) indicam suporte a múltiplos. Limite de 5 confirmado pelo produtor.
 
 ### Requirement: Lógica de overnight para datas
 O sistema SHALL detectar automaticamente quando o término é no dia seguinte.

@@ -6,6 +6,8 @@ import type { CreateEventForm } from '../_schema'
 export function EventInfoForm() {
   const { register, watch, formState: { errors } } = useFormContext<CreateEventForm>()
   const descLen = (watch('description') ?? '').length
+  const titleReg = register('title')
+  const descReg = register('description')
 
   return (
     <div
@@ -31,7 +33,8 @@ export function EventInfoForm() {
           Nome do evento <span style={{ color: 'var(--pink)' }}>*</span>
         </label>
         <input
-          {...register('title')}
+          id="input-title"
+          {...titleReg}
           placeholder="Ex: Sunset Beach Party"
           className="w-full rounded-[14px] border-[1.5px] px-[15px] py-[13px] text-[15px] font-medium outline-none transition-all"
           style={{
@@ -40,7 +43,7 @@ export function EventInfoForm() {
             color: 'var(--ink)',
           }}
           onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)' }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = errors.title ? 'var(--pink)' : 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none' }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = errors.title ? 'var(--pink)' : 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; void titleReg.onBlur(e) }}
         />
         {errors.title && (
           <span className="text-[12px] font-semibold" style={{ color: 'var(--pink)' }}>
@@ -54,7 +57,7 @@ export function EventInfoForm() {
           Descrição
         </label>
         <textarea
-          {...register('description')}
+          {...descReg}
           maxLength={600}
           rows={4}
           placeholder="Conte o que rola no evento: line-up, atrações, clima, o que torna ele especial..."
@@ -66,7 +69,7 @@ export function EventInfoForm() {
             minHeight: '110px',
           }}
           onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)' }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none' }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; void descReg.onBlur(e) }}
         />
         <div className="text-right text-[12px] font-semibold" style={{ color: 'var(--wp-muted)' }}>
           {descLen}/600

@@ -3,7 +3,7 @@
 import { useFormContext } from 'react-hook-form'
 import type { CreateEventForm } from '../_schema'
 
-function FieldInput({ label, required, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; required?: boolean }) {
+function FieldInput({ label, required, onBlur, onFocus, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; required?: boolean }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="font-extrabold text-[13px]" style={{ color: 'var(--ink-soft)' }}>
@@ -13,8 +13,8 @@ function FieldInput({ label, required, ...props }: React.InputHTMLAttributes<HTM
         {...props}
         className="w-full rounded-[14px] border-[1.5px] px-[15px] py-[13px] text-[15px] font-medium outline-none transition-all"
         style={{ background: '#FCFAFD', borderColor: 'var(--line)', color: 'var(--ink)' }}
-        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)' }}
-        onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none' }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)'; onFocus?.(e) }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e) }}
       />
     </div>
   )
@@ -22,6 +22,7 @@ function FieldInput({ label, required, ...props }: React.InputHTMLAttributes<HTM
 
 export function DateTimeForm() {
   const { register, formState: { errors } } = useFormContext<CreateEventForm>()
+  const startDateReg = register('startDate')
 
   return (
     <div
@@ -49,12 +50,13 @@ export function DateTimeForm() {
             Início <span style={{ color: 'var(--pink)' }}>*</span>
           </label>
           <input
+            id="input-startDate"
             type="date"
-            {...register('startDate')}
+            {...startDateReg}
             className="w-full rounded-[14px] border-[1.5px] px-[15px] py-[13px] text-[15px] font-medium outline-none transition-all"
             style={{ background: '#FCFAFD', borderColor: errors.startDate ? 'var(--pink)' : 'var(--line)', color: 'var(--ink)' }}
             onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff' }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = errors.startDate ? 'var(--pink)' : 'var(--line)'; e.currentTarget.style.background = '#FCFAFD' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = errors.startDate ? 'var(--pink)' : 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; void startDateReg.onBlur(e) }}
           />
           {errors.startDate && (
             <span className="text-[12px] font-semibold" style={{ color: 'var(--pink)' }}>

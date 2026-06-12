@@ -6,7 +6,7 @@ import type { CreateEventForm } from '../_schema'
 
 type CepStatus = 'idle' | 'loading' | 'ok' | 'error'
 
-function FieldInput({ label, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+function FieldInput({ label, onBlur, onFocus, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="font-extrabold text-[13px]" style={{ color: 'var(--ink-soft)' }}>{label}</label>
@@ -14,8 +14,8 @@ function FieldInput({ label, ...props }: React.InputHTMLAttributes<HTMLInputElem
         {...props}
         className="w-full rounded-[14px] border-[1.5px] px-[15px] py-[13px] text-[15px] font-medium outline-none transition-all"
         style={{ background: '#FCFAFD', borderColor: 'var(--line)', color: 'var(--ink)' }}
-        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)' }}
-        onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none' }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)'; onFocus?.(e) }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e) }}
       />
     </div>
   )
@@ -37,10 +37,10 @@ export function LocationForm() {
       const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`)
       const json = await res.json()
       if (json.erro) { setCepStatus('error'); return }
-      setValue('street', json.logradouro ?? '')
-      setValue('district', json.bairro ?? '')
-      setValue('city', json.localidade ?? '')
-      setValue('state', json.uf ?? '')
+      setValue('street', json.logradouro ?? '', { shouldDirty: true })
+      setValue('district', json.bairro ?? '', { shouldDirty: true })
+      setValue('city', json.localidade ?? '', { shouldDirty: true })
+      setValue('state', json.uf ?? '', { shouldDirty: true })
       setCepStatus('ok')
     } catch {
       setCepStatus('error')

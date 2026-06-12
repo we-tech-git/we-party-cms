@@ -9,82 +9,103 @@ import { EngagementFunnel } from '@/components/dashboard/engagement-funnel'
 import { EventRow } from '@/components/dashboard/event-row'
 import { AiSuggestions } from '@/components/dashboard/ai-suggestions'
 import { ActivityInbox } from '@/components/dashboard/activity-inbox'
+import { useProducerDashboard } from '@/hooks/use-producer-dashboard'
+import type { RecentEventDto } from '@/types/events.types'
 
-const kpis = [
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <circle cx="9" cy="8" r="3.2" /><path d="M3 20v-1a6 6 0 0112 0v1M16 5a3.2 3.2 0 010 6M21 20v-1a6 6 0 00-4-5.6" />
-      </svg>
-    ),
-    iconBg: '#EEEAFF', iconColor: 'var(--violet)',
-    value: '38,2k', label: 'Pessoas alcançadas', trend: '22%',
-    spark: [
-      { x: 0, y: 34 }, { x: 15, y: 30 }, { x: 30, y: 32 }, { x: 45, y: 22 }, { x: 60, y: 24 }, { x: 75, y: 12 }, { x: 90, y: 8 },
-    ],
-    sparkColor: '#7C5CFF',
-  },
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <path d="M3 17l6-6 4 4 8-8M21 7v5h-5" />
-      </svg>
-    ),
-    iconBg: '#FFEDD9', iconColor: 'var(--amber)',
-    value: '128k', label: 'Impressões na descoberta', trend: '31%',
-  },
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" />
-      </svg>
-    ),
-    iconBg: '#E6F1FF', iconColor: 'var(--blue)',
-    value: '45.892', label: 'Visualizações', trend: '12,5%',
-    spark: [
-      { x: 0, y: 30 }, { x: 15, y: 26 }, { x: 30, y: 28 }, { x: 45, y: 18 }, { x: 60, y: 20 }, { x: 75, y: 14 }, { x: 90, y: 10 },
-    ],
-    sparkColor: '#3E7BFB',
-  },
-  {
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z" />
-      </svg>
-    ),
-    iconBg: '#FFE9F2', iconColor: 'var(--pink)',
-    value: '3.218', label: 'Curtidas', trend: '42%',
-  },
-]
+function fmtPeople(n?: number): string {
+  if (n === undefined) return '—'
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace('.', ',')} milhões`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace('.', ',')} mil`
+  return String(n)
+}
 
-const spotlightStats = [
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>,
-    iconBg: '#E6F1FF', iconColor: 'var(--blue)', value: '12,1k', label: 'views',
-  },
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z" /></svg>,
-    iconBg: '#FFE9F2', iconColor: 'var(--pink)', value: '1.918', label: 'curtidas',
-  },
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M20 6L9 17l-5-5" /></svg>,
-    iconBg: '#EEEAFF', iconColor: 'var(--violet)', value: '820', label: 'confirmados',
-  },
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" /></svg>,
-    iconBg: '#E6FBF3', iconColor: 'var(--green)', value: '410', label: 'compart.',
-  },
-]
+type EventStatus = 'ativo' | 'rascunho' | 'agendado'
 
-const events = [
-  { day: '25', month: 'Jan', name: 'Sunset Beach Party', status: 'ativo' as const, location: 'Copacabana', views: '12,1k', likes: '1.918', confirmed: '820', popularityPct: 87, popularityLabel: 'popularidade 87', rankLabel: '#3 no feed' },
-  { day: '02', month: 'Fev', name: 'Neon Night', status: 'rascunho' as const, location: 'Club XYZ', views: '6,2k', likes: '410', confirmed: '188', popularityPct: 48, popularityLabel: 'popularidade 48', rankLabel: 'em crescimento' },
-  { day: '15', month: 'Fev', name: 'Carnival Pre-Party', status: 'agendado' as const, location: 'Arena Central', views: '', likes: '', confirmed: '', popularityPct: 3, popularityLabel: 'sem alcance', rankLabel: 'publique →' },
-]
+function mapRecentEvent(ev: RecentEventDto) {
+  const d = new Date(ev.startDate)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')
+  const status: EventStatus = d > new Date() ? 'agendado' : 'ativo'
+  return {
+    day,
+    month: month.charAt(0).toUpperCase() + month.slice(1),
+    name: ev.title,
+    status,
+    location: ev.location,
+    views: fmtKpi(ev.viewCount),
+    likes: fmtKpi(ev.totalLikes),
+    confirmed: fmtKpi(ev.totalConfirmed),
+  }
+}
+
+function fmtKpi(n?: number): string {
+  if (n === undefined) return '—'
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (n >= 1_000) return n.toLocaleString('pt-BR')
+  return String(n)
+}
+
 
 export default function ProducerDashboard() {
   const user = useAuthStore((s) => s.user)
   const initial = (user?.name ?? 'P')[0].toUpperCase()
+  const { data, isLoading } = useProducerDashboard()
+
+  const kpis = [
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+          <circle cx="9" cy="8" r="3.2" /><path d="M3 20v-1a6 6 0 0112 0v1M16 5a3.2 3.2 0 010 6M21 20v-1a6 6 0 00-4-5.6" />
+        </svg>
+      ),
+      iconBg: '#EEEAFF', iconColor: 'var(--violet)',
+      value: isLoading ? '…' : fmtKpi(data?.peopleReached),
+      label: 'Pessoas alcançadas',
+      trend: '30d',
+      spark: data?.growthChart?.map((p, i) => ({ x: i * 15, y: 34 - (p.peopleReached / Math.max(...(data.growthChart.map(g => g.peopleReached)), 1)) * 26 })),
+      sparkColor: '#7C5CFF',
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" />
+        </svg>
+      ),
+      iconBg: '#E6F1FF', iconColor: 'var(--blue)',
+      value: isLoading ? '…' : fmtKpi(data?.totalViews),
+      label: 'Visualizações',
+      trend: 'total',
+      sparkColor: '#3E7BFB',
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z" />
+        </svg>
+      ),
+      iconBg: '#FFE9F2', iconColor: 'var(--pink)',
+      value: isLoading ? '…' : fmtKpi(data?.totalLikes),
+      label: 'Curtidas',
+      trend: 'total',
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+          <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+        </svg>
+      ),
+      iconBg: '#E6FBF3', iconColor: 'var(--green)',
+      value: isLoading ? '…' : fmtKpi(data?.totalShares),
+      label: 'Compartilhamentos',
+      trend: 'total',
+    },
+  ]
+
+  const greetingReach = isLoading
+    ? '…'
+    : data?.peopleReached
+      ? `${fmtPeople(data.peopleReached)} pessoas`
+      : null
 
   return (
     <div className="flex flex-col gap-5">
@@ -104,7 +125,10 @@ export default function ProducerDashboard() {
             </span>! 👋
           </h1>
           <p className="font-semibold mt-0.5" style={{ color: 'var(--ink-soft)' }}>
-            Seus eventos alcançaram <strong>38,2 mil pessoas</strong> esta semana — 22% a mais que na anterior 🚀
+            {greetingReach
+              ? <>Seus eventos alcançaram <strong>{greetingReach}</strong> nos últimos 30 dias 🚀</>
+              : 'Carregando suas métricas…'
+            }
           </p>
         </div>
         <div className="ml-auto flex gap-2.5 items-center flex-wrap">
@@ -115,7 +139,7 @@ export default function ProducerDashboard() {
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" />
             </svg>
-            Terça, 10 de junho de 2026
+            Quarta, 11 de junho de 2026
           </div>
           <button
             className="flex items-center gap-2 rounded-[14px] px-5 py-[13px] font-extrabold transition hover:border-[var(--pink)] hover:text-[var(--pink)]"
@@ -149,17 +173,14 @@ export default function ProducerDashboard() {
       <div className="grid gap-5 max-[1180px]:grid-cols-1" style={{ gridTemplateColumns: 'minmax(0,1fr) 372px' }}>
         {/* Left column */}
         <div className="flex flex-col gap-5 min-w-0">
-          <SpotlightCard
-            eventName="Sunset Beach Party"
-            location="Copacabana"
-            date="25 Jan"
-            audience="público 18–35"
-            popularityScore={87}
-            reachCount="28,4k"
-            stats={spotlightStats}
+          <SpotlightCard topEvent={data?.topEvent ?? null} />
+          <ReachChart growthChart={data?.growthChart} />
+          <EngagementFunnel
+            totalViews={data?.totalViews}
+            totalLikes={data?.totalLikes}
+            totalAttendances={data?.totalAttendances}
+            totalShares={data?.totalShares}
           />
-          <ReachChart />
-          <EngagementFunnel />
 
           {/* Events list card */}
           <div
@@ -183,9 +204,15 @@ export default function ProducerDashboard() {
               </button>
             </div>
             <div className="flex flex-col gap-3">
-              {events.map((ev, i) => (
-                <EventRow key={i} {...ev} />
-              ))}
+              {data?.recentEvents && data.recentEvents.length > 0 ? (
+                data.recentEvents.map((ev) => (
+                  <EventRow key={ev.id} {...mapRecentEvent(ev)} />
+                ))
+              ) : (
+                <p className="text-center py-6 font-semibold text-[14px]" style={{ color: 'var(--wp-muted)' }}>
+                  {isLoading ? 'Carregando eventos…' : 'Nenhum evento ainda — crie o seu primeiro!'}
+                </p>
+              )}
             </div>
           </div>
         </div>

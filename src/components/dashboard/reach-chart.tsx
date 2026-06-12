@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import type { ProducerDashboardGrowthPoint } from '@/types/events.types'
 
 const PERIODS = ['7D', '30D', '90D', '1A'] as const
 type Period = (typeof PERIODS)[number]
 
-const data: Record<Period, { vals: number[]; total: string; unit: string; gr: string }> = {
+const mockData: Record<Period, { vals: number[]; total: string; unit: string; gr: string }> = {
   '7D': { vals: [5.2, 5.8, 5.5, 6.9, 7.4, 8.2, 7.0], total: '45,9k', unit: 'pessoas', gr: '▲ 12,5% vs. semana anterior' },
   '30D': { vals: [28, 33, 30, 38, 36, 44, 42, 50, 48, 58], total: '182k', unit: 'pessoas', gr: '▲ 19,4% vs. mês anterior' },
   '90D': { vals: [60, 82, 78, 110, 140, 135, 170], total: '512k', unit: 'pessoas', gr: '▲ 38,6% vs. trimestre anterior' },
@@ -40,9 +41,29 @@ function smoothPath(pts: { x: number; y: number }[]) {
   return d
 }
 
-export function ReachChart() {
-  const [period, setPeriod] = useState<Period>('7D')
-  const { vals, total, unit, gr } = data[period]
+function formatTotal(total: number): string {
+  if (total >= 1_000_000) return `${(total / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (total >= 1_000) return `${(total / 1_000).toFixed(1).replace('.', ',')}k`
+  return String(total)
+}
+
+type ReachChartProps = {
+  growthChart?: ProducerDashboardGrowthPoint[]
+}
+
+export function ReachChart({ growthChart }: ReachChartProps) {
+  const [period, setPeriod] = useState<Period>('30D')
+
+  const getValsAndMeta = (): { vals: number[]; total: string; unit: string; gr: string } => {
+    if (period === '30D' && growthChart && growthChart.length > 0) {
+      const vals = growthChart.map((p) => p.peopleReached)
+      const total = vals.reduce((s, v) => s + v, 0)
+      return { vals, total: formatTotal(total), unit: 'pessoas', gr: '▲ últimos 30 dias' }
+    }
+    return mockData[period]
+  }
+
+  const { vals, total, unit, gr } = getValsAndMeta()
   const pts = computePoints(vals)
   const linePath = smoothPath(pts)
   const fillPath = linePath + ` L ${W} ${H + 18} L 0 ${H + 18} Z`

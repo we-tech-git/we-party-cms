@@ -11,9 +11,9 @@ type EventRowProps = {
   views: string
   likes: string
   confirmed: string
-  popularityPct: number
-  popularityLabel: string
-  rankLabel: string
+  popularityPct?: number
+  popularityLabel?: string
+  rankLabel?: string
 }
 
 const statusStyles: Record<EventStatus, { bg: string; color: string; label: string }> = {
@@ -65,24 +65,30 @@ export function EventRow({ day, month, name, status, location, views, likes, con
         </div>
       </div>
 
-      {/* Mini progress */}
-      <div className="text-right flex-none">
-        <div className="h-[7px] w-[120px] rounded-full overflow-hidden ml-auto" style={{ background: '#F1ECF3' }}>
-          <div
-            className="h-full rounded-full"
-            style={{ width: `${popularityPct}%`, background: GRAD }}
-          />
+      {/* Mini progress — omitido quando não há dados de score */}
+      {popularityPct !== undefined && (
+        <div className="text-right flex-none">
+          <div className="h-[7px] w-[120px] rounded-full overflow-hidden ml-auto" style={{ background: '#F1ECF3' }}>
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${popularityPct}%`, background: GRAD }}
+            />
+          </div>
+          {popularityLabel && (
+            <div className="text-[12px] font-bold mt-1" style={{ color: 'var(--wp-muted)' }}>
+              {popularityLabel}
+            </div>
+          )}
+          {rankLabel && (
+            <div
+              className="font-extrabold text-[15px] block mt-1"
+              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--pink)' }}
+            >
+              {rankLabel}
+            </div>
+          )}
         </div>
-        <div className="text-[12px] font-bold mt-1" style={{ color: 'var(--wp-muted)' }}>
-          {popularityLabel}
-        </div>
-        <div
-          className="font-extrabold text-[15px] block mt-1"
-          style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--pink)' }}
-        >
-          {rankLabel}
-        </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -27,6 +27,7 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('ACCESS_TOKEN')
       localStorage.removeItem('LOGGED_USER')
+      document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax'
       window.location.href = '/login'
     }
     return Promise.reject(error)

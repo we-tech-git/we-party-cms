@@ -5,8 +5,9 @@ import { GRAD } from '@/lib/brand'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import { cn } from '@/lib/utils'
+import { useMyEvents } from '@/hooks/use-my-events'
 
-const rootLinks = [
+const staticRootLinks = [
   {
     href: '/cms/home',
     label: 'Início',
@@ -25,17 +26,17 @@ const rootLinks = [
       </svg>
     ),
   },
-  {
-    href: '/cms/producer/my-events',
-    label: 'Meus eventos',
-    badge: '3',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" />
-      </svg>
-    ),
-  },
 ]
+
+const myEventsLink = {
+  href: '/cms/producer/my-events',
+  label: 'Meus eventos',
+  icon: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+      <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" />
+    </svg>
+  ),
+}
 
 const growthLinks = [
   {
@@ -171,6 +172,13 @@ export function CmsSidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { user, logout } = useAuthStore()
+  const { data: eventsData } = useMyEvents()
+  const eventsTotal = eventsData?.total
+
+  const rootLinks = [
+    ...staticRootLinks,
+    { ...myEventsLink, badge: eventsTotal != null ? String(eventsTotal) : undefined },
+  ]
 
   function handleLogout() {
     logout()

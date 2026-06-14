@@ -1,0 +1,452 @@
+<!-- WeParty — Espaço do Produtor — Criar evento (refatorado no design system) -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WeParty · Criar evento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --grad: linear-gradient(120deg,#FF9D3D 0%,#FF5F8D 52%,#F0309A 100%);
+    --violet:#7C5CFF; --violet-2:#9B6BFF;
+    --ink:#221A3D; --ink-soft:#544D6E; --muted:#8C85A2;
+    --pink:#D81B7E; --green:#10A87D; --blue:#3E7BFB; --amber:#E8920C;
+    --line:rgba(34,26,61,.10); --line-2:rgba(34,26,61,.06);
+    --field:#FCFAFD;
+    --shadow:0 18px 50px -22px rgba(123,38,96,.35);
+    --shadow-sm:0 6px 20px -12px rgba(123,38,96,.28);
+    --r:22px;
+    font-family:"Hanken Grotesk",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.45;
+    background:
+      radial-gradient(1000px 600px at 92% -8%, #FFE3CB 0%, transparent 52%),
+      radial-gradient(900px 700px at -4% 6%, #FFD7E7 0%, transparent 48%),
+      radial-gradient(1000px 800px at 70% 115%, #EFE3FF 0%, transparent 55%),
+      #FFF4F7;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  a{color:inherit;text-decoration:none}
+  input,textarea{font-family:inherit}
+  ::selection{background:#FF5F8D;color:#fff}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:18px;
+    padding:14px clamp(16px,3vw,34px);background:rgba(255,244,247,.8);backdrop-filter:blur(18px);border-bottom:1px solid var(--line-2)}
+  .logo{display:flex;align-items:center;gap:11px;font-family:"Bricolage Grotesque";font-weight:800;font-size:21px;letter-spacing:.02em}
+  .logo .mark{width:36px;height:36px;border-radius:11px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:18px;box-shadow:var(--shadow-sm)}
+  .logo .party{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .logo .div{width:1px;height:26px;background:var(--line);margin:0 4px}
+  .logo .sub{font-family:"Bricolage Grotesque";font-weight:700;font-size:16px;background:linear-gradient(120deg,var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tb-r{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .icobtn{width:42px;height:42px;border-radius:12px;background:#fff;border:1px solid var(--line-2);display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:.16s}
+  .icobtn:hover{color:var(--pink)}
+  .tb-user{display:flex;align-items:center;gap:10px}
+  .tb-user .who{text-align:right;line-height:1.15}
+  .tb-user .who b{font-size:14px}.tb-user .who small{color:var(--muted);font-size:12px;font-weight:600}
+  .tb-user .av{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#7b5cff,#c54bff);display:grid;place-items:center;color:#fff;font-weight:800;border:2px solid #fff;box-shadow:var(--shadow-sm)}
+
+  .shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;max-width:1500px;margin:0 auto;padding:24px clamp(14px,3vw,34px) 40px;align-items:start}
+
+  /* SIDEBAR */
+  .side{position:sticky;top:90px;display:flex;flex-direction:column;gap:8px}
+  .side .grp{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 16px 4px}
+  .side a{display:flex;align-items:center;gap:13px;padding:13px 16px;border-radius:15px;font-weight:700;color:var(--ink-soft);transition:.16s}
+  .side a:hover{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .side a.active{background:var(--grad);color:#fff;box-shadow:0 14px 28px -14px rgba(240,48,154,.65)}
+  .side a .ico{width:22px;height:22px;display:grid;place-items:center;flex:none}
+  .side a .tag{margin-left:auto;font-size:10px;font-weight:800;background:#EEEAFF;color:var(--violet);padding:2px 8px;border-radius:8px}
+  .side a.active .tag{background:rgba(255,255,255,.25);color:#fff}
+
+  /* MAIN */
+  .main{display:flex;flex-direction:column;gap:20px;min-width:0}
+  .phead{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .phead h1{font-family:"Bricolage Grotesque";font-weight:800;font-size:28px;line-height:1.05}
+  .phead p{color:var(--ink-soft);font-weight:600;margin-top:3px;font-size:14.5px}
+  .phead .pr{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .complete{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line-2);border-radius:13px;padding:9px 14px;box-shadow:var(--shadow-sm);font-weight:700;font-size:13px}
+  .ring{--p:20;width:30px;height:30px;border-radius:50%;background:conic-gradient(#F0309A calc(var(--p)*1%),#F1ECF3 0);display:grid;place-items:center}
+  .ring::after{content:"";width:21px;height:21px;border-radius:50%;background:#fff}
+  .ring b{position:absolute;font-size:10px;font-family:"Bricolage Grotesque"}
+
+  .cgrid{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:20px;align-items:start}
+  .colL,.colR{display:flex;flex-direction:column;gap:20px;min-width:0}
+
+  .card{background:#fff;border:1px solid var(--line-2);border-radius:var(--r);padding:24px;box-shadow:var(--shadow-sm)}
+  .card>.ch{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+  .card>.ch .ci{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none}
+  .card>.ch h3{font-family:"Bricolage Grotesque";font-size:18px;font-weight:700}
+  .card>.ch .csub{font-size:12.5px;color:var(--muted);font-weight:600}
+  .card>.ch .right{margin-left:auto}
+
+  /* FIELDS */
+  .fgroup{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+  .fgroup:last-child{margin-bottom:0}
+  label.lab{font-weight:800;font-size:13px;color:var(--ink-soft)}
+  label.lab .req{color:var(--pink)}
+  .inp,textarea.inp{width:100%;background:var(--field);border:1.5px solid var(--line);border-radius:14px;padding:13px 15px;font-size:15px;font-weight:500;color:var(--ink);outline:none;transition:.16s}
+  .inp::placeholder,textarea.inp::placeholder{color:var(--muted);font-weight:500}
+  .inp:focus,textarea.inp:focus{border-color:var(--pink);background:#fff;box-shadow:0 0 0 4px rgba(240,48,154,.1)}
+  textarea.inp{resize:vertical;min-height:110px}
+  .with-ico{position:relative}
+  .with-ico .ig{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .with-ico .inp{padding-left:42px}
+  .row{display:grid;gap:14px}
+  .row.two{grid-template-columns:1fr 1fr}
+  .row.three{grid-template-columns:1fr 1fr 1fr}
+  .countr{font-size:12px;color:var(--muted);font-weight:600;text-align:right}
+
+  /* COVER DROPZONE */
+  .drop{border:2px dashed #f0b9d2;border-radius:20px;background:linear-gradient(135deg,#FFF6FA,#FBF4FF);min-height:230px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:30px;cursor:pointer;transition:.18s;position:relative;overflow:hidden;background-size:cover;background-position:center}
+  .drop:hover,.drop.drag{border-color:var(--pink);transform:translateY(-2px)}
+  .drop .cloud{width:60px;height:60px;border-radius:18px;background:#fff;display:grid;place-items:center;box-shadow:var(--shadow-sm);margin-bottom:8px}
+  .drop b{font-family:"Bricolage Grotesque";font-size:18px}
+  .drop .d1{color:var(--ink-soft);font-weight:600;font-size:14px}
+  .drop .d2{color:var(--muted);font-weight:500;font-size:13px}
+  .drop.has{border-style:solid;border-color:transparent}
+  .drop .scrim{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:flex-end;padding:16px;background:linear-gradient(to top,rgba(20,8,30,.55),transparent 55%)}
+  .drop.has .scrim{display:flex}
+  .drop.has>*:not(.scrim){display:none}
+  .drop .change{background:rgba(255,255,255,.92);color:var(--ink);font-weight:800;font-size:13px;padding:9px 15px;border-radius:11px;display:flex;align-items:center;gap:7px}
+
+  /* SEGMENTED TOGGLE */
+  .seg2{display:flex;gap:6px;background:#F4EFF6;border-radius:15px;padding:6px}
+  .seg2 button{flex:1;padding:13px 12px;border-radius:11px;font-weight:800;font-size:14px;color:var(--ink-soft);transition:.16s;display:flex;align-items:center;justify-content:center;gap:7px}
+  .seg2 button.on{background:var(--grad);color:#fff;box-shadow:0 10px 20px -10px rgba(240,48,154,.7)}
+  .seg2 button.on.neutral{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm)}
+  .note{margin-top:12px;font-size:13px;color:var(--ink-soft);font-weight:500;line-height:1.5}
+  .note .pill{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--violet);background:#EEEAFF;padding:3px 9px;border-radius:7px;margin-bottom:7px}
+
+  /* INTERESTS */
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:9px 14px;font-weight:800;font-size:13px;cursor:pointer;transition:.16s;border:1.5px solid #ffd0e3;color:var(--pink);background:#fff}
+  .chip:hover{background:#FFE0EC}
+  .chip.sel{background:var(--grad);color:#fff;border-color:transparent}
+  .chip .x{font-weight:800;opacity:.85}
+  .reroll{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;color:var(--muted);transition:.16s}
+  .reroll:hover{color:var(--pink);border-color:var(--pink);rotate:90deg}
+  .subtle{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 9px;display:flex;align-items:center;gap:6px}
+  .empty{display:flex;align-items:center;gap:8px;color:var(--muted);font-weight:600;font-size:13px;background:var(--field);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;margin-top:14px}
+  .sugnew{margin-top:16px;padding-top:16px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:8px;color:var(--violet);font-weight:800;font-size:13.5px}
+
+  /* FAQ */
+  .faqitem{display:flex;gap:10px;align-items:flex-start;background:var(--field);border:1px solid var(--line-2);border-radius:14px;padding:14px;margin-bottom:12px}
+  .faqitem .qn{flex:1;display:flex;flex-direction:column;gap:8px}
+  .faqitem .rm{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--muted);border:1px solid var(--line-2);background:#fff;flex:none;transition:.16s}
+  .faqitem .rm:hover{color:#E0476B;border-color:#ffd0d8}
+  .addq{display:flex;align-items:center;gap:8px;background:var(--grad);color:#fff;font-weight:800;font-size:13.5px;padding:11px 17px;border-radius:13px;box-shadow:0 12px 24px -14px rgba(240,48,154,.7);transition:.16s}
+  .addq:hover{transform:translateY(-2px)}
+
+  /* RIGHT — LIVE PREVIEW */
+  .rail{position:sticky;top:90px;display:flex;flex-direction:column;gap:20px}
+  .pv-wrap .pvlabel{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+  .pvcard{background:#fff;border:1px solid var(--line-2);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}
+  .pvcover{height:150px;background:linear-gradient(120deg,#ff7e3d,#ff4d8d 55%,#a23bd6);background-size:cover;background-position:center;position:relative;display:flex;align-items:flex-end;padding:14px}
+  .pvcover::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(20,8,30,.6),transparent 60%)}
+  .pvbadge{position:absolute;top:12px;left:12px;z-index:2;background:rgba(255,255,255,.9);backdrop-filter:blur(6px);color:var(--violet);font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:5px 10px;border-radius:999px}
+  .pvcover .pvchips{position:relative;z-index:2;display:flex;gap:6px;flex-wrap:wrap}
+  .pvchip{background:rgba(255,255,255,.2);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:4px 9px;border-radius:999px}
+  .pvbody{padding:16px}
+  .pvbody h4{font-family:"Bricolage Grotesque";font-weight:800;font-size:19px;line-height:1.1}
+  .pvmeta{display:flex;flex-direction:column;gap:5px;margin-top:9px;color:var(--ink-soft);font-weight:600;font-size:13px}
+  .pvmeta span{display:flex;align-items:center;gap:8px}
+  .pvmeta svg{color:var(--pink);flex:none}
+  .pvsocial{display:flex;gap:16px;margin-top:14px;padding-top:13px;border-top:1px solid var(--line-2);color:var(--muted);font-weight:700;font-size:13px}
+  .pvsocial span{display:flex;align-items:center;gap:6px}
+
+  .tipcard{background:linear-gradient(150deg,#2a1340,#4a1f5e);color:#fff;border:none}
+  .tipcard .ch h3{color:#fff}
+  .tip{display:flex;gap:11px;align-items:flex-start;font-size:13px;font-weight:500;opacity:.92;margin-bottom:11px}
+  .tip:last-child{margin-bottom:0}
+  .tip .tk{width:24px;height:24px;border-radius:8px;background:rgba(255,255,255,.14);display:grid;place-items:center;flex:none;font-size:13px}
+
+  /* STICKY ACTION BAR */
+  .actionbar{position:sticky;bottom:16px;z-index:40;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:rgba(255,255,255,.86);backdrop-filter:blur(16px);border:1px solid var(--line-2);border-radius:20px;padding:14px 18px;box-shadow:var(--shadow);margin-top:4px}
+  .actionbar .hint{font-weight:600;font-size:13.5px;color:var(--ink-soft);display:flex;align-items:center;gap:8px}
+  .actionbar .sp{margin-left:auto;display:flex;gap:12px}
+  .btn{display:flex;align-items:center;gap:9px;border-radius:14px;padding:14px 24px;font-weight:800;transition:.16s}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--pink);color:var(--pink)}
+  .btn-primary{background:var(--grad);color:#fff;box-shadow:0 14px 28px -14px rgba(240,48,154,.7)}
+  .btn-primary:hover{transform:translateY(-2px)}
+  .btn-primary:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+
+  @media(max-width:1180px){.cgrid{grid-template-columns:1fr}.rail{position:static}}
+  @media(max-width:880px){.shell{grid-template-columns:1fr}.side{position:static;flex-direction:row;flex-wrap:wrap;gap:8px}.side .grp{display:none}.tb-user .who{display:none}.row.two,.row.three{grid-template-columns:1fr}}
+</style>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="logo"><span class="mark">🤘</span><span>WE&nbsp;</span><span class="party">PARTY</span><span class="div"></span><span class="sub">Espaço do produtor</span></div>
+  <div class="tb-r">
+    <button class="icobtn"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg></button>
+    <button class="icobtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+    <div class="tb-user"><div class="who"><b>Admin WeParty</b><br><small>admin@wepartyapp.com</small></div><div class="av">A</div></div>
+  </div>
+</header>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="side">
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span>Início</a>
+    <a class="active"><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M12 14v3M10.5 15.5h3"/></svg></span>Novo evento</a>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>Meus eventos<span class="tag">3</span></a>
+    <div class="grp">Crescimento</div>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8M21 7v5h-5"/></svg></span>Impulsionar</a>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>Insights</a>
+    <div class="grp">Público</div>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="8" r="3.5"/><path d="M3 21v-1a6 6 0 0112 0v1M16 4.5a3.5 3.5 0 010 7M21 21v-1a6 6 0 00-4-5.7"/></svg></span>Audiência</a>
+    <a><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a4 4 0 01-4 4H8l-5 4V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg></span>Engajamento</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="phead">
+      <div>
+        <h1>Criar novo evento ✨</h1>
+        <p>Capriche nos detalhes — eventos completos aparecem mais na descoberta e recebem mais curtidas.</p>
+      </div>
+    </div>
+
+    <div class="cgrid">
+      <!-- LEFT: FORM -->
+      <div class="colL">
+        <!-- COVER -->
+        <div class="card" style="padding:18px">
+          <div class="drop" id="drop">
+            <span class="cloud"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7C5CFF" stroke-width="2.2"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M20 16v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3"/></svg></span>
+            <b>Adicione a imagem de capa</b>
+            <div class="d1">Arraste e solte ou clique para enviar</div>
+            <div class="d2">É a primeira coisa que o público vê no feed — escolha uma foto que chame atenção 🔥</div>
+            <div class="scrim"><span class="change"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>Trocar imagem</span></div>
+          </div>
+          <input type="file" id="file" accept="image/*" hidden />
+        </div>
+
+        <!-- DETAILS -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#FFE9F2;color:var(--pink)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></span><h3>Detalhes do evento</h3></div>
+          <div class="fgroup">
+            <label class="lab">Nome do evento <span class="req">*</span></label>
+            <input class="inp" id="nome" placeholder="Ex: Sunset Beach Party" />
+          </div>
+          <div class="fgroup">
+            <label class="lab">Descrição</label>
+            <textarea class="inp" id="desc" maxlength="600" placeholder="Conte o que rola no evento: line-up, atrações, clima, o que torna ele especial..."></textarea>
+            <div class="countr"><span id="cc">0</span>/600</div>
+          </div>
+        </div>
+
+        <!-- DATE & TIME -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#EEEAFF;color:var(--violet)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><h3>Data e horário</h3></div>
+          <div class="row two" style="margin-bottom:16px">
+            <div class="fgroup" style="margin:0"><label class="lab">Início <span class="req">*</span></label><input class="inp" type="date" id="dini" /></div>
+            <div class="fgroup" style="margin:0"><label class="lab">Hora</label><input class="inp" type="time" value="22:00" id="hini" /></div>
+          </div>
+          <div class="row two">
+            <div class="fgroup" style="margin:0"><label class="lab">Término</label><input class="inp" type="date" /></div>
+            <div class="fgroup" style="margin:0"><label class="lab">Hora</label><input class="inp" type="time" value="06:00" /></div>
+          </div>
+        </div>
+
+        <!-- LOCATION -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#E6F1FF;color:var(--blue)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><h3>Local</h3></div>
+          <div class="fgroup">
+            <label class="lab">CEP</label>
+            <div class="with-ico"><span class="ig"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><input class="inp" placeholder="00000-000" /></div>
+          </div>
+          <div class="row three" style="margin-bottom:16px">
+            <div class="fgroup" style="margin:0"><label class="lab">Cidade</label><input class="inp" id="city" placeholder="Cidade" /></div>
+            <div class="fgroup" style="margin:0"><label class="lab">Estado</label><input class="inp" placeholder="UF" /></div>
+            <div class="fgroup" style="margin:0"><label class="lab">Bairro</label><input class="inp" placeholder="Bairro" /></div>
+          </div>
+          <div class="row" style="grid-template-columns:2fr 1fr">
+            <div class="fgroup" style="margin:0"><label class="lab">Rua</label><input class="inp" placeholder="Rua / avenida" /></div>
+            <div class="fgroup" style="margin:0"><label class="lab">Número</label><input class="inp" placeholder="Nº" /></div>
+          </div>
+        </div>
+
+        <!-- INTERESTS -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#FFEDD9;color:var(--amber)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0l-7.2-7.2a2 2 0 01-.6-1.4V5a2 2 0 012-2h7a2 2 0 011.4.6l7.2 7.2a2 2 0 010 2.6z"/><circle cx="8" cy="8" r="1.4"/></svg></span><h3>Interesses do evento</h3><span class="csub right">ajuda o público certo a te encontrar</span></div>
+          <div class="fgroup">
+            <label class="lab">Pesquisar interesses</label>
+            <div class="with-ico"><span class="ig"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><input class="inp" id="isearch" placeholder="Digite para buscar interesses..." /></div>
+          </div>
+          <div id="searchres" class="chips" style="margin-bottom:4px"></div>
+          <div class="subtle">🔥 Sugestões para você</div>
+          <div class="chips" id="suggest"></div>
+          <div class="subtle" style="margin-bottom:9px">Selecionados</div>
+          <div class="chips" id="selected"></div>
+          <div class="empty" id="emptyint"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg> Nenhum interesse selecionado ainda. Use a busca ou as sugestões acima.</div>
+          <div class="sugnew"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.6.5 1 1.2 1 2h6c0-.8.4-1.5 1-2A7 7 0 0012 2z"/></svg> Não encontrou? Sugira um novo interesse</div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="card">
+          <div class="ch"><span class="ci" style="background:#E6FBF3;color:var(--green)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 .2c0 1.8-2.5 2-2.5 3.8M12 17h.01"/></svg></span><h3>Perguntas frequentes</h3><span class="csub right">opcional</span></div>
+          <p style="color:var(--ink-soft);font-weight:500;font-size:14px;margin-bottom:14px">Antecipe dúvidas comuns (open bar? estacionamento? idade mínima?) e reduza mensagens repetidas.</p>
+          <div id="faqlist"></div>
+          <div class="empty" id="faqempty"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg> Nenhuma pergunta adicionada ainda.</div>
+          <button class="addq" id="addq" style="margin-top:14px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>Nova pergunta</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: PREVIEW + SETTINGS -->
+      <div class="colR">
+        <aside class="rail">
+          <!-- LIVE PREVIEW -->
+          <div class="pv-wrap">
+            <div class="pvlabel"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Prévia no feed · ao vivo</div>
+            <div class="pvcard">
+              <div class="pvcover" id="pvcover">
+                <span class="pvbadge" id="pvbadge">Público</span>
+                <div class="pvchips" id="pvchips"></div>
+              </div>
+              <div class="pvbody">
+                <h4 id="pvtitle">Nome do evento</h4>
+                <div class="pvmeta">
+                  <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span id="pvdate">Data e horário</span></span>
+                  <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span id="pvloc">Cidade</span></span>
+                </div>
+                <div class="pvsocial"><span>♥ 0</span><span>✓ 0 vão</span><span id="pvcmt">💬 ativado</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VISIBILITY -->
+          <div class="card">
+            <div class="ch"><span class="ci" style="background:#EEEAFF;color:var(--violet)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></span><h3 style="font-size:16px">Visibilidade</h3></div>
+            <div class="seg2" id="privacy">
+              <button class="on" data-v="pub"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18"/></svg>Público</button>
+              <button data-v="priv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="8" r="3.2"/><path d="M3 20v-1a6 6 0 0112 0v1"/></svg>Privado</button>
+            </div>
+            <div class="note" id="privnote"><span class="pill">Aparece na descoberta</span>Eventos públicos entram no feed "O que tá rolando", onde podem ser curtidos, comentados e compartilhados — é assim que seu alcance cresce.</div>
+          </div>
+
+          <!-- COMMENTS -->
+          <div class="card">
+            <div class="ch"><span class="ci" style="background:#E6F1FF;color:var(--blue)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a4 4 0 01-4 4H8l-5 4V7a4 4 0 014-4h10a4 4 0 014 4z"/></svg></span><h3 style="font-size:16px">Comentários</h3></div>
+            <div class="seg2" id="comments">
+              <button class="on" data-c="on">Permitidos</button>
+              <button data-c="off" class="">Não permitidos</button>
+            </div>
+            <div class="note">Comentários aumentam o engajamento e ajudam o evento a subir na descoberta. Você consegue responder pelo painel.</div>
+          </div>
+
+          <!-- TIPS -->
+          <div class="card tipcard">
+            <div class="ch"><span class="ci" style="background:rgba(255,255,255,.14);color:#fff"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.6.5 1 1.2 1 2h6c0-.8.4-1.5 1-2A7 7 0 0012 2z"/></svg></span><h3 style="font-size:16px">Dicas pra bombar</h3></div>
+            <div class="tip"><span class="tk">📸</span><div>Capa nítida e vertical-friendly tem <b>+60% de cliques</b> no feed.</div></div>
+            <div class="tip"><span class="tk">🏷️</span><div>Marque de 3 a 5 interesses certos pra alcançar o público ideal.</div></div>
+            <div class="tip"><span class="tk">⚡</span><div>Eventos públicos com comentários ativos sobem mais rápido na descoberta.</div></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- STICKY ACTION BAR -->
+    <div class="actionbar">
+      <span class="hint" id="hint"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg> Adicione um nome e uma data para publicar.</span>
+      <div class="sp">
+        <button class="btn btn-ghost"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Salvar rascunho</button>
+        <button class="btn btn-primary" id="publish" disabled>Publicar evento <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const $=id=>document.getElementById(id);
+  // ---------- cover upload ----------
+  const drop=$('drop'),file=$('file'),pvcover=$('pvcover');
+  drop.addEventListener('click',()=>file.click());
+  function setCover(url){drop.style.backgroundImage=`url(${url})`;drop.classList.add('has');pvcover.style.backgroundImage=`url(${url})`;recompute();}
+  file.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>setCover(ev.target.result);r.readAsDataURL(f);});
+  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+  drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image')){const r=new FileReader();r.onload=ev=>setCover(ev.target.result);r.readAsDataURL(f);}});
+
+  // ---------- live bindings ----------
+  const nome=$('nome'),desc=$('desc'),city=$('city'),dini=$('dini'),hini=$('hini');
+  nome.addEventListener('input',()=>{$('pvtitle').textContent=nome.value||'Nome do evento';recompute();});
+  desc.addEventListener('input',()=>$('cc').textContent=desc.value.length);
+  city.addEventListener('input',()=>$('pvloc').textContent=city.value||'Cidade');
+  function fmtDate(){
+    if(!dini.value){$('pvdate').textContent='Data e horário';return;}
+    const d=new Date(dini.value+'T00:00:00');
+    const s=d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+    $('pvdate').textContent=s.charAt(0).toUpperCase()+s.slice(1)+(hini.value?` · ${hini.value}`:'');
+    recompute();
+  }
+  dini.addEventListener('change',fmtDate);hini.addEventListener('change',fmtDate);
+
+  // ---------- privacy / comments ----------
+  $('privacy').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    $('privacy').querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    const pub=b.dataset.v==='pub';
+    $('pvbadge').textContent=pub?'Público':'Privado';
+    $('privnote').innerHTML=pub
+      ?'<span class="pill">Aparece na descoberta</span>Eventos públicos entram no feed "O que tá rolando", onde podem ser curtidos, comentados e compartilhados — é assim que seu alcance cresce.'
+      :'<span class="pill" style="background:#FFE9F2;color:var(--pink)">Somente convidados</span>Eventos privados não aparecem para o público geral, mas podem aparecer para seus seguidores ou só para quem você convidar.';
+  });
+  $('comments').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+    $('comments').querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    $('pvcmt').textContent=b.dataset.c==='on'?'💬 ativado':'💬 desativado';
+  });
+
+  // ---------- interests ----------
+  const POOL=['Festa','Eletrônica','Funk','Sertanejo','Pop','Rock','Samba & Pagode','Hip Hop','Jazz','Stand-up','Gastronomia','Open Air','Praia','Arte','Teatro','Cinema','Universitária','Networking','Tecnologia','LGBTQIA+','College','Tennis','Theatre','Hardcore Punk','Arts & Theatre'];
+  let suggestions=['College','Tennis','Theatre','Hardcore Punk','Arts & Theatre'];
+  const sel=new Set();
+  const elSuggest=$('suggest'),elSelected=$('selected'),elEmpty=$('emptyint'),pvchips=$('pvchips');
+  function renderSuggest(){
+    elSuggest.innerHTML=suggestions.filter(s=>!sel.has(s)).map(s=>`<span class="chip" data-add="${s}">${s} <b>+</b></span>`).join('')
+      +`<button class="reroll" id="reroll" title="Outras sugestões"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 0115-6.7L21 8M21 3v5h-5"/></svg></button>`;
+  }
+  function renderSelected(){
+    elSelected.innerHTML=[...sel].map(s=>`<span class="chip sel" data-rem="${s}">${s} <span class="x">×</span></span>`).join('');
+    elEmpty.style.display=sel.size?'none':'';
+    pvchips.innerHTML=[...sel].slice(0,3).map(s=>`<span class="pvchip">${s}</span>`).join('');
+  }
+  function add(s){sel.add(s);renderSuggest();renderSelected();}
+  function rem(s){sel.delete(s);renderSuggest();renderSelected();}
+  document.body.addEventListener('click',e=>{
+    const a=e.target.closest('[data-add]');if(a){add(a.dataset.add);return;}
+    const r=e.target.closest('[data-rem]');if(r){rem(r.dataset.rem);return;}
+    if(e.target.closest('#reroll')){suggestions=[...POOL].sort(()=>Math.random()-.5).slice(0,5);renderSuggest();}
+    const sr=e.target.closest('[data-sadd]');if(sr){add(sr.dataset.sadd);$('isearch').value='';$('searchres').innerHTML='';}
+  });
+  $('isearch').addEventListener('input',e=>{
+    const q=e.target.value.trim().toLowerCase();
+    $('searchres').innerHTML=q?POOL.filter(s=>s.toLowerCase().includes(q)&&!sel.has(s)).slice(0,6)
+      .map(s=>`<span class="chip" data-sadd="${s}">${s} <b>+</b></span>`).join(''):'';
+  });
+  renderSuggest();renderSelected();
+
+  // ---------- FAQ ----------
+  let faqN=0;
+  $('addq').addEventListener('click',()=>{
+    faqN++;$('faqempty').style.display='none';
+    const div=document.createElement('div');div.className='faqitem';
+    div.innerHTML=`<div class="qn"><input class="inp" placeholder="Pergunta (ex: Tem estacionamento?)" /><input class="inp" placeholder="Resposta" /></div><button class="rm" title="Remover"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>`;
+    div.querySelector('.rm').addEventListener('click',()=>{div.remove();faqN--;if(!faqN)$('faqempty').style.display='';});
+    $('faqlist').appendChild(div);
+  });
+
+  // ---------- validation ----------
+  function recompute(){
+    const ok=nome.value.trim()&&dini.value;
+    $('publish').disabled=!ok;
+    $('hint').innerHTML=ok
+      ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10A87D" stroke-width="2.6"><path d="M20 6L9 17l-5-5"/></svg> Tudo pronto pra publicar!'
+      :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg> Adicione um nome e uma data para publicar.';
+  }
+  nome.addEventListener('input',recompute);dini.addEventListener('change',recompute);
+</script>

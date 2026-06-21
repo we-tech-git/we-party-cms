@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Poppins } from 'next/font/google'
 import './globals.css'
 import { QueryProvider } from '@/providers/query-provider'
 import { AuthHydration } from '@/providers/auth-hydration'
+import { I18nProvider } from '@/i18n/context'
 
 // Poppins: fonte corpo do sistema WeParty
 const poppins = Poppins({
@@ -32,10 +33,12 @@ export default function RootLayout({
     // bricolage.variable expõe --font-bricolage para uso em style={{}}
     <html lang="pt-BR" className={`${poppins.className} ${bricolage.variable} h-full`}>
       <body className="min-h-full flex flex-col">
-        <QueryProvider>
-          <AuthHydration />
-          {children}
-        </QueryProvider>
+        <I18nProvider>
+          <QueryProvider>
+            <AuthHydration />
+            {children}
+          </QueryProvider>
+        </I18nProvider>
       </body>
     </html>
   )

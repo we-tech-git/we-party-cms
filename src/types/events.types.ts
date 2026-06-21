@@ -129,6 +129,47 @@ export interface CreateEventPayload {
   allowComments: boolean
   showInMainFeed: true
   interestIds: string[]
-  invitedUserIds: []
-  faqs: FaqItem[]
+  // The backend expects the singular field name `faq` (the create endpoints read
+  // `faq`, with `faqs` only kept as a read fallback). Sending `faqs` here makes
+  // the FAQs silently disappear on create.
+  faq: FaqItem[]
+}
+
+export interface EventFaqDto {
+  id: string
+  eventId: string
+  question: string
+  answer: string
+}
+
+/**
+ * Shape returned by GET /events/{id} (findOne). Extends the list DTO with the
+ * fields only the detail endpoint returns: FAQs and the broken-down address.
+ * Address fields can be null for events created from a single `location` string.
+ */
+export interface EventDetailDto extends EventDto {
+  faq: EventFaqDto[]
+  street: string | null
+  number: string | null
+  neighborhood: string | null
+  city: string | null
+  state: string | null
+  country: string | null
+  zipCode: string | null
+}
+
+/** Body sent to PUT /events/{id}. Mirrors the web-OPS update flow (faqs inline, photos = kept URLs). */
+export interface UpdateEventPayload {
+  title: string
+  description: string
+  startDate: string
+  endDate: string
+  location: string
+  isPublic: boolean
+  allowComments: boolean
+  interestIds: string[]
+  // Singular `faq`, same as the create payload (the backend has no dedicated
+  // FAQ endpoint — FAQs are sent inline on the event itself).
+  faq: FaqItem[]
+  photos?: string[]
 }

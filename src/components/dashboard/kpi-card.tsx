@@ -15,12 +15,12 @@ type KpiCardProps = {
 export function KpiCard({ icon, iconBg, iconColor, value, label, trend, trendUp = true, spark, sparkColor = '#7C5CFF' }: KpiCardProps) {
   return (
     <div
-      className="relative overflow-hidden rounded-[20px] px-5 py-[18px]"
+      className="relative overflow-hidden rounded-[20px] px-5 py-4.5"
       style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
     >
       <div className="flex items-center justify-between">
         <span
-          className="w-[42px] h-[42px] rounded-[13px] grid place-items-center flex-none"
+          className="w-10.5 h-10.5 rounded-[13px] grid place-items-center flex-none"
           style={{ background: iconBg, color: iconColor }}
         >
           {icon}
@@ -45,7 +45,7 @@ export function KpiCard({ icon, iconBg, iconColor, value, label, trend, trendUp 
 
       {spark && (
         <svg
-          className="absolute right-0 bottom-0 w-[90px] h-[42px] opacity-90"
+          className="absolute right-0 bottom-0 w-22.5 h-10.5 opacity-90"
           viewBox="0 0 90 42"
           preserveAspectRatio="none"
         >

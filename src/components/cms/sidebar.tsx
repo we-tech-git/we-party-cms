@@ -4,44 +4,38 @@ import Link from 'next/link'
 import { GRAD } from '@/lib/brand'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
+import { useI18n } from '@/i18n/context'
 import { cn } from '@/lib/utils'
 import { useMyEvents } from '@/hooks/use-my-events'
+import type { TKey } from '@/i18n/types'
 
-const staticRootLinks = [
-  {
-    href: '/cms/home',
-    label: 'Início',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" />
-      </svg>
-    ),
-  },
-  {
-    href: '/cms/producer/new-event',
-    label: 'Novo evento',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-        <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4M12 14v3M10.5 15.5h3" />
-      </svg>
-    ),
-  },
+const homeIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+    <path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" />
+  </svg>
+)
+const newEventIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+    <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4M12 14v3M10.5 15.5h3" />
+  </svg>
+)
+const myEventsIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+    <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" />
+  </svg>
+)
+
+const staticRootLinks: NavItem[] = [
+  { href: '/cms/home', labelKey: 'nav.home', icon: homeIcon },
+  { href: '/cms/producer/new-event', labelKey: 'nav.newEvent', icon: newEventIcon },
 ]
 
-const myEventsLink = {
-  href: '/cms/producer/my-events',
-  label: 'Meus eventos',
-  icon: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-      <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" />
-    </svg>
-  ),
-}
+const myEventsLink: NavItem = { href: '/cms/producer/my-events', labelKey: 'nav.myEvents', icon: myEventsIcon }
 
-const growthLinks = [
+const growthLinks: NavItem[] = [
   {
     href: '#',
-    label: 'Impulsionar',
+    labelKey: 'nav.boost',
     placeholder: true,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -51,7 +45,7 @@ const growthLinks = [
   },
   {
     href: '#',
-    label: 'Insights',
+    labelKey: 'nav.insights',
     placeholder: true,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -61,7 +55,7 @@ const growthLinks = [
   },
   {
     href: '#',
-    label: 'Descoberta',
+    labelKey: 'nav.discovery',
     badge: '#3',
     placeholder: true,
     icon: (
@@ -72,10 +66,10 @@ const growthLinks = [
   },
 ]
 
-const audienceLinks = [
+const audienceLinks: NavItem[] = [
   {
     href: '#',
-    label: 'Audiência',
+    labelKey: 'nav.audience',
     placeholder: true,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -85,7 +79,7 @@ const audienceLinks = [
   },
   {
     href: '#',
-    label: 'Engajamento',
+    labelKey: 'nav.engagement',
     placeholder: true,
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -97,33 +91,32 @@ const audienceLinks = [
 
 type NavItem = {
   href: string
-  label: string
+  labelKey: TKey
   badge?: string
   placeholder?: boolean
   icon: React.ReactNode
 }
 
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
-  const baseClass = 'flex items-center gap-[13px] px-4 py-[13px] rounded-[15px] font-bold transition-[color,background,box-shadow]'
+function NavLink({ item, active, label, comingSoon }: { item: NavItem; active: boolean; label: string; comingSoon: string }) {
+  const baseClass = 'flex items-center justify-center lg:justify-start gap-3.25 px-0 lg:px-4 py-3.25 rounded-[15px] font-bold transition-[color,background,box-shadow]'
 
-  const GRAD = 'linear-gradient(120deg,#FF9D3D 0%,#FF5F8D 52%,#F0309A 100%)'
   const style = active
     ? { background: GRAD, color: '#fff', boxShadow: '0 14px 28px -14px rgba(240,48,154,.65)' }
     : {}
 
-  const hoverClass = active ? '' : 'hover:bg-white hover:text-[var(--ink)]'
+  const hoverClass = active ? '' : 'hover:bg-white hover:text-ink'
 
   if (item.placeholder) {
     return (
       <span
-        className={cn(baseClass, 'text-[var(--ink-soft)] opacity-50 cursor-not-allowed')}
-        title={`${item.label} — em breve`}
+        className={cn(baseClass, 'text-ink-soft opacity-50 cursor-not-allowed')}
+        title={`${label} — ${comingSoon}`}
       >
-        <span className="w-[22px] h-[22px] grid place-items-center flex-none">{item.icon}</span>
-        <span className="hidden sm:inline">{item.label}</span>
+        <span className="w-5.5 h-5.5 grid place-items-center flex-none">{item.icon}</span>
+        <span className="hidden lg:inline">{label}</span>
         {item.badge && (
           <span
-            className="ml-auto text-[10px] font-extrabold px-2 py-0.5 rounded-[8px]"
+            className="ml-auto hidden lg:inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-[8px]"
             style={{ background: '#EEEAFF', color: 'var(--violet)' }}
           >
             {item.badge}
@@ -136,14 +129,14 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   return (
     <Link
       href={item.href}
-      className={cn(baseClass, hoverClass, active ? '' : 'text-[var(--ink-soft)]')}
+      className={cn(baseClass, hoverClass, active ? '' : 'text-ink-soft')}
       style={style}
     >
-      <span className="w-[22px] h-[22px] grid place-items-center flex-none">{item.icon}</span>
-      <span className="hidden sm:inline">{item.label}</span>
+      <span className="w-5.5 h-5.5 grid place-items-center flex-none">{item.icon}</span>
+      <span className="hidden lg:inline">{label}</span>
       {item.badge && (
         <span
-          className="ml-auto text-[10px] font-extrabold px-2 py-0.5 rounded-[8px]"
+          className="ml-auto hidden lg:inline-block text-[10px] font-extrabold px-2 py-0.5 rounded-[8px]"
           style={
             active
               ? { background: 'rgba(255,255,255,.25)', color: '#fff' }
@@ -160,7 +153,7 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
 function SectionLabel({ label }: { label: string }) {
   return (
     <p
-      className="hidden sm:block px-4 pb-1 pt-2 text-[11px] font-extrabold uppercase tracking-[.12em]"
+      className="hidden lg:block px-4 pb-1 pt-2 text-[11px] font-extrabold uppercase tracking-[.12em]"
       style={{ color: 'var(--wp-muted)' }}
     >
       {label}
@@ -171,11 +164,13 @@ function SectionLabel({ label }: { label: string }) {
 export function CmsSidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const { t } = useI18n()
   const { user, logout } = useAuthStore()
   const { data: eventsData } = useMyEvents()
   const eventsTotal = eventsData?.total
+  const comingSoon = t('common.comingSoon')
 
-  const rootLinks = [
+  const rootLinks: NavItem[] = [
     ...staticRootLinks,
     { ...myEventsLink, badge: eventsTotal != null ? String(eventsTotal) : undefined },
   ]
@@ -187,39 +182,39 @@ export function CmsSidebar() {
 
   return (
     <aside
-      className="sticky top-[73px] flex flex-col gap-2 p-3 sm:min-h-[calc(100vh-73px)]"
+      className="sticky top-18.25 flex flex-col gap-2 p-3 sm:min-h-[calc(100vh-73px)]"
       style={{ alignSelf: 'start' }}
     >
       {rootLinks.map((item) => (
-        <NavLink key={item.href} item={item} active={pathname === item.href} />
+        <NavLink key={item.href} item={item} active={pathname === item.href} label={t(item.labelKey)} comingSoon={comingSoon} />
       ))}
 
-      <SectionLabel label="Crescimento" />
+      <SectionLabel label={t('nav.sectionGrowth')} />
       {growthLinks.map((item) => (
-        <NavLink key={item.label} item={item} active={false} />
+        <NavLink key={item.labelKey} item={item} active={false} label={t(item.labelKey)} comingSoon={comingSoon} />
       ))}
 
-      <SectionLabel label="Público" />
+      <SectionLabel label={t('nav.sectionAudience')} />
       {audienceLinks.map((item) => (
-        <NavLink key={item.label} item={item} active={false} />
+        <NavLink key={item.labelKey} item={item} active={false} label={t(item.labelKey)} comingSoon={comingSoon} />
       ))}
 
       {/* AI Promo card */}
       <div
-        className="hidden sm:block mt-2 rounded-[20px] p-[18px] text-white"
+        className="hidden lg:block mt-2 rounded-[20px] p-4.5 text-white"
         style={{ background: 'linear-gradient(150deg,#2a1340,#4a1f5e)', boxShadow: 'var(--shadow)' }}
       >
         <p className="font-extrabold text-[15px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-          ✨ Impulsione com IA
+          {t('nav.aiPromoTitle')}
         </p>
         <p className="text-[12.5px] opacity-80 mt-1.5 mb-3">
-          A IA do WeParty escolhe o melhor momento e público pra seu evento aparecer mais na descoberta.
+          {t('nav.aiPromoDesc')}
         </p>
         <button
           className="w-full text-white font-extrabold rounded-[12px] py-2.5 text-[13px] transition hover:-translate-y-0.5"
           style={{ background: GRAD }}
         >
-          Ativar agora
+          {t('nav.activateNow')}
         </button>
       </div>
 
@@ -227,10 +222,10 @@ export function CmsSidebar() {
       {user && (
         <button
           onClick={handleLogout}
-          className="mt-auto text-left text-sm px-4 py-2 rounded-[12px] transition hover:bg-red-50 hover:text-red-600"
+          className="mt-auto text-center lg:text-left text-sm px-2 lg:px-4 py-2 rounded-[12px] transition hover:bg-red-50 hover:text-red-600"
           style={{ color: 'var(--wp-muted)' }}
         >
-          Sair
+          {t('nav.logout')}
         </button>
       )}
     </aside>

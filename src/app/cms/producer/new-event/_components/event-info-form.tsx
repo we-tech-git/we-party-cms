@@ -11,12 +11,12 @@ export function EventInfoForm() {
 
   return (
     <div
-      className="rounded-[var(--r)] p-6"
+      className="rounded-(--r) p-6"
       style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
     >
-      <div className="flex items-center gap-[11px] mb-[18px]">
+      <div className="flex items-center gap-2.75 mb-4.5">
         <span
-          className="w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-none"
+          className="w-9.5 h-9.5 rounded-[12px] grid place-items-center flex-none"
           style={{ background: '#FFE9F2', color: 'var(--pink)' }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -36,7 +36,7 @@ export function EventInfoForm() {
           id="input-title"
           {...titleReg}
           placeholder="Ex: Sunset Beach Party"
-          className="w-full rounded-[14px] border-[1.5px] px-[15px] py-[13px] text-[15px] font-medium outline-none transition-all"
+          className="w-full rounded-[14px] border-[1.5px] px-3.75 py-3.25 text-[15px] font-medium outline-none transition-all"
           style={{
             background: '#FCFAFD',
             borderColor: errors.title ? 'var(--pink)' : 'var(--line)',
@@ -61,7 +61,7 @@ export function EventInfoForm() {
           maxLength={600}
           rows={4}
           placeholder="Conte o que rola no evento: line-up, atrações, clima, o que torna ele especial..."
-          className="w-full rounded-[14px] border-[1.5px] px-[15px] py-[13px] text-[15px] font-medium outline-none transition-all resize-y"
+          className="w-full rounded-[14px] border-[1.5px] px-3.75 py-3.25 text-[15px] font-medium outline-none transition-all resize-y"
           style={{
             background: '#FCFAFD',
             borderColor: 'var(--line)',

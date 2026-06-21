@@ -27,12 +27,12 @@ export function EventRow({ day, month, name, status, location, views, likes, con
 
   return (
     <div
-      className="flex items-center gap-3.5 p-3.5 rounded-[16px] transition hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5"
+      className="flex items-center gap-3.5 p-3.5 rounded-[16px] transition hover:shadow-(--shadow-sm) hover:-translate-y-0.5"
       style={{ border: '1px solid var(--line-2)' }}
     >
       {/* Date chip */}
       <div
-        className="w-[54px] h-[54px] rounded-[14px] grid place-content-center text-center flex-none text-white"
+        className="w-13.5 h-13.5 rounded-[14px] grid place-content-center text-center flex-none text-white"
         style={{ background: 'linear-gradient(150deg,var(--violet),var(--violet-2))' }}
       >
         <div className="font-extrabold text-[20px] leading-none" style={{ fontFamily: 'var(--font-bricolage)' }}>
@@ -68,7 +68,7 @@ export function EventRow({ day, month, name, status, location, views, likes, con
       {/* Mini progress — omitido quando não há dados de score */}
       {popularityPct !== undefined && (
         <div className="text-right flex-none">
-          <div className="h-[7px] w-[120px] rounded-full overflow-hidden ml-auto" style={{ background: '#F1ECF3' }}>
+          <div className="h-1.75 w-30 rounded-full overflow-hidden ml-auto" style={{ background: '#F1ECF3' }}>
             <div
               className="h-full rounded-full"
               style={{ width: `${popularityPct}%`, background: GRAD }}

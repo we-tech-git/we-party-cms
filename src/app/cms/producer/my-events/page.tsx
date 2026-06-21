@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { GRAD } from '@/lib/brand'
+import { useI18n } from '@/i18n/context'
 import { useMyEvents } from '@/hooks/use-my-events'
 import { deleteEvent, patchEvent } from '@/services/events.service'
 import type { EventDto } from '@/types/events.types'
@@ -18,10 +20,22 @@ type TabFilter = 'todos' | UiEventStatus
 
 export default function MyEventsPage() {
   const queryClient = useQueryClient()
+  const router = useRouter()
+  const { t } = useI18n()
   const { data, isLoading } = useMyEvents()
 
   // UI state
   const [filter, setFilter] = useState<TabFilter>('todos')
+
+  // Honor a ?filtro= query param (e.g. "Arquivados" shortcut from the home page).
+  // Read from window to avoid the Suspense requirement of useSearchParams.
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get('filtro')
+    const valid: TabFilter[] = ['todos', 'ativo', 'agendado', 'encerrado', 'arquivado']
+    // One-time read of the URL on mount — not a cascading render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (param && (valid as string[]).includes(param)) setFilter(param as TabFilter)
+  }, [])
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'recent' | 'popular'>('recent')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -29,7 +43,7 @@ export default function MyEventsPage() {
   const [openCommentEvent, setOpenCommentEvent] = useState<EventDto | null>(null)
   const [pendingDelete, setPendingDelete] = useState<EventDto | null>(null)
 
-  const events = data?.events ?? []
+  const events = useMemo(() => data?.events ?? [], [data])
 
   // Max score for normalizing popularity bars
   const maxScore = useMemo(() => Math.max(0, ...events.map(calcEventScore)), [events])
@@ -80,7 +94,7 @@ export default function MyEventsPage() {
   function handleSelect(id: string) {
     setSelectedIds(prev => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) { next.delete(id) } else { next.add(id) }
       return next
     })
   }
@@ -110,26 +124,26 @@ export default function MyEventsPage() {
         {/* Page header */}
         <div className="flex items-center gap-4 flex-wrap">
           <div>
-            <h1 className="font-extrabold text-[28px] leading-[1.05]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-              Meus eventos
+            <h1 className="font-extrabold text-[clamp(22px,5vw,28px)] leading-[1.05]" style={{ fontFamily: 'var(--font-bricolage)' }}>
+              {t('myEvents.title')}
             </h1>
             <p className="font-semibold text-[14.5px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
-              {hotCount > 0 && <><b style={{ color: 'var(--pink)' }}>{hotCount} em alta</b> · </>}
-              {totalReach > 0 && <>{fmtNum(totalReach)} pessoas alcançadas · </>}
-              {totalComments > 0 && <b style={{ color: 'var(--pink)' }}>{totalComments} comentários</b>}
-              {totalComments === 0 && hotCount === 0 && 'Gerencie seus eventos aqui'}
+              {hotCount > 0 && <><b style={{ color: 'var(--pink)' }}>{t('myEvents.hot', { count: hotCount })}</b> · </>}
+              {totalReach > 0 && <>{t('myEvents.reached', { count: fmtNum(totalReach) })} · </>}
+              {totalComments > 0 && <b style={{ color: 'var(--pink)' }}>{t('myEvents.comments', { count: totalComments })}</b>}
+              {totalComments === 0 && hotCount === 0 && t('myEvents.manageHere')}
             </p>
           </div>
           <div className="ml-auto">
             <Link
               href="/cms/producer/new-event"
-              className="flex items-center gap-[9px] rounded-[14px] px-5 py-[13px] font-extrabold text-white transition-transform hover:-translate-y-0.5"
+              className="flex items-center gap-2.25 rounded-[14px] px-5 py-3.25 font-extrabold text-white transition-transform hover:-translate-y-0.5"
               style={{ background: GRAD, boxShadow: '0 14px 28px -14px rgba(240,48,154,.7)' }}
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
                 <path d="M12 5v14M5 12h14"/>
               </svg>
-              Criar evento
+              {t('common.createEvent')}
             </Link>
           </div>
         </div>
@@ -150,15 +164,15 @@ export default function MyEventsPage() {
         {/* Events grid/list */}
         {isLoading ? (
           <div className="flex items-center justify-center h-48 rounded-[20px] bg-white" style={{ border: '1px solid var(--line-2)' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--wp-muted)' }}>Carregando eventos…</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--wp-muted)' }}>{t('myEvents.loadingEvents')}</p>
           </div>
         ) : visible.length === 0 ? (
           <div
-            className="flex flex-col items-center text-center gap-[6px] py-[60px] px-5 rounded-[20px]"
+            className="flex flex-col items-center text-center gap-1.5 py-15 px-5 rounded-[20px]"
             style={{ border: '1px dashed var(--line)', color: 'var(--wp-muted)' }}
           >
             <div
-              className="w-16 h-16 rounded-[20px] flex items-center justify-center mb-[6px]"
+              className="w-16 h-16 rounded-[20px] flex items-center justify-center mb-1.5"
               style={{ background: '#FBF4FA' }}
             >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--wp-muted)" strokeWidth="2">
@@ -166,14 +180,14 @@ export default function MyEventsPage() {
               </svg>
             </div>
             <b className="text-[18px]" style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--ink)' }}>
-              Nenhum evento por aqui
+              {t('myEvents.emptyTitle')}
             </b>
-            <span>Tente outro filtro ou crie um novo evento.</span>
+            <span>{t('myEvents.emptyDesc')}</span>
           </div>
         ) : (
           <div
             className={viewMode === 'list' ? 'flex flex-col gap-5' : 'grid gap-5'}
-            style={viewMode === 'grid' ? { gridTemplateColumns: 'repeat(auto-fill,minmax(330px,1fr))' } : {}}
+            style={viewMode === 'grid' ? { gridTemplateColumns: 'repeat(auto-fill,minmax(min(100%,330px),1fr))' } : {}}
           >
             {visible.map(event => (
               <EventCard
@@ -186,7 +200,7 @@ export default function MyEventsPage() {
                 onArchive={e => archiveMutation.mutate(e.id)}
                 onDelete={e => setPendingDelete(e)}
                 onComments={e => setOpenCommentEvent(e)}
-                onEdit={() => {/* navigate to edit */}}
+                onEdit={e => router.push(`/cms/producer/edit-event/${e.id}`)}
               />
             ))}
           </div>

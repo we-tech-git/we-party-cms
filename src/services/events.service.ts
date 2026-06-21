@@ -1,9 +1,13 @@
 import { axiosInstance } from '@/lib/axios'
 import type {
   CreateEventPayload,
+  UpdateEventPayload,
   ProducerDashboardResponse,
   MyEventsResponse,
   EventDto,
+  EventDetailDto,
+  EventFaqDto,
+  FaqItem,
   CommentsResponse,
 } from '@/types/events.types'
 
@@ -27,6 +31,42 @@ export async function patchEvent(id: string, payload: Partial<Pick<EventDto, 'st
   return data
 }
 
+export async function getEvent(id: string): Promise<EventDetailDto> {
+  const { data } = await axiosInstance.get<EventDetailDto>(`/events/${id}`)
+  return data
+}
+
+/**
+ * Full update via PUT /events/{id}. `photos` carries the kept URLs so removals
+ * persist. FAQs are NOT sent here — UpdateEventDto has no faq field; they are
+ * synced via the dedicated /events/{id}/faq endpoints.
+ */
+export async function updateEvent(id: string, payload: UpdateEventPayload): Promise<EventDto> {
+  const { faq: _faq, ...body } = payload
+  void _faq
+  const { data } = await axiosInstance.put<EventDto>(`/events/${id}`, body)
+  return data
+}
+
+/**
+ * Uploads new photos to an existing event via PATCH /events/{id}/with-images
+ * (multipart field name `photos`). Kept separate from the event payload
+ * because the multipart create/update endpoints don't persist inline `faq` —
+ * so the event (with its FAQs) is saved as JSON first and images are attached
+ * here afterwards.
+ */
+export async function uploadEventImages(id: string, photos: File[]): Promise<EventDto> {
+  const form = new FormData()
+  for (const photo of photos) form.append('photos', photo)
+  // Override the instance's default `application/json` so the browser can set
+  // `multipart/form-data` with the correct boundary — otherwise the files never
+  // reach the backend and the event is saved without images.
+  const { data } = await axiosInstance.patch<EventDto>(`/events/${id}/with-images`, form, {
+    headers: { 'Content-Type': undefined },
+  })
+  return data
+}
+
 export async function getEventComments(eventId: string, page = 1, limit = 50): Promise<CommentsResponse> {
   const { data } = await axiosInstance.get<CommentsResponse>(`/events/${eventId}/comments`, { params: { page, limit } })
   return data
@@ -37,26 +77,27 @@ export async function deleteEventComment(eventId: string, commentId: string): Pr
 }
 
 export async function createEvent(payload: CreateEventPayload): Promise<{ id: string }> {
-  const { data } = await axiosInstance.post<{ id: string }>('/events', payload)
+  // FAQs are created via the dedicated POST /events/{id}/faq endpoint, so keep
+  // them out of the create body to avoid duplicates.
+  const { faq: _faq, ...body } = payload
+  void _faq
+  const { data } = await axiosInstance.post<{ id: string }>('/events', body)
   return data
 }
 
-export async function createEventWithImages(payload: CreateEventPayload, photos: File[]): Promise<{ id: string }> {
-  const form = new FormData()
-  form.append('title', payload.title)
-  form.append('description', payload.description)
-  form.append('startDate', payload.startDate)
-  form.append('endDate', payload.endDate)
-  form.append('location', payload.location)
-  form.append('isPublic', String(payload.isPublic))
-  form.append('allowComments', String(payload.allowComments))
-  form.append('showInMainFeed', 'true')
-  form.append('interestIds', JSON.stringify(payload.interestIds))
-  form.append('invitedUserIds', '[]')
-  form.append('faqs', JSON.stringify(payload.faqs))
-  for (const photo of photos) form.append('photos', photo)
-  const { data } = await axiosInstance.post<{ id: string }>('/events/with-images', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+/** Lists an event's FAQs — GET /events/{eventId}/faq. */
+export async function getEventFaqs(eventId: string): Promise<EventFaqDto[]> {
+  const { data } = await axiosInstance.get<EventFaqDto[]>(`/events/${eventId}/faq`)
   return data
+}
+
+/** Creates a single FAQ — POST /events/{eventId}/faq. */
+export async function createEventFaq(eventId: string, faq: FaqItem): Promise<EventFaqDto> {
+  const { data } = await axiosInstance.post<EventFaqDto>(`/events/${eventId}/faq`, faq)
+  return data
+}
+
+/** Deletes a single FAQ — DELETE /events/{eventId}/faq/{faqId}. */
+export async function deleteEventFaq(eventId: string, faqId: string): Promise<void> {
+  await axiosInstance.delete(`/events/${eventId}/faq/${faqId}`)
 }

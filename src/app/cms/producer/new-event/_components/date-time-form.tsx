@@ -11,7 +11,7 @@ function FieldInput({ label, required, onBlur, onFocus, ...props }: React.InputH
       </label>
       <input
         {...props}
-        className="w-full rounded-[14px] border-[1.5px] px-[15px] py-[13px] text-[15px] font-medium outline-none transition-all"
+        className="w-full rounded-[14px] border-[1.5px] px-3.75 py-3.25 text-[15px] font-medium outline-none transition-all"
         style={{ background: '#FCFAFD', borderColor: 'var(--line)', color: 'var(--ink)' }}
         onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)'; onFocus?.(e) }}
         onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; onBlur?.(e) }}
@@ -26,12 +26,12 @@ export function DateTimeForm() {
 
   return (
     <div
-      className="rounded-[var(--r)] p-6"
+      className="rounded-(--r) p-6"
       style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
     >
-      <div className="flex items-center gap-[11px] mb-[18px]">
+      <div className="flex items-center gap-2.75 mb-4.5">
         <span
-          className="w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-none"
+          className="w-9.5 h-9.5 rounded-[12px] grid place-items-center flex-none"
           style={{ background: '#EEEAFF', color: 'var(--violet)' }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -44,7 +44,7 @@ export function DateTimeForm() {
         </h3>
       </div>
 
-      <div className="grid grid-cols-2 gap-[14px] mb-4">
+      <div className="grid grid-cols-2 gap-3.5 mb-4">
         <div className="flex flex-col gap-1.5">
           <label className="font-extrabold text-[13px]" style={{ color: 'var(--ink-soft)' }}>
             Início <span style={{ color: 'var(--pink)' }}>*</span>
@@ -53,7 +53,7 @@ export function DateTimeForm() {
             id="input-startDate"
             type="date"
             {...startDateReg}
-            className="w-full rounded-[14px] border-[1.5px] px-[15px] py-[13px] text-[15px] font-medium outline-none transition-all"
+            className="w-full rounded-[14px] border-[1.5px] px-3.75 py-3.25 text-[15px] font-medium outline-none transition-all"
             style={{ background: '#FCFAFD', borderColor: errors.startDate ? 'var(--pink)' : 'var(--line)', color: 'var(--ink)' }}
             onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff' }}
             onBlur={(e) => { e.currentTarget.style.borderColor = errors.startDate ? 'var(--pink)' : 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; void startDateReg.onBlur(e) }}
@@ -67,7 +67,7 @@ export function DateTimeForm() {
         <FieldInput label="Hora" type="time" defaultValue="22:00" {...register('startTime')} />
       </div>
 
-      <div className="grid grid-cols-2 gap-[14px]">
+      <div className="grid grid-cols-2 gap-3.5">
         <FieldInput label="Término" type="date" {...register('endDate')} />
         <FieldInput label="Hora" type="time" defaultValue="06:00" {...register('endTime')} />
       </div>

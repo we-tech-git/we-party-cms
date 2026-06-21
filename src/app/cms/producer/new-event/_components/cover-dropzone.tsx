@@ -1,34 +1,43 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import Image from 'next/image'
 import { useFormContext } from 'react-hook-form'
 import type { CreateEventForm } from '../_schema'
 import { MAX_PHOTOS } from '../_schema'
 
 export function CoverDropzone() {
-  const { setValue } = useFormContext<CreateEventForm>()
+  const { setValue, getValues } = useFormContext<CreateEventForm>()
+  // Already-stored photos (edit mode) the user can keep or drop.
+  const [existing, setExisting] = useState<string[]>(() => getValues('existingPhotoUrls') ?? [])
   const [localFiles, setLocalFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const hasPhotos = previews.length > 0
-  const atLimit = localFiles.length >= MAX_PHOTOS
+  const totalCount = existing.length + localFiles.length
+  const hasPhotos = totalCount > 0
+  const atLimit = totalCount >= MAX_PHOTOS
 
   function addFiles(incoming: FileList | null) {
     if (!incoming) return
     const valid = Array.from(incoming).filter(f => f.type.startsWith('image/'))
     if (!valid.length) return
-    const available = MAX_PHOTOS - localFiles.length
+    const available = MAX_PHOTOS - totalCount
     const toAdd = valid.slice(0, available)
     if (!toAdd.length) return
     const newPreviews = toAdd.map(f => URL.createObjectURL(f))
     const updatedFiles = [...localFiles, ...toAdd]
-    const updatedPreviews = [...previews, ...newPreviews]
     setLocalFiles(updatedFiles)
-    setPreviews(updatedPreviews)
+    setPreviews([...previews, ...newPreviews])
     setValue('photos', updatedFiles, { shouldDirty: true })
     if (inputRef.current) inputRef.current.value = ''
+  }
+
+  function removeExisting(index: number) {
+    const updated = existing.filter((_, i) => i !== index)
+    setExisting(updated)
+    setValue('existingPhotoUrls', updated, { shouldDirty: true })
   }
 
   function removeFile(index: number) {
@@ -44,9 +53,24 @@ export function CoverDropzone() {
     <div>
       {hasPhotos && (
         <div className="flex flex-wrap gap-3 mb-4">
+          {existing.map((url, i) => (
+            <div key={url} className="relative w-[80px] h-[80px] rounded-[14px] overflow-hidden flex-none">
+              <Image src={url} alt="" fill className="object-cover" unoptimized />
+              <button
+                type="button"
+                onClick={() => removeExisting(i)}
+                className="absolute top-1 right-1 w-[22px] h-[22px] rounded-full grid place-items-center"
+                style={{ background: 'rgba(20,8,30,.7)', color: '#fff' }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
           {previews.map((url, i) => (
             <div key={url} className="relative w-[80px] h-[80px] rounded-[14px] overflow-hidden flex-none">
-              <img src={url} alt="" className="w-full h-full object-cover" />
+              <Image src={url} alt="" fill className="object-cover" unoptimized />
               <button
                 type="button"
                 onClick={() => removeFile(i)}
@@ -97,7 +121,7 @@ export function CoverDropzone() {
           </span>
           <span className="font-medium text-[13px]" style={{ color: 'var(--wp-muted)' }}>
             {hasPhotos
-              ? `${localFiles.length}/${MAX_PHOTOS} fotos selecionadas`
+              ? `${totalCount}/${MAX_PHOTOS} fotos selecionadas`
               : 'É a primeira coisa que o público vê no feed — escolha uma foto que chame atenção 🔥'}
           </span>
         </div>

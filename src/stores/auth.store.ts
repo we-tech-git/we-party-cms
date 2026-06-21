@@ -10,6 +10,7 @@ interface AuthState {
   user: LoggedUser | null
 
   saveAuthData: (response: LoginResponse) => void
+  setProfileImage: (url: string) => void
   logout: () => void
   hasRole: (role: string) => boolean
   hasAnyRole: (roles: string[]) => boolean
@@ -39,6 +40,16 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token)
           localStorage.setItem(STORAGE_KEYS.LOGGED_USER, JSON.stringify(user))
           setAuthCookie(token)
+        }
+      },
+
+      setProfileImage(url: string) {
+        const current = get().user
+        if (!current) return
+        const updated = { ...current, profileImage: url }
+        set({ user: updated })
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(STORAGE_KEYS.LOGGED_USER, JSON.stringify(updated))
         }
       },
 

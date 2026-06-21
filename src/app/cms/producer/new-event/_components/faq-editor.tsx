@@ -12,12 +12,12 @@ export function FaqEditor() {
 
   return (
     <div
-      className="rounded-[var(--r)] p-6"
+      className="rounded-(--r) p-6"
       style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
     >
-      <div className="flex items-center gap-[11px] mb-[18px]">
+      <div className="flex items-center gap-2.75 mb-4.5">
         <span
-          className="w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-none"
+          className="w-9.5 h-9.5 rounded-[12px] grid place-items-center flex-none"
           style={{ background: '#E6FBF3', color: 'var(--green)' }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -31,12 +31,12 @@ export function FaqEditor() {
         <span className="ml-auto text-[12.5px] font-semibold" style={{ color: 'var(--wp-muted)' }}>opcional</span>
       </div>
 
-      <p className="font-medium text-[14px] mb-[14px]" style={{ color: 'var(--ink-soft)' }}>
+      <p className="font-medium text-[14px] mb-3.5" style={{ color: 'var(--ink-soft)' }}>
         Antecipe dúvidas comuns (open bar? estacionamento? idade mínima?) e reduza mensagens repetidas.
       </p>
 
       {fields.length === 0 && (
-        <div className="flex items-center gap-2 rounded-[12px] px-[14px] py-3 font-semibold text-[13px] mb-[14px]" style={{ color: 'var(--wp-muted)', background: '#FCFAFD', border: '1px solid var(--line-2)' }}>
+        <div className="flex items-center gap-2 rounded-[12px] px-3.5 py-3 font-semibold text-[13px] mb-3.5" style={{ color: 'var(--wp-muted)', background: '#FCFAFD', border: '1px solid var(--line-2)' }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
             <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" />
           </svg>
@@ -52,14 +52,14 @@ export function FaqEditor() {
           return (
             <div
               key={field.id}
-              className="flex gap-[10px] items-start rounded-[14px] p-[14px]"
+              className="flex gap-2.5 items-start rounded-[14px] p-3.5"
               style={{ background: '#FCFAFD', border: '1px solid var(--line-2)', borderLeft: `3px solid ${accent}` }}
             >
               <div className="flex flex-col gap-2 flex-1">
                 <input
                   {...register(`faqs.${index}.question`)}
                   placeholder="Pergunta (ex: Tem estacionamento?)"
-                  className="w-full rounded-[12px] border-[1.5px] px-[14px] py-[11px] text-[14px] font-medium outline-none transition-all"
+                  className="w-full rounded-[12px] border-[1.5px] px-3.5 py-2.75 text-[14px] font-medium outline-none transition-all"
                   style={{ background: '#fff', borderColor: qErr ? 'var(--pink)' : 'var(--line)', color: 'var(--ink)' }}
                   onFocus={(e) => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.boxShadow = `0 0 0 3px ${accent}22` }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = qErr ? 'var(--pink)' : 'var(--line)'; e.currentTarget.style.boxShadow = 'none' }}
@@ -68,7 +68,7 @@ export function FaqEditor() {
                 <input
                   {...register(`faqs.${index}.answer`)}
                   placeholder="Resposta"
-                  className="w-full rounded-[12px] border-[1.5px] px-[14px] py-[11px] text-[14px] font-medium outline-none transition-all"
+                  className="w-full rounded-[12px] border-[1.5px] px-3.5 py-2.75 text-[14px] font-medium outline-none transition-all"
                   style={{ background: '#fff', borderColor: aErr ? 'var(--pink)' : 'var(--line)', color: 'var(--ink)' }}
                   onFocus={(e) => { e.currentTarget.style.borderColor = accent; e.currentTarget.style.boxShadow = `0 0 0 3px ${accent}22` }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = aErr ? 'var(--pink)' : 'var(--line)'; e.currentTarget.style.boxShadow = 'none' }}
@@ -78,7 +78,7 @@ export function FaqEditor() {
               <button
                 type="button"
                 onClick={() => remove(index)}
-                className="w-[34px] h-[34px] rounded-[10px] grid place-items-center flex-none border transition-all hover:border-[#ffd0d8]"
+                className="w-8.5 h-8.5 rounded-[10px] grid place-items-center flex-none border transition-all hover:border-[#ffd0d8]"
                 style={{ background: '#fff', border: '1px solid var(--line-2)', color: 'var(--wp-muted)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = '#E0476B' }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--wp-muted)' }}
@@ -95,7 +95,7 @@ export function FaqEditor() {
       <button
         type="button"
         onClick={() => append({ question: '', answer: '' })}
-        className="flex items-center gap-2 rounded-[13px] px-[17px] py-[11px] font-extrabold text-[13.5px] text-white mt-[14px] transition hover:-translate-y-0.5"
+        className="flex items-center gap-2 rounded-[13px] px-4.25 py-2.75 font-extrabold text-[13.5px] text-white mt-3.5 transition hover:-translate-y-0.5"
         style={{ background: GRAD, boxShadow: '0 12px 24px -14px rgba(240,48,154,.7)' }}
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">

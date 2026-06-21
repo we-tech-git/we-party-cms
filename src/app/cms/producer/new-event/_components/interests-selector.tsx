@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useFormContext } from 'react-hook-form'
 import { useMutation } from '@tanstack/react-query'
 import { GRAD } from '@/lib/brand'
@@ -23,8 +23,9 @@ export function InterestsSelector() {
   const [showSuggest, setShowSuggest] = useState(false)
   const [suggestMsg, setSuggestMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
-  useMemo(() => {
+  useEffect(() => {
     if (allInterests.length > 0 && suggestions.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions(shuffle(allInterests.map(i => i.id)).slice(0, 5))
     }
   }, [allInterests, suggestions.length])

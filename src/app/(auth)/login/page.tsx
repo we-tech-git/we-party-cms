@@ -22,7 +22,9 @@ type LoginFormData = z.infer<typeof loginSchema>
 export default function LoginPage() {
   const router = useRouter()
   const saveAuthData = useAuthStore((s) => s.saveAuthData)
-  const [rememberMe, setRememberMe] = useState(false)
+  const [rememberMe, setRememberMe] = useState(() =>
+    typeof window !== 'undefined' && !!localStorage.getItem('REMEMBERED_EMAIL')
+  )
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
 
   const {
@@ -36,10 +38,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('REMEMBERED_EMAIL')
-    if (savedEmail) {
-      setValue('email', savedEmail)
-      setRememberMe(true)
-    }
+    if (savedEmail) setValue('email', savedEmail)
   }, [setValue])
 
   function showToast(message: string, type: 'success' | 'error' | 'warning') {
@@ -65,14 +64,15 @@ export default function LoginPage() {
         showToast('Credenciais inválidas. Tente novamente.', 'error')
       }
     },
-    onError(error: any) {
+    onError(error: unknown) {
+      const axiosError = error as { response?: { data?: { message?: string } }; config?: { data?: string } }
       const message =
-        error?.response?.data?.message ?? 'Erro ao fazer login. Verifique suas credenciais.'
+        axiosError?.response?.data?.message ?? 'Erro ao fazer login. Verifique suas credenciais.'
 
       if (message.toLowerCase().includes('email não verificado')) {
         showToast(message, 'warning')
-        const email = error?.config?.data
-          ? JSON.parse(error.config.data).email
+        const email = axiosError?.config?.data
+          ? JSON.parse(axiosError.config.data).email
           : ''
         localStorage.setItem('NEW_CREATED_USER', JSON.stringify(email))
       } else {

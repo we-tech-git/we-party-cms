@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { GRAD } from '@/lib/brand'
+import { useI18n } from '@/i18n/context'
 import type { EventDto } from '@/types/events.types'
 import {
   mapEventStatus,
-  calcPopularity,
   getCoverStyle,
   formatEventDate,
   STATUS_LABELS,
@@ -34,6 +34,7 @@ const POPULARITY_MSG: Record<UiEventStatus, string> = {
 }
 
 export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onEdit }: EventCardProps) {
+  const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const uiStatus = mapEventStatus(event.status, event.startDate)
@@ -74,7 +75,8 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
         style={{
           ...coverStyle,
           height: isListMode ? 'auto' : '150px',
-          width: isListMode ? '230px' : 'auto',
+          minHeight: isListMode ? '130px' : undefined,
+          width: isListMode ? 'clamp(110px,28%,230px)' : 'auto',
           flexShrink: isListMode ? 0 : undefined,
         }}
       >
@@ -101,12 +103,12 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
 
         {/* Status badge */}
         <span
-          className="absolute top-3 left-10 z-10 text-[10.5px] font-extrabold tracking-[.04em] uppercase px-[11px] py-[5px] rounded-full flex items-center gap-[5px]"
+          className="absolute top-3 left-10 z-10 text-[10.5px] font-extrabold tracking-[.04em] uppercase px-2.75 py-1.25 rounded-full flex items-center gap-1.25"
           style={{ background: statusStyle.bg, color: statusStyle.color }}
         >
           {uiStatus === 'ativo' && (
             <span
-              className="w-[6px] h-[6px] rounded-full"
+              className="w-1.5 h-1.5 rounded-full"
               style={{ background: 'var(--green)', animation: 'pulse 1.3s infinite' }}
             />
           )}
@@ -114,9 +116,9 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
         </span>
 
         {/* 3-dot menu */}
-        <div className="absolute top-[10px] right-[10px] z-20" ref={menuRef}>
+        <div className="absolute top-2.5 right-2.5 z-20" ref={menuRef}>
           <button
-            className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center transition-colors"
+            className="w-8.5 h-8.5 rounded-[10px] flex items-center justify-center transition-colors"
             style={{ background: 'rgba(255,255,255,.92)', backdropFilter: 'blur(6px)', boxShadow: 'var(--shadow-sm)' }}
             onClick={() => setMenuOpen(v => !v)}
           >
@@ -126,20 +128,19 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
           </button>
           {menuOpen && (
             <div
-              className="absolute top-[44px] right-0 z-20 bg-white rounded-[14px] p-[6px] min-w-[206px]"
+              className="absolute top-11 right-0 z-20 bg-white rounded-[14px] p-1.5 min-w-51.5"
               style={{ border: '1px solid var(--line)', boxShadow: 'var(--shadow)' }}
             >
               {[
-                { label: 'Ver página pública', icon: 'eye', act: 'view' },
-                { label: 'Editar evento', icon: 'edit', act: 'edit' },
-                { label: 'Impulsionar alcance', icon: 'trend', act: 'boost', disabled: true },
-                { label: 'Gerenciar comentários', icon: 'comment', act: 'cmt' },
-                { label: 'Duplicar', icon: 'copy', act: 'dup', disabled: true },
+                { label: t('myEvents.card.edit'), icon: 'edit', act: 'edit' },
+                { label: t('myEvents.card.boost'), icon: 'trend', act: 'boost', disabled: true },
+                { label: t('myEvents.card.manageComments'), icon: 'comment', act: 'cmt' },
+                { label: t('myEvents.card.duplicate'), icon: 'copy', act: 'dup', disabled: true },
               ].map(item => (
                 <button
                   key={item.act}
                   disabled={item.disabled}
-                  className="w-full flex items-center gap-[11px] px-[11px] py-[10px] rounded-[10px] font-bold text-[14px] text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FBF4FA]"
+                  className="w-full flex items-center gap-2.75 px-2.75 py-2.5 rounded-[10px] font-bold text-[14px] text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#FBF4FA]"
                   style={{ color: 'var(--ink-soft)' }}
                   onClick={() => {
                     setMenuOpen(false)
@@ -151,27 +152,27 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
                   {item.label}
                 </button>
               ))}
-              <div className="h-px my-[5px] mx-1" style={{ background: 'var(--line-2)' }} />
+              <div className="h-px my-1.25 mx-1" style={{ background: 'var(--line-2)' }} />
               <button
-                className="w-full flex items-center gap-[11px] px-[11px] py-[10px] rounded-[10px] font-bold text-[14px] text-left transition-colors hover:bg-[#FBF4FA]"
+                className="w-full flex items-center gap-2.75 px-2.75 py-2.5 rounded-[10px] font-bold text-[14px] text-left transition-colors hover:bg-[#FBF4FA]"
                 style={{ color: 'var(--ink-soft)' }}
                 onClick={() => { setMenuOpen(false); onArchive(event) }}
               >
-                <MenuIcon name="archive" />Arquivar
+                <MenuIcon name="archive" />{t('myEvents.card.archive')}
               </button>
               <button
-                className="w-full flex items-center gap-[11px] px-[11px] py-[10px] rounded-[10px] font-bold text-[14px] text-left transition-colors hover:bg-[#FFF0F3]"
+                className="w-full flex items-center gap-2.75 px-2.75 py-2.5 rounded-[10px] font-bold text-[14px] text-left transition-colors hover:bg-[#FFF0F3]"
                 style={{ color: 'var(--red, #E0476B)' }}
                 onClick={() => { setMenuOpen(false); onDelete(event) }}
               >
-                <MenuIcon name="trash" />Excluir
+                <MenuIcon name="trash" />{t('myEvents.card.delete')}
               </button>
             </div>
           )}
         </div>
 
         {/* Title overlay */}
-        <div className="relative z-[2]">
+        <div className="relative z-2">
           <h3
             className="font-extrabold text-[21px] leading-[1.05] text-white"
             style={{ fontFamily: 'var(--font-bricolage)', textShadow: '0 3px 14px rgba(0,0,0,.4)' }}
@@ -184,18 +185,18 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
       {/* Body */}
       <div className="flex flex-col gap-3 flex-1 p-[16px_18px]" style={{ padding: isListMode ? '18px 20px' : '16px 18px' }}>
         {/* Meta */}
-        <div className="flex flex-wrap gap-x-[14px] gap-y-[6px] font-semibold text-[13px]" style={{ color: 'var(--ink-soft)' }}>
-          <span className="flex items-center gap-[6px]">📅 {formatEventDate(event.startDate)}</span>
-          <span className="flex items-center gap-[6px]">📍 {event.location}</span>
+        <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 font-semibold text-[13px]" style={{ color: 'var(--ink-soft)' }}>
+          <span className="flex items-center gap-1.5">📅 {formatEventDate(event.startDate)}</span>
+          <span className="flex items-center gap-1.5">📍 {event.location}</span>
         </div>
 
         {/* Interest chips */}
         {event.eventInterests.length > 0 && (
-          <div className="flex gap-[6px] flex-wrap">
+          <div className="flex gap-1.5 flex-wrap">
             {event.eventInterests.map(ei => (
               <span
                 key={ei.interestId}
-                className="text-[10.5px] font-extrabold uppercase tracking-[.03em] px-[9px] py-[3px] rounded-[7px]"
+                className="text-[10.5px] font-extrabold uppercase tracking-[.03em] px-2.25 py-0.75 rounded-[7px]"
                 style={{ color: 'var(--pink)', background: '#FFEDF4' }}
               >
                 {ei.interest.name}
@@ -210,10 +211,10 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
           style={{ borderTop: '1px solid var(--line-2)', borderBottom: '1px solid var(--line-2)' }}
         >
           {[
-            { val: event.viewCount > 0 ? fmtNum(event.viewCount) : '—', label: 'views' },
-            { val: event._count.likes > 0 ? fmtNum(event._count.likes) : '—', label: 'curtidas' },
-            { val: event._count.attendances > 0 ? fmtNum(event._count.attendances) : '—', label: 'confirm.' },
-            { val: event.shareCount > 0 ? fmtNum(event.shareCount) : '—', label: 'compart.' },
+            { val: event.viewCount > 0 ? fmtNum(event.viewCount) : '—', label: t('myEvents.card.views') },
+            { val: event._count.likes > 0 ? fmtNum(event._count.likes) : '—', label: t('myEvents.card.likes') },
+            { val: event._count.attendances > 0 ? fmtNum(event._count.attendances) : '—', label: t('myEvents.card.attendances') },
+            { val: event.shareCount > 0 ? fmtNum(event.shareCount) : '—', label: t('myEvents.card.shares') },
           ].map(s => (
             <div key={s.label} className="text-center">
               <b className="block text-[15px] leading-none" style={{ fontFamily: 'var(--font-bricolage)' }}>{s.val}</b>
@@ -224,8 +225,8 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
 
         {/* Popularity bar or status message */}
         {uiStatus === 'ativo' ? (
-          <div className="flex items-center gap-[10px] text-[12.5px] font-bold" style={{ color: 'var(--ink-soft)' }}>
-            <div className="flex-1 h-[7px] rounded-full overflow-hidden" style={{ background: '#F1ECF3' }}>
+          <div className="flex items-center gap-2.5 text-[12.5px] font-bold" style={{ color: 'var(--ink-soft)' }}>
+            <div className="flex-1 h-1.75 rounded-full overflow-hidden" style={{ background: '#F1ECF3' }}>
               <div className="h-full rounded-full" style={{ width: `${popularityPct}%`, background: GRAD }} />
             </div>
             <span style={{ color: 'var(--pink)', fontFamily: 'var(--font-bricolage)', whiteSpace: 'nowrap' }}>
@@ -239,9 +240,9 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
         )}
 
         {/* Footer */}
-        <div className="flex items-center gap-[10px] mt-0.5">
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <button
-            className="flex items-center gap-[7px] font-extrabold text-[13px] px-[11px] py-[8px] rounded-[11px] transition-colors"
+            className="flex items-center gap-1.5 font-extrabold text-[13px] px-2.75 py-2 rounded-[11px] transition-colors"
             style={{ border: '1.5px solid var(--line)', color: 'var(--ink-soft)' }}
             onClick={() => onComments(event)}
           >
@@ -251,14 +252,14 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
             {event._count.comments}
           </button>
           <button
-            className="ml-auto flex items-center gap-[7px] font-extrabold text-[13px] text-white px-4 py-[9px] rounded-[11px] transition-transform hover:-translate-y-0.5"
+            className="ml-auto flex items-center gap-1.75 font-extrabold text-[13px] text-white px-4 py-2.25 rounded-[11px] transition-transform hover:-translate-y-0.5"
             style={{ background: GRAD, boxShadow: '0 10px 20px -12px rgba(240,48,154,.7)' }}
             onClick={() => onEdit(event)}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
               <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" />
             </svg>
-            Editar
+            {t('myEvents.card.editShort')}
           </button>
         </div>
       </div>

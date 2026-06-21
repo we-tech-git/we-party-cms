@@ -1,3 +1,8 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useI18n } from '@/i18n/context'
+
 type Suggestion = {
   emoji: string
   emojiBg: string
@@ -42,15 +47,17 @@ const suggestions: Suggestion[] = [
 ]
 
 export function AiSuggestions() {
+  const router = useRouter()
+  const { t } = useI18n()
   return (
     <div
-      className="rounded-[var(--r)] px-6 py-[22px]"
+      className="rounded-(--r) px-6 py-5.5"
       style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
     >
       {/* Header */}
-      <div className="flex items-center gap-[11px] mb-4">
+      <div className="flex items-center gap-2.75 mb-4">
         <span
-          className="w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-none"
+          className="w-9.5 h-9.5 rounded-[12px] grid place-items-center flex-none"
           style={{ background: 'linear-gradient(135deg,#FFD36E,#FF9E45)', color: '#fff' }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -58,7 +65,7 @@ export function AiSuggestions() {
           </svg>
         </span>
         <h3 className="font-bold text-[18px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-          Sugestões da IA
+          {t('home.aiSuggestionsTitle')}
         </h3>
       </div>
 
@@ -81,7 +88,8 @@ export function AiSuggestions() {
               {s.description}
             </p>
             <button
-              className="inline-flex items-center gap-1.5 font-extrabold text-[13px] px-3 py-[7px] rounded-[10px] border-[1.5px] transition hover:bg-[#FFE0EC]"
+              onClick={() => router.push('/cms/producer/my-events')}
+              className="inline-flex items-center gap-1.5 font-extrabold text-[13px] px-3 py-1.75 rounded-[10px] border-[1.5px] transition hover:bg-[#FFE0EC]"
               style={{ color: 'var(--pink)', borderColor: '#ffd9e6' }}
             >
               {s.ctaLabel}

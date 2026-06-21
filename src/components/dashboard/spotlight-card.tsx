@@ -41,7 +41,7 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
   if (!topEvent) {
     return (
       <div
-        className="overflow-hidden rounded-[var(--r)] flex flex-col items-center justify-center gap-4 py-14 px-6 text-center"
+        className="overflow-hidden rounded-(--r) flex flex-col items-center justify-center gap-4 py-14 px-6 text-center"
         style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
       >
         <div className="text-[44px]">🎉</div>
@@ -55,7 +55,7 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
         </div>
         <Link
           href="/cms/producer/new-event"
-          className="flex items-center gap-2 rounded-[14px] px-5 py-[12px] font-extrabold text-white"
+          className="flex items-center gap-2 rounded-[14px] px-5 py-3 font-extrabold text-white"
           style={{ background: GRAD, boxShadow: '0 12px 24px -12px rgba(240,48,154,.65)' }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
@@ -92,12 +92,12 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
 
   return (
     <div
-      className="overflow-hidden rounded-[var(--r)]"
+      className="overflow-hidden rounded-(--r)"
       style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow)' }}
     >
       {/* Hero banner */}
       <div
-        className="relative h-[158px] flex items-end px-[22px] py-[18px]"
+        className="relative h-39.5 flex items-end px-5.5 py-4.5"
         style={{
           background: 'linear-gradient(to top,rgba(20,8,30,.7),transparent 70%), linear-gradient(120deg,#ff7e3d,#ff4d8d 55%,#a23bd6)',
         }}
@@ -107,18 +107,18 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
           style={{ background: 'radial-gradient(400px 160px at 80% -20%,rgba(255,255,255,.35),transparent)' }}
         />
 
-        <div className="absolute top-4 left-[18px] flex gap-2 z-10">
+        <div className="absolute top-4 left-4.5 flex gap-2 z-10">
           <span
             className="text-[11px] font-extrabold tracking-[.04em] px-3 py-1.5 rounded-full uppercase flex items-center gap-1.5 bg-white"
             style={{ color: 'var(--pink)' }}
           >
-            <span className="w-[7px] h-[7px] rounded-full animate-pulse" style={{ background: 'var(--pink)' }} />
+            <span className="w-1.75 h-1.75 rounded-full animate-pulse" style={{ background: 'var(--pink)' }} />
             Em alta agora
           </span>
         </div>
 
         <div className="relative z-10 text-white">
-          <div className="text-[12px] font-extrabold tracking-[.1em] uppercase opacity-85">Seu evento em destaque</div>
+          <div className="text-[12px] font-extrabold tracking-widest uppercase opacity-85">Seu evento em destaque</div>
           <h2
             className="font-extrabold text-[28px] leading-[1.05]"
             style={{ fontFamily: 'var(--font-bricolage)', textShadow: '0 3px 18px rgba(0,0,0,.35)' }}
@@ -133,9 +133,9 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
       </div>
 
       {/* Body */}
-      <div className="px-[22px] py-5">
-        <div className="flex items-center gap-[18px] flex-wrap">
-          <div className="flex-1 min-w-[230px]">
+      <div className="px-5.5 py-5">
+        <div className="flex items-center gap-4.5 flex-wrap">
+          <div className="flex-1 min-w-57.5">
             <div className="flex justify-between font-bold text-[14px] mb-2">
               <span>Índice de popularidade</span>
               <span style={{ color: 'var(--pink)', fontFamily: 'var(--font-bricolage)' }}>
@@ -164,13 +164,13 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
         </div>
 
         <div
-          className="grid grid-cols-4 gap-3 mt-5 pt-[18px]"
+          className="grid grid-cols-4 gap-3 mt-5 pt-4.5"
           style={{ borderTop: '1px solid var(--line-2)' }}
         >
           {stats.map((s, i) => (
             <div key={i} className="flex items-center gap-2.5">
               <span
-                className="w-[38px] h-[38px] rounded-[11px] grid place-items-center flex-none"
+                className="w-9.5 h-9.5 rounded-[11px] grid place-items-center flex-none"
                 style={{ background: s.iconBg, color: s.iconColor }}
               >
                 {s.icon}
@@ -185,9 +185,9 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
           ))}
         </div>
 
-        <div className="flex gap-2.5 mt-[18px] flex-wrap">
+        <div className="flex gap-2.5 mt-4.5 flex-wrap">
           <button
-            className="flex items-center gap-2 border-[1.5px] rounded-[13px] px-4 py-[11px] font-extrabold text-[14px] text-white transition hover:-translate-y-0.5"
+            className="flex items-center gap-2 border-[1.5px] rounded-[13px] px-4 py-2.75 font-extrabold text-[14px] text-white transition hover:-translate-y-0.5"
             style={{ background: GRAD, borderColor: 'transparent', boxShadow: '0 12px 24px -12px rgba(240,48,154,.7)' }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -195,24 +195,16 @@ export function SpotlightCard({ topEvent }: SpotlightCardProps) {
             </svg>
             Impulsionar alcance
           </button>
-          <button
-            className="flex items-center gap-2 border-[1.5px] rounded-[13px] px-4 py-[11px] font-extrabold text-[14px] transition hover:border-[var(--pink)] hover:text-[var(--pink)]"
-            style={{ border: '1.5px solid var(--line)' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M11 4H4v16h16v-7M14 4h6v6M10 14L20 4" />
-            </svg>
-            Ver página
-          </button>
-          <button
-            className="flex items-center gap-2 border-[1.5px] rounded-[13px] px-4 py-[11px] font-extrabold text-[14px] transition hover:border-[var(--pink)] hover:text-[var(--pink)]"
+          <Link
+            href={`/cms/producer/edit-event/${topEvent.id}`}
+            className="flex items-center gap-2 border-[1.5px] rounded-[13px] px-4 py-2.75 font-extrabold text-[14px] transition hover:border-pink hover:text-pink"
             style={{ border: '1.5px solid var(--line)' }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" />
             </svg>
             Editar
-          </button>
+          </Link>
         </div>
       </div>
     </div>

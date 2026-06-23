@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useI18n } from '@/i18n/context'
 import { cn } from '@/lib/utils'
 import { useMyEvents } from '@/hooks/use-my-events'
+import { useIsAdmin } from '@/hooks/use-is-admin'
 import type { TKey } from '@/i18n/types'
 
 const homeIcon = (
@@ -84,6 +85,18 @@ const audienceLinks: NavItem[] = [
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
         <path d="M21 15a4 4 0 01-4 4H8l-5 4V7a4 4 0 014-4h10a4 4 0 014 4z" />
+      </svg>
+    ),
+  },
+]
+
+const devLinks: NavItem[] = [
+  {
+    href: '/cms/admin/control-panel',
+    labelKey: 'nav.controlPanel',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path d="M3 12h4l2 6 4-14 2 8h6" />
       </svg>
     ),
   },
@@ -169,6 +182,7 @@ export function CmsSidebar() {
   const { data: eventsData } = useMyEvents()
   const eventsTotal = eventsData?.total
   const comingSoon = t('common.comingSoon')
+  const { isAdmin } = useIsAdmin()
 
   const rootLinks: NavItem[] = [
     ...staticRootLinks,
@@ -198,6 +212,16 @@ export function CmsSidebar() {
       {audienceLinks.map((item) => (
         <NavLink key={item.labelKey} item={item} active={false} label={t(item.labelKey)} comingSoon={comingSoon} />
       ))}
+
+      {/* Área de desenvolvimento/admin — visível apenas para usuários com a função admin */}
+      {isAdmin && (
+        <>
+          <SectionLabel label={t('nav.sectionDev')} />
+          {devLinks.map((item) => (
+            <NavLink key={item.href} item={item} active={pathname === item.href} label={t(item.labelKey)} comingSoon={comingSoon} />
+          ))}
+        </>
+      )}
 
       {/* AI Promo card */}
       <div

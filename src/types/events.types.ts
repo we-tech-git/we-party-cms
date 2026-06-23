@@ -52,6 +52,29 @@ export interface InterestDto {
   name: string
 }
 
+export type InterestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+/**
+ * Richer interest shape returned by GET /interest for the admin view. Beyond
+ * the minimal {id,name} used elsewhere, the backend may also send a
+ * description, a moderation status and timestamps — all optional here so we
+ * tolerate older/leaner payloads.
+ */
+export interface AdminInterestDto {
+  id: string
+  name: string
+  description?: string | null
+  status?: InterestStatus
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface UpdateInterestPayload {
+  name?: string
+  description?: string
+  status?: InterestStatus
+}
+
 export interface EventInterestDto {
   id: string
   eventId: string

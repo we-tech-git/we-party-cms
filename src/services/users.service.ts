@@ -55,7 +55,7 @@ function normalizeUser(u: Raw): AdminUser {
     username: str(u.username, u.handle),
     email: str(u.email) ?? '—',
     profileImage: str(u.profileImage, u.avatar, u.profilePicture, u.photo),
-    role: str(u.role, u.type, asRecord(u.role).name),
+    role: str(asRecord(u.role).name, u.role, u.type),
     status: deriveStatus(u),
     createdAt: str(u.createdAt, u.created_at, u.registeredAt, u.registered_at),
   }
@@ -102,6 +102,11 @@ export async function unblockUser(id: string): Promise<void> {
  * since the route takes no path param). */
 export async function deleteUser(id: string): Promise<void> {
   await axiosInstance.delete('/users', { data: { id } })
+}
+
+/** POST /users/{id}/assign-role — grants a role (e.g. "admin") to the user. */
+export async function assignUserRole(id: string, roleName: string): Promise<void> {
+  await axiosInstance.post(`/users/${id}/assign-role`, { roleName })
 }
 
 /* ===================================================== profile image (self) */

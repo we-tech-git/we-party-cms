@@ -2,50 +2,48 @@
 
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/context'
+import type { TKey } from '@/i18n/types'
+import type { ProducerActivityDto, ProducerActivityType } from '@/types/events.types'
 
-type ActivityItem =
-  | { type: 'comment'; avatarGradient: string; initial: string; description: React.ReactNode; comment: string }
-  | { type: 'activity'; avatarBg: string; avatarColor: string; symbol: string; description: React.ReactNode; time: string }
+/** Visual treatment (icon glyph + colors) per activity type. */
+const TYPE_STYLE: Record<ProducerActivityType, { symbol: string; bg: string; color: string; verbKey: TKey }> = {
+  comment: { symbol: '💬', bg: '#E6F1FF', color: 'var(--blue)', verbKey: 'home.activityComment' },
+  like: { symbol: '♥', bg: '#FFE9F2', color: 'var(--pink)', verbKey: 'home.activityLike' },
+  attendance: { symbol: '✓', bg: '#EEEAFF', color: 'var(--violet)', verbKey: 'home.activityAttendance' },
+  share: { symbol: '↗', bg: '#E6FBF3', color: 'var(--green)', verbKey: 'home.activityShare' },
+}
 
-const items: ActivityItem[] = [
-  {
-    type: 'comment',
-    avatarGradient: 'linear-gradient(135deg,#ff7a59,#ff4d8d)',
-    initial: 'M',
-    description: (
-      <><strong>Marina A.</strong> comentou na <strong>Sunset Beach Party</strong></>
-    ),
-    comment: '"Vai ter line-up de DJs? 🎧"',
-  },
-  {
-    type: 'activity',
-    avatarBg: '#FFE9F2',
-    avatarColor: 'var(--pink)',
-    symbol: '♥',
-    description: <><strong>+23 curtidas</strong> na Sunset Beach Party</>,
-    time: 'há 2 horas',
-  },
-  {
-    type: 'activity',
-    avatarBg: '#E6FBF3',
-    avatarColor: 'var(--green)',
-    symbol: '↗',
-    description: <>Seu evento foi <strong>compartilhado 14×</strong> hoje</>,
-    time: 'Sunset Beach Party · há 5 horas',
-  },
-  {
-    type: 'activity',
-    avatarBg: '#EEEAFF',
-    avatarColor: 'var(--violet)',
-    symbol: '✓',
-    description: <><strong>+38 confirmados</strong> (&quot;Eu vou!&quot;) esta semana</>,
-    time: 'somando todos os eventos',
-  },
-]
+/** "há 2 horas" / "2 hours ago", falling back to a short date for older items. */
+function relativeTime(iso: string, locale: string): string {
+  const then = new Date(iso).getTime()
+  if (Number.isNaN(then)) return ''
+  const diffMs = then - Date.now() // negative → in the past
+  const abs = Math.abs(diffMs)
+  const MIN = 60_000
+  const HOUR = 3_600_000
+  const DAY = 86_400_000
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+  if (abs < HOUR) return rtf.format(Math.round(diffMs / MIN), 'minute')
+  if (abs < DAY) return rtf.format(Math.round(diffMs / HOUR), 'hour')
+  if (abs < 7 * DAY) return rtf.format(Math.round(diffMs / DAY), 'day')
+  return new Date(iso).toLocaleDateString(locale, { day: '2-digit', month: 'short' })
+}
 
-export function ActivityInbox() {
+interface ActivityInboxProps {
+  activities?: ProducerActivityDto[]
+  isLoading?: boolean
+}
+
+export function ActivityInbox({ activities, isLoading }: ActivityInboxProps) {
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+
+  // Guard against an unexpected payload shape and keep only known activity types
+  // (the feed is backend-ordered most-recent-first).
+  const items = Array.isArray(activities)
+    ? activities.filter((a) => a && a.type in TYPE_STYLE).slice(0, 20)
+    : []
+
   return (
     <div
       className="rounded-(--r) px-6 py-5.5"
@@ -73,53 +71,86 @@ export function ActivityInbox() {
         </button>
       </div>
 
-      {/* Feed */}
-      {items.map((item, i) => (
-        <div
-          key={i}
-          className="flex gap-3 py-3.25 items-start"
-          style={{ borderBottom: i < items.length - 1 ? '1px solid var(--line-2)' : 'none' }}
-        >
-          {item.type === 'comment' ? (
-            <span
-              className="w-9.5 h-9.5 rounded-[11px] grid place-items-center text-white font-extrabold flex-none text-[14px]"
-              style={{ background: item.avatarGradient }}
-            >
-              {item.initial}
-            </span>
-          ) : (
-            <span
-              className="w-9.5 h-9.5 rounded-[11px] grid place-items-center font-extrabold flex-none"
-              style={{ background: item.avatarBg, color: item.avatarColor }}
-            >
-              {item.symbol}
-            </span>
-          )}
+      {/* Loading */}
+      {isLoading && (
+        <p className="py-6 text-[13.5px] font-semibold text-center" style={{ color: 'var(--ink-soft)' }}>
+          {t('home.activityLoading')}
+        </p>
+      )}
 
-          <div className="flex-1 min-w-0">
-            <p className="text-[13.5px] font-semibold">{item.description}</p>
-            {item.type === 'comment' && (
-              <>
-                <p className="text-[13px] mt-0.5" style={{ color: 'var(--ink-soft)', fontWeight: 500 }}>
-                  {item.comment}
-                </p>
-                <button
-                  onClick={() => router.push('/cms/producer/my-events')}
-                  className="mt-1.5 font-extrabold text-[12.5px]"
-                  style={{ color: 'var(--blue)' }}
-                >
-                  {t('common.reply')} →
-                </button>
-              </>
-            )}
-            {item.type === 'activity' && (
-              <div className="text-[12px] font-semibold mt-0.5" style={{ color: 'var(--wp-muted)' }}>
-                {item.time}
-              </div>
-            )}
-          </div>
+      {/* Empty */}
+      {!isLoading && items.length === 0 && (
+        <div className="py-8 text-center">
+          <p className="text-[14px] font-bold">{t('home.activityEmpty')}</p>
+          <p className="text-[12.5px] font-semibold mt-1" style={{ color: 'var(--ink-soft)' }}>
+            {t('home.activityEmptySub')}
+          </p>
         </div>
-      ))}
+      )}
+
+      {/* Feed */}
+      {!isLoading &&
+        items.map((item, i) => {
+          const style = TYPE_STYLE[item.type]
+          const initial = (item.user?.name ?? '?').charAt(0).toUpperCase()
+          const time = relativeTime(item.createdAt, locale)
+          return (
+            <div
+              key={item.id ?? i}
+              className="flex gap-3 py-3.25 items-start"
+              style={{ borderBottom: i < items.length - 1 ? '1px solid var(--line-2)' : 'none' }}
+            >
+              {item.type === 'comment' && item.user?.profileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.user.profileImage}
+                  alt={item.user.name}
+                  className="w-9.5 h-9.5 rounded-[11px] object-cover flex-none"
+                />
+              ) : item.type === 'comment' ? (
+                <span
+                  className="w-9.5 h-9.5 rounded-[11px] grid place-items-center text-white font-extrabold flex-none text-[14px]"
+                  style={{ background: 'linear-gradient(135deg,#ff7a59,#ff4d8d)' }}
+                >
+                  {initial}
+                </span>
+              ) : (
+                <span
+                  className="w-9.5 h-9.5 rounded-[11px] grid place-items-center font-extrabold flex-none"
+                  style={{ background: style.bg, color: style.color }}
+                >
+                  {style.symbol}
+                </span>
+              )}
+
+              <div className="flex-1 min-w-0">
+                <p className="text-[13.5px] font-semibold">
+                  <strong>{item.user?.name ?? '—'}</strong> {t(style.verbKey)}{' '}
+                  <strong>{item.event?.title ?? '—'}</strong>
+                </p>
+                {item.type === 'comment' && item.content && (
+                  <>
+                    <p className="text-[13px] mt-0.5 truncate" style={{ color: 'var(--ink-soft)', fontWeight: 500 }}>
+                      &ldquo;{item.content}&rdquo;
+                    </p>
+                    <button
+                      onClick={() => router.push('/cms/producer/my-events')}
+                      className="mt-1.5 font-extrabold text-[12.5px]"
+                      style={{ color: 'var(--blue)' }}
+                    >
+                      {t('common.reply')} →
+                    </button>
+                  </>
+                )}
+                {time && (
+                  <div className="text-[12px] font-semibold mt-0.5" style={{ color: 'var(--wp-muted)' }}>
+                    {time}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
     </div>
   )
 }

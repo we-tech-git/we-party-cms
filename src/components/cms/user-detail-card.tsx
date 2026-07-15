@@ -72,11 +72,13 @@ export function UserDetailCard({
   user,
   onClose,
   onToggleBlock,
+  onMakeAdmin,
   fetchDetails = true,
 }: {
   user: AdminUserDetails
   onClose: () => void
   onToggleBlock?: (u: AdminUserDetails) => void
+  onMakeAdmin?: (u: AdminUserDetails) => void
   fetchDetails?: boolean
 }) {
   const { data, isLoading, isError } = useUserDetails(fetchDetails ? user.id : null)
@@ -142,15 +144,22 @@ export function UserDetailCard({
           ))}
         </div>
 
-        {onToggleBlock && (
-          <button onClick={() => onToggleBlock(u)} className="w-full flex items-center justify-center gap-2 rounded-[12px] py-3 font-extrabold text-[14px] transition hover:brightness-95" style={u.status === 'active' ? { background: '#FEE2E2', color: '#DC2626' } : { background: '#E6FBF3', color: 'var(--green)' }}>
-            {u.status === 'active' ? (
-              <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>Bloquear usuário</>
-            ) : (
-              <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M20 6L9 17l-5-5" /></svg>Desbloquear usuário</>
-            )}
-          </button>
-        )}
+        <div className="flex flex-col gap-2.5">
+          {onMakeAdmin && (
+            <button onClick={() => onMakeAdmin(u)} className="w-full flex items-center justify-center gap-2 rounded-[12px] py-3 font-extrabold text-[14px] transition hover:brightness-95" style={{ background: '#EEEAFF', color: 'var(--violet)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2l2.4 6.9H22l-6 4.3 2.3 7-6.3-4.6L5.7 20l2.3-7-6-4.3h7.6z" /></svg>Tornar admin
+            </button>
+          )}
+          {onToggleBlock && (
+            <button onClick={() => onToggleBlock(u)} className="w-full flex items-center justify-center gap-2 rounded-[12px] py-3 font-extrabold text-[14px] transition hover:brightness-95" style={u.status === 'active' ? { background: '#FEE2E2', color: '#DC2626' } : { background: '#E6FBF3', color: 'var(--green)' }}>
+              {u.status === 'active' ? (
+                <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>Bloquear usuário</>
+              ) : (
+                <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M20 6L9 17l-5-5" /></svg>Desbloquear usuário</>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

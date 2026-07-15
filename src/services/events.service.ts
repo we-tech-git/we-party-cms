@@ -12,8 +12,13 @@ import type {
 } from '@/types/events.types'
 
 export async function getMyDashboard(refresh?: boolean): Promise<ProducerDashboardResponse> {
-  const params = refresh ? { refresh: true } : {}
+  // `recent=true` asks the backend to include the consolidated `recentActivities`
+  // feed alongside the usual metrics (ordered most-recent-first, capped at 20).
+  const params: Record<string, boolean> = { recent: true }
+  if (refresh) params.refresh = true
   const { data } = await axiosInstance.get<ProducerDashboardResponse>('/events/my-dashboard', { params })
+  // TEMP DEBUG — remove once recentActivities shape is confirmed against the live API.
+  console.warn('[my-dashboard] raw response', data)
   return data
 }
 

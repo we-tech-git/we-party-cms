@@ -28,6 +28,37 @@ export interface RecentEventDto {
   totalConfirmed: number
 }
 
+/** Kinds of recent activity the backend surfaces in the producer dashboard feed. */
+export type ProducerActivityType = 'comment' | 'like' | 'attendance' | 'share'
+
+export interface ProducerActivityUser {
+  id?: string
+  name: string
+  username?: string
+  profileImage?: string | null
+}
+
+export interface ProducerActivityEventRef {
+  id: string
+  title: string
+}
+
+/**
+ * A single recent activity done by a user on one of the producer's events.
+ * Consolidated across all of the producer's events and ordered most-recent-first
+ * by the backend. The exact payload is undocumented in the OpenAPI spec, so a few
+ * fields are optional and read tolerantly when rendered.
+ */
+export interface ProducerActivityDto {
+  id?: string
+  type: ProducerActivityType
+  user: ProducerActivityUser
+  event: ProducerActivityEventRef
+  createdAt: string
+  /** Present for `comment` activities — the comment text. */
+  content?: string | null
+}
+
 export interface ProducerDashboardResponse {
   producerId: string
   totalViews: number
@@ -40,6 +71,8 @@ export interface ProducerDashboardResponse {
   growthChart: ProducerDashboardGrowthPoint[]
   topEvent: TopEventDto | null
   recentEvents: RecentEventDto[]
+  /** Consolidated recent activities across the producer's events (up to 20). */
+  recentActivities?: ProducerActivityDto[]
 }
 
 export interface FaqItem {

@@ -1,7 +1,7 @@
 import Axios, { AxiosError, AxiosRequestConfig } from 'axios'
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.dev.wepartyapp.com'
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.wepartyapp.com'
 
 export const axiosInstance = Axios.create({
   baseURL: API_BASE_URL,

@@ -22,6 +22,10 @@ const card = { background: '#fff', border: '1px solid var(--line-2)', boxShadow:
 
 const PER_PAGE = 8
 
+function isAdminRole(role: string | null): boolean {
+  return (role ?? '').toLowerCase().includes('admin')
+}
+
 function StatCard({ value, label, grad, icon }: { value: string; label: string; grad: string; icon: React.ReactNode }) {
   return (
     <div className="flex items-center gap-4 rounded-[18px] px-5 py-4.5" style={card}>
@@ -36,7 +40,7 @@ function StatCard({ value, label, grad, icon }: { value: string; label: string; 
 
 export default function UsersPage() {
   const { data, isLoading, isError, refetch, isFetching } = useAdminUsers()
-  const { block, unblock, remove } = useUserBlockMutations()
+  const { block, unblock, remove, makeAdmin } = useUserBlockMutations()
 
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | UserStatus>('all')
@@ -44,6 +48,7 @@ export default function UsersPage() {
   const [detail, setDetail] = useState<AdminUser | null>(null)
   const [toToggle, setToToggle] = useState<AdminUser | null>(null)
   const [toDelete, setToDelete] = useState<AdminUser | null>(null)
+  const [toMakeAdmin, setToMakeAdmin] = useState<AdminUser | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
   const users = useMemo(() => data?.users ?? [], [data])
@@ -68,7 +73,15 @@ export default function UsersPage() {
   const safePage = Math.min(page, totalPages)
   const pageItems = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE)
 
-  const pendingId = block.isPending ? block.variables : unblock.isPending ? unblock.variables : remove.isPending ? remove.variables : null
+  const pendingId = block.isPending
+    ? block.variables
+    : unblock.isPending
+      ? unblock.variables
+      : remove.isPending
+        ? remove.variables
+        : makeAdmin.isPending
+          ? makeAdmin.variables
+          : null
 
   function applyToggle() {
     if (!toToggle) return
@@ -86,6 +99,15 @@ export default function UsersPage() {
     remove.mutate(toDelete.id, {
       onSuccess: () => setToDelete(null),
       onError: () => setActionError('Não foi possível excluir o usuário. Verifique sua conexão e tente novamente.'),
+    })
+  }
+
+  function applyMakeAdmin() {
+    if (!toMakeAdmin) return
+    setActionError(null)
+    makeAdmin.mutate(toMakeAdmin.id, {
+      onSuccess: () => setToMakeAdmin(null),
+      onError: () => setActionError('Não foi possível conceder o privilégio de admin. Verifique sua conexão e tente novamente.'),
     })
   }
 
@@ -205,6 +227,11 @@ export default function UsersPage() {
                           <button onClick={() => setDetail(u)} title="Ver perfil" className="w-9 h-9 rounded-[10px] grid place-items-center transition hover:brightness-95" style={{ background: '#E0E7FF', color: '#4F46E5' }}>
                             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>
                           </button>
+                          {!isAdminRole(u.role) && (
+                            <button onClick={() => { setActionError(null); setToMakeAdmin(u) }} disabled={busy} title="Tornar admin" className="w-9 h-9 rounded-[10px] grid place-items-center transition hover:brightness-95 disabled:opacity-50" style={{ background: '#EEEAFF', color: 'var(--violet)' }}>
+                              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2l2.4 6.9H22l-6 4.3 2.3 7-6.3-4.6L5.7 20l2.3-7-6-4.3h7.6z" /></svg>
+                            </button>
+                          )}
                           <button onClick={() => { setActionError(null); setToToggle(u) }} disabled={busy} title={u.status === 'active' ? 'Bloquear' : 'Desbloquear'} className="w-9 h-9 rounded-[10px] grid place-items-center transition hover:brightness-95 disabled:opacity-50" style={u.status === 'active' ? { background: '#FEE2E2', color: '#DC2626' } : { background: '#E6FBF3', color: 'var(--green)' }}>
                             {u.status === 'active'
                               ? <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>
@@ -246,7 +273,14 @@ export default function UsersPage() {
       )}
 
       {/* Detail card */}
-      {detail && <UserDetailCard user={toUserDetails(detail)} onClose={() => setDetail(null)} onToggleBlock={(u) => { setActionError(null); setToToggle(u) }} />}
+      {detail && (
+        <UserDetailCard
+          user={toUserDetails(detail)}
+          onClose={() => setDetail(null)}
+          onToggleBlock={(u) => { setActionError(null); setToToggle(u) }}
+          onMakeAdmin={!isAdminRole(detail.role) ? (u) => { setActionError(null); setToMakeAdmin(u) } : undefined}
+        />
+      )}
 
       {/* Block / unblock confirm */}
       {toToggle && (() => {
@@ -270,6 +304,32 @@ export default function UsersPage() {
                 <button onClick={() => setToToggle(null)} disabled={busy} className="flex-1 rounded-[12px] py-3 font-extrabold text-[14px] transition hover:brightness-95 disabled:opacity-50" style={{ background: 'var(--line)', color: 'var(--ink-soft)' }}>Cancelar</button>
                 <button onClick={applyToggle} disabled={busy} className="flex-1 rounded-[12px] py-3 font-extrabold text-[14px] text-white transition hover:-translate-y-0.5 disabled:opacity-60" style={{ background: blocking ? 'linear-gradient(135deg,#ef4444,#dc2626)' : 'linear-gradient(135deg,#10b981,#059669)' }}>
                   {busy ? 'Processando…' : blocking ? 'Bloquear' : 'Desbloquear'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Make admin confirm */}
+      {toMakeAdmin && (() => {
+        const busy = pendingId === toMakeAdmin.id
+        return (
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+            <div className="absolute inset-0" style={{ background: 'rgba(17,24,39,.6)', backdropFilter: 'blur(4px)' }} onClick={() => !busy && setToMakeAdmin(null)} />
+            <div role="dialog" aria-modal="true" className="relative z-1 rounded-[24px] bg-white p-7 text-center" style={{ width: 'min(92vw, 420px)', boxShadow: 'var(--shadow)' }}>
+              <span className="w-16 h-16 rounded-full grid place-items-center mx-auto mb-4" style={{ background: '#EEEAFF', color: 'var(--violet)' }}>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2l2.4 6.9H22l-6 4.3 2.3 7-6.3-4.6L5.7 20l2.3-7-6-4.3h7.6z" /></svg>
+              </span>
+              <h3 className="text-[19px] font-extrabold mb-2" style={{ fontFamily: 'var(--font-bricolage)' }}>Tornar admin?</h3>
+              <p className="text-[14px] font-medium mb-5" style={{ color: 'var(--ink-soft)' }}>
+                <strong>{toMakeAdmin.name}</strong> passará a ter acesso total de administrador na plataforma.
+              </p>
+              {actionError && <p className="text-[12.5px] font-semibold mb-3" style={{ color: '#DC2626' }}>{actionError}</p>}
+              <div className="flex gap-2.5">
+                <button onClick={() => setToMakeAdmin(null)} disabled={busy} className="flex-1 rounded-[12px] py-3 font-extrabold text-[14px] transition hover:brightness-95 disabled:opacity-50" style={{ background: 'var(--line)', color: 'var(--ink-soft)' }}>Cancelar</button>
+                <button onClick={applyMakeAdmin} disabled={busy} className="flex-1 rounded-[12px] py-3 font-extrabold text-[14px] text-white transition hover:-translate-y-0.5 disabled:opacity-60" style={{ background: GRAD }}>
+                  {busy ? 'Processando…' : 'Tornar admin'}
                 </button>
               </div>
             </div>

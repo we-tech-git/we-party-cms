@@ -33,7 +33,7 @@ export default function ProducerDashboard() {
   const { t, locale } = useI18n()
   const user = useAuthStore((s) => s.user)
   const initial = (user?.name ?? 'P')[0].toUpperCase()
-  const { data, isLoading } = useProducerDashboard()
+  const { data, isLoading, isFetching, forceRefresh } = useProducerDashboard()
 
   // Localized "today" — first letter uppercased for pt-BR weekday/month casing.
   const todayRaw = new Date().toLocaleDateString(locale, {
@@ -140,6 +140,21 @@ export default function ProducerDashboard() {
             {today}
           </div>
           <button
+            onClick={() => forceRefresh()}
+            disabled={isFetching}
+            className="flex items-center gap-2 rounded-[14px] px-3.75 py-2.75 font-bold text-[14px] transition hover:border-pink hover:text-pink disabled:opacity-60"
+            style={{ background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)' }}
+            title={t('home.refreshMetrics')}
+          >
+            <svg
+              width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
+              className={isFetching ? 'animate-spin' : ''}
+            >
+              <path d="M21 12a9 9 0 10-2.6 6.4M21 4v6h-6" />
+            </svg>
+            <span className="hidden sm:inline">{t('home.refreshMetrics')}</span>
+          </button>
+          <button
             onClick={() => router.push('/cms/producer/my-events?filtro=arquivado')}
             className="flex items-center gap-2 rounded-[14px] px-5 py-3.25 font-extrabold transition hover:border-pink hover:text-pink"
             style={{ background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)' }}
@@ -189,7 +204,7 @@ export default function ProducerDashboard() {
         {/* Right column */}
         <div className="flex flex-col gap-5 min-w-0">
           <AiSuggestions />
-          <ActivityInbox />
+          <ActivityInbox activities={data?.recentActivities} isLoading={isLoading} />
         </div>
       </div>
     </div>

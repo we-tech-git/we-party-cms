@@ -6,20 +6,22 @@ import { getAdminUserDetails } from '@/services/users.service'
 import { collectRoleStrings, rolesIncludeAdmin } from '@/lib/roles'
 
 /**
- * Determina se o usuário logado é admin. Primeiro tenta o usuário persistido
- * (login); se ele não trouxer nenhuma informação de papel, busca o próprio
- * registro via GET /users/{id} como rede de segurança.
+ * Determina se o usuário logado é admin. Confia direto no usuário persistido
+ * (login) apenas quando ele já indica admin; caso contrário, confirma no
+ * servidor via GET /users/{id} — o objeto local sempre carrega algum campo
+ * genérico (ex.: `type: "user"`), então "não achei papel nenhum" nunca seria
+ * um sinal confiável de que o snapshot está completo/atualizado. Isso evita
+ * que uma promoção a admin (via assign-role) só apareça depois de um novo login.
  *
  * `isLoading` indica que ainda estamos resolvendo via fetch — quem usa isso
  * (ex.: o guard) deve aguardar antes de decidir bloquear o acesso.
  */
 export function useIsAdmin(): { isAdmin: boolean; isLoading: boolean } {
   const user = useAuthStore((s) => s.user)
-  const localRoles = collectRoleStrings(user)
-  const localAdmin = rolesIncludeAdmin(localRoles)
+  const localAdmin = rolesIncludeAdmin(collectRoleStrings(user))
 
-  // Só busca quando há um usuário logado e o login não trouxe papel algum.
-  const needFetch = !!user?.id && localRoles.length === 0
+  // Só pula a confirmação no servidor quando o local já diz que é admin.
+  const needFetch = !!user?.id && !localAdmin
 
   const { data, isLoading } = useQuery({
     queryKey: ['self-user', user?.id],

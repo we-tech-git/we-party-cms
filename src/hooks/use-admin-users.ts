@@ -5,6 +5,7 @@ import {
   blockUser,
   unblockUser,
   deleteUser,
+  assignUserRole,
 } from '@/services/users.service'
 
 const KEY = ['admin', 'users'] as const
@@ -42,6 +43,10 @@ export function useUserBlockMutations() {
     mutationFn: (id: string) => deleteUser(id),
     onSuccess: invalidate,
   })
+  const makeAdmin = useMutation({
+    mutationFn: (id: string) => assignUserRole(id, 'admin'),
+    onSuccess: invalidate,
+  })
 
-  return { block, unblock, remove }
+  return { block, unblock, remove, makeAdmin }
 }

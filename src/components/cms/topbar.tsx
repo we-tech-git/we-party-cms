@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUpdateProfileImage } from '@/hooks/use-update-profile-image'
@@ -140,32 +141,8 @@ export function CmsTopbar() {
         </span>
       </div>
 
-      {/* Search pill */}
-      <div
-        className="ml-auto hidden sm:flex items-center gap-2.25 rounded-[13px] px-3.75 py-2.5 text-[14px] font-medium min-w-40 lg:min-w-57.5"
-        style={{ background: '#fff', border: '1px solid rgba(34,26,61,.08)', color: '#8C85A2', boxShadow: SHADOW_SM }}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-          <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
-        </svg>
-        <span className="truncate">{t('topbar.searchPlaceholder')}</span>
-      </div>
-
-      <div className="ml-auto sm:ml-0 flex items-center gap-2 sm:gap-3">
+      <div className="ml-auto flex items-center gap-2 sm:gap-3">
         <LanguageSwitcher />
-
-        {/* Notification bell */}
-        <button
-          className="relative w-10.5 h-10.5 rounded-[12px] grid place-items-center transition-colors hover:text-[#D81B7E]"
-          style={{ background: '#fff', border: '1px solid rgba(34,26,61,.08)', boxShadow: SHADOW_SM }}
-          aria-label={t('topbar.notifications')}
-        >
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.7 21a2 2 0 01-3.4 0" />
-          </svg>
-          <span className="absolute top-2.25 right-2.25 w-2 h-2 rounded-full border-2 border-white bg-[#D81B7E]" />
-        </button>
 
         {/* User avatar + menu */}
         <div className="relative" ref={menuRef}>
@@ -260,8 +237,10 @@ export function CmsTopbar() {
       {/* Hidden file input */}
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
 
-      {/* Avatar modal */}
-      {modalOpen && (
+      {/* Avatar modal — portaled to <body> so `fixed` is relative to the
+          viewport, not this header (which has backdrop-filter and would
+          otherwise become the containing block for fixed descendants). */}
+      {modalOpen && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
           <div
             className="absolute inset-0"
@@ -318,7 +297,8 @@ export function CmsTopbar() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </header>
   )

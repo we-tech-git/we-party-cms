@@ -60,16 +60,13 @@ const STATUS_META: Record<FbStatus, { label: string; color: string; bg: string }
   resolved: { label: 'Resolvido', color: 'var(--green)', bg: '#E6FBF3' },
 }
 
-/* --------------------------------------------------------------- mock data - */
+/* --------------------------------------------------------------- data ----- */
 
-const INITIAL_FEEDBACKS: Feedback[] = [
-  { id: 1, name: 'João Silva', email: 'joao.silva@email.com', type: 'suggestion', status: 'pending', date: '02/02/2026', rating: 4, message: 'Seria muito útil ter a opção de compartilhar eventos diretamente para o WhatsApp com uma prévia personalizada. Muitos dos meus amigos usam mais o WhatsApp do que outras redes sociais para combinar eventos.' },
-  { id: 2, name: 'Maria Santos', email: 'maria.santos@email.com', type: 'bug', status: 'inProgress', date: '01/02/2026', message: 'Quando tento fazer o check-in no evento, o aplicativo fecha sozinho. Já tentei reinstalar mas o problema persiste. Estou usando um iPhone 14 com iOS 17.' },
-  { id: 3, name: 'Pedro Costa', email: 'pedro.costa@email.com', type: 'praise', status: 'resolved', date: '30/01/2026', rating: 5, message: 'Parabéns pelo aplicativo! A experiência de compra de ingressos é muito fluida e o design é lindo. Recomendo para todos os meus amigos. Continuem assim!', response: 'Muito obrigado pelo feedback positivo, Pedro! Ficamos felizes que você esteja gostando da plataforma.', responseDate: '31/01/2026' },
-  { id: 4, name: 'Ana Oliveira', email: 'ana.oliveira@email.com', type: 'complaint', status: 'pending', date: '28/01/2026', rating: 1, message: 'Comprei ingresso para um evento que foi cancelado e até agora não recebi o reembolso. Já se passaram 15 dias e ninguém me dá uma resposta. Isso é muito frustrante!' },
-  { id: 5, name: 'Lucas Ferreira', email: 'lucas.ferreira@email.com', type: 'suggestion', status: 'resolved', date: '25/01/2026', rating: 4, message: 'Gostaria de poder filtrar eventos por distância da minha localização. Às vezes aparecem eventos muito longe e fica difícil encontrar os que são perto de casa.', response: 'Ótima sugestão, Lucas! Acabamos de implementar o filtro por distância na última atualização. Confira!', responseDate: '27/01/2026' },
-  { id: 6, name: 'Beatriz Souza', email: 'beatriz.souza@email.com', type: 'bug', status: 'pending', date: '24/01/2026', rating: 2, message: 'As notificações push não estão chegando mesmo com tudo ativado nas configurações. Acabei perdendo um evento por causa disso.' },
-]
+// Sem API de feedbacks no backend ainda (GET /admin/feedbacks, PATCH
+// /admin/feedbacks/:id não existem) — lista começa vazia até essa integração
+// existir. O restante da tela (busca, filtros, master-detail) já está pronto
+// para receber dados reais assim que o hook de fetch for plugado aqui.
+const INITIAL_FEEDBACKS: Feedback[] = []
 
 /* ----------------------------------------------------------- subcomponents - */
 

@@ -41,6 +41,6 @@ export type BodyType<T> = T
 
 export default function customAxios<T>(
   config: AxiosRequestConfig,
-): Promise<T> {
+ ): Promise<T> {
   return axiosInstance(config).then((res) => res.data)
-}
+ }

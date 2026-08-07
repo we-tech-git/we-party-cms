@@ -1,53 +1,8 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useI18n } from '@/i18n/context'
 
-type Suggestion = {
-  emoji: string
-  emojiBg: string
-  title: string
-  description: React.ReactNode
-  ctaLabel: string
-}
-
-const suggestions: Suggestion[] = [
-  {
-    emoji: '🚀',
-    emojiBg: '#FFE9F2',
-    title: 'Impulsione a Sunset Beach Party',
-    description: 'Está em #3 e a 1.200 impressões do Top 1. Um boost agora pode levá-la ao topo da descoberta.',
-    ctaLabel: 'Impulsionar →',
-  },
-  {
-    emoji: '🎤',
-    emojiBg: '#EEEAFF',
-    title: 'Adicione as atrações na Neon Night',
-    description: (
-      <>
-        Eventos com lineup recebem em média <strong>+60% de curtidas</strong>. Enriqueça a página antes de publicar.
-      </>
-    ),
-    ctaLabel: 'Adicionar atrações →',
-  },
-  {
-    emoji: '💬',
-    emojiBg: '#E6F1FF',
-    title: 'Responda os comentários',
-    description: 'Você tem 4 comentários sem resposta. Interagir aumenta o engajamento e o alcance do evento.',
-    ctaLabel: 'Responder →',
-  },
-  {
-    emoji: '📣',
-    emojiBg: '#E6FBF3',
-    title: 'Compartilhe nas redes sociais',
-    description: 'Sem posts há 3 dias. Um story com o link do evento traz visitas direto pra sua página.',
-    ctaLabel: 'Gerar post →',
-  },
-]
-
 export function AiSuggestions() {
-  const router = useRouter()
   const { t } = useI18n()
   return (
     <div
@@ -69,34 +24,13 @@ export function AiSuggestions() {
         </h3>
       </div>
 
-      {/* Suggestions */}
-      {suggestions.map((s, i) => (
-        <div
-          key={i}
-          className="flex gap-3.5 py-3.5"
-          style={{ borderBottom: i < suggestions.length - 1 ? '1px solid var(--line-2)' : 'none' }}
-        >
-          <span
-            className="w-10 h-10 rounded-[12px] grid place-items-center flex-none text-[18px]"
-            style={{ background: s.emojiBg }}
-          >
-            {s.emoji}
-          </span>
-          <div className="flex-1 min-w-0">
-            <strong className="text-[14px]">{s.title}</strong>
-            <p className="text-[12.5px] mt-0.5 mb-2.5" style={{ color: 'var(--ink-soft)', fontWeight: 500 }}>
-              {s.description}
-            </p>
-            <button
-              onClick={() => router.push('/cms/producer/my-events')}
-              className="inline-flex items-center gap-1.5 font-extrabold text-[13px] px-3 py-1.75 rounded-[10px] border-[1.5px] transition hover:bg-[#FFE0EC]"
-              style={{ color: 'var(--pink)', borderColor: '#ffd9e6' }}
-            >
-              {s.ctaLabel}
-            </button>
-          </div>
-        </div>
-      ))}
+      {/* Empty state — feature not backed by an API yet */}
+      <div className="py-8 text-center">
+        <p className="text-[14px] font-bold">Sugestões de IA em breve</p>
+        <p className="text-[12.5px] font-semibold mt-1" style={{ color: 'var(--ink-soft)' }}>
+          Esse recurso ainda não está disponível.
+        </p>
+      </div>
     </div>
   )
 }

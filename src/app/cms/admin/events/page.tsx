@@ -5,9 +5,10 @@
  * listar, buscar/filtrar por status, aprovar pendentes, destacar e excluir.
  *
  * Inspirado no MyEventsManager do projeto OPS, mas em chave administrativa
- * (visão de todos os produtores). Dados de amostra — quando houver endpoints
- * admin (GET /admin/events, PATCH /admin/events/:id, DELETE /admin/events/:id),
- * troque `INITIAL_EVENTS` e os handlers por chamadas reais.
+ * (visão de todos os produtores). Ainda não existe endpoint admin no backend
+ * (GET /admin/events, PATCH /admin/events/:id, DELETE /admin/events/:id) —
+ * a lista começa vazia até essa integração existir; troque `INITIAL_EVENTS`
+ * e os handlers por chamadas reais quando os endpoints forem publicados.
  */
 
 import Link from 'next/link'
@@ -53,43 +54,11 @@ function fmtCompact(n: number) {
   return String(n)
 }
 
-/* --------------------------------------------------------------- mock data - */
+/* --------------------------------------------------------------- data ----- */
 
-type RawEvent = Omit<AdminEvent, 'producerUser'>
-
-const RAW_EVENTS: RawEvent[] = [
-  { id: 1, title: 'Sunset Beach Party', producer: 'Ana Oliveira', date: '25 Jun 2026', location: 'Praia de Maresias, SP', status: 'published', featured: true, views: 12400, likes: 980, cover: 'linear-gradient(135deg,#FF9D3D,#F0309A)', emoji: '🌅' },
-  { id: 2, title: 'Yasuke Allday', producer: 'João Silva', date: '25 Jun 2026', location: 'Vila Ré, São Paulo - SP', status: 'published', featured: false, views: 8600, likes: 540, cover: 'linear-gradient(135deg,#7b5cff,#c54bff)', emoji: '🎧' },
-  { id: 3, title: 'Festa Junina 2026', producer: 'Larissa Gomes', date: '28 Jun 2026', location: 'Centro de Eventos, MG', status: 'pending', featured: false, views: 0, likes: 0, cover: 'linear-gradient(135deg,#10A87D,#34d399)', emoji: '🎉' },
-  { id: 4, title: 'Neon Night', producer: 'Vanessa Cardoso', date: '02 Jul 2026', location: 'Clube Subsolo, RJ', status: 'pending', featured: false, views: 0, likes: 0, cover: 'linear-gradient(135deg,#3E7BFB,#5b93ff)', emoji: '💡' },
-  { id: 5, title: 'Sertanejo na Roça', producer: 'Patrícia Ramos', date: '10 Jul 2026', location: 'Fazenda Boa Vista, GO', status: 'draft', featured: false, views: 0, likes: 0, cover: 'linear-gradient(135deg,#E8920C,#fbbf24)', emoji: '🤠' },
-  { id: 6, title: 'Summer Vibes', producer: 'Maria Santos', date: '15 Jan 2026', location: 'Rooftop 360, SP', status: 'ended', featured: false, views: 21800, likes: 1730, cover: 'linear-gradient(135deg,#ec4899,#f472b6)', emoji: '☀️' },
-  { id: 7, title: 'Tech & Beats', producer: 'Beatriz Souza', date: '20 May 2026', location: 'Hub Inovação, SP', status: 'ended', featured: false, views: 9400, likes: 610, cover: 'linear-gradient(135deg,#6366f1,#818cf8)', emoji: '🔊' },
-  { id: 8, title: 'Carnaval Fora de Época', producer: 'Camila Rocha', date: '05 Aug 2026', location: 'Sambódromo, BA', status: 'published', featured: true, views: 31200, likes: 2940, cover: 'linear-gradient(135deg,#f43f5e,#fb7185)', emoji: '🪩' },
-]
-
-// Deterministic mock profile for each producer (until /events carries a real
-// creator object with an id we can fetch via GET /users/{id}).
-function buildProducer(ev: RawEvent): AdminUserDetails {
-  const username = ev.producer.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]/g, '')
-  const seed = ev.id
-  return {
-    id: `producer-${ev.id}`,
-    name: ev.producer,
-    username,
-    email: `${username}@email.com`,
-    profileImage: null,
-    role: 'Produtor',
-    status: 'active',
-    createdAt: `202${4 + (seed % 2)}-0${1 + (seed % 9)}-1${seed % 9}T10:00:00Z`,
-    lastActive: `2026-0${1 + (seed % 6)}-2${seed % 9}T18:30:00Z`,
-    eventsConfirmed: 3 + seed * 2,
-    eventsLiked: 5 + seed * 3,
-    eventsCommented: 1 + seed,
-  }
-}
-
-const INITIAL_EVENTS: AdminEvent[] = RAW_EVENTS.map((e) => ({ ...e, producerUser: buildProducer(e) }))
+// Sem endpoint admin de eventos no backend ainda — lista começa vazia até
+// essa integração existir (ver comentário no topo do arquivo).
+const INITIAL_EVENTS: AdminEvent[] = []
 
 /* ----------------------------------------------------------- subcomponents - */
 
@@ -282,7 +251,9 @@ export default function EventsAdminPage() {
         </div>
       )}
 
-      {/* Producer detail card — mock profile, so no live fetch */}
+      {/* Producer detail card — event's producerUser is a stub until the admin
+          events endpoint returns a real creator id; fetchDetails stays off
+          until then to avoid firing GET /users/{id} with a fake id. */}
       {viewUser && <UserDetailCard user={viewUser} fetchDetails={false} onClose={() => setViewUser(null)} />}
     </div>
   )

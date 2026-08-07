@@ -6,13 +6,6 @@ import type { ProducerDashboardGrowthPoint } from '@/types/events.types'
 const PERIODS = ['7D', '30D', '90D', '1A'] as const
 type Period = (typeof PERIODS)[number]
 
-const mockData: Record<Period, { vals: number[]; total: string; unit: string; gr: string }> = {
-  '7D': { vals: [5.2, 5.8, 5.5, 6.9, 7.4, 8.2, 7.0], total: '45,9k', unit: 'pessoas', gr: '▲ 12,5% vs. semana anterior' },
-  '30D': { vals: [28, 33, 30, 38, 36, 44, 42, 50, 48, 58], total: '182k', unit: 'pessoas', gr: '▲ 19,4% vs. mês anterior' },
-  '90D': { vals: [60, 82, 78, 110, 140, 135, 170], total: '512k', unit: 'pessoas', gr: '▲ 38,6% vs. trimestre anterior' },
-  '1A': { vals: [90, 140, 120, 220, 260, 250, 360, 440, 400, 560, 640, 700], total: '3,1M', unit: 'pessoas', gr: '▲ 184% vs. ano anterior' },
-}
-
 const W = 640
 const H = 190
 const TOP = 14
@@ -49,24 +42,28 @@ function formatTotal(total: number): string {
 
 type ReachChartProps = {
   growthChart?: ProducerDashboardGrowthPoint[]
+  isLoading?: boolean
 }
 
-export function ReachChart({ growthChart }: ReachChartProps) {
+// Only 30D is backed by a real endpoint (GET /events/my-dashboard) today —
+// other periods show an empty state until the backend exposes that granularity.
+type ChartMeta = { vals: number[]; total: string; unit: string; gr: string } | null
+
+export function ReachChart({ growthChart, isLoading }: ReachChartProps) {
   const [period, setPeriod] = useState<Period>('30D')
 
-  const getValsAndMeta = (): { vals: number[]; total: string; unit: string; gr: string } => {
-    if (period === '30D' && growthChart && growthChart.length > 0) {
-      const vals = growthChart.map((p) => p.peopleReached)
-      const total = vals.reduce((s, v) => s + v, 0)
-      return { vals, total: formatTotal(total), unit: 'pessoas', gr: '▲ últimos 30 dias' }
-    }
-    return mockData[period]
+  const getValsAndMeta = (): ChartMeta => {
+    if (period !== '30D') return null
+    if (!growthChart || growthChart.length === 0) return null
+    const vals = growthChart.map((p) => p.peopleReached)
+    const total = vals.reduce((s, v) => s + v, 0)
+    return { vals, total: formatTotal(total), unit: 'pessoas', gr: '▲ últimos 30 dias' }
   }
 
-  const { vals, total, unit, gr } = getValsAndMeta()
-  const pts = computePoints(vals)
-  const linePath = smoothPath(pts)
-  const fillPath = linePath + ` L ${W} ${H + 18} L 0 ${H + 18} Z`
+  const meta = getValsAndMeta()
+  const pts = meta ? computePoints(meta.vals) : []
+  const linePath = meta ? smoothPath(pts) : ''
+  const fillPath = meta ? linePath + ` L ${W} ${H + 18} L 0 ${H + 18} Z` : ''
 
   return (
     <div
@@ -112,49 +109,68 @@ export function ReachChart({ growthChart }: ReachChartProps) {
       {/* Total + growth */}
       <div className="flex items-end gap-6 mb-1.5">
         <div className="font-extrabold text-[30px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-          {total}<span className="text-[15px] font-bold" style={{ color: 'var(--wp-muted)' }}> {unit}</span>
+          {meta ? meta.total : '—'}
+          <span className="text-[15px] font-bold" style={{ color: 'var(--wp-muted)' }}> {meta ? meta.unit : ''}</span>
         </div>
-        <div className="font-extrabold text-[14px] pb-1.5" style={{ color: 'var(--green)' }}>
-          {gr}
-        </div>
+        {meta && (
+          <div className="font-extrabold text-[14px] pb-1.5" style={{ color: 'var(--green)' }}>
+            {meta.gr}
+          </div>
+        )}
       </div>
 
-      {/* SVG chart */}
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        className="w-full block"
-        style={{ height: 210 }}
-      >
-        <defs>
-          <linearGradient id="wp-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#7C5CFF" stopOpacity="0.28" />
-            <stop offset="1" stopColor="#7C5CFF" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="wp-ln" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0" stopColor="#9B6BFF" />
-            <stop offset="1" stopColor="#F0309A" />
-          </linearGradient>
-        </defs>
+      {isLoading && (
+        <p className="py-6 text-[13.5px] font-semibold text-center" style={{ color: 'var(--ink-soft)' }}>
+          Carregando métricas…
+        </p>
+      )}
 
-        {/* Grid lines */}
-        <g stroke="#F0ECF4" strokeWidth="1">
-          {[40, 90, 140, 190].map((y) => (
-            <line key={y} x1="0" y1={y} x2={W} y2={y} />
+      {!isLoading && !meta && (
+        <div className="py-8 text-center">
+          <p className="text-[14px] font-bold">Sem dados para este período</p>
+          <p className="text-[12.5px] font-semibold mt-1" style={{ color: 'var(--ink-soft)' }}>
+            {period === '30D' ? 'Ainda não há histórico suficiente.' : 'Disponível em breve para este período.'}
+          </p>
+        </div>
+      )}
+
+      {!isLoading && meta && (
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
+          className="w-full block"
+          style={{ height: 210 }}
+        >
+          <defs>
+            <linearGradient id="wp-fill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stopColor="#7C5CFF" stopOpacity="0.28" />
+              <stop offset="1" stopColor="#7C5CFF" stopOpacity="0" />
+            </linearGradient>
+            <linearGradient id="wp-ln" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="#9B6BFF" />
+              <stop offset="1" stopColor="#F0309A" />
+            </linearGradient>
+          </defs>
+
+          {/* Grid lines */}
+          <g stroke="#F0ECF4" strokeWidth="1">
+            {[40, 90, 140, 190].map((y) => (
+              <line key={y} x1="0" y1={y} x2={W} y2={y} />
+            ))}
+          </g>
+
+          {/* Area fill */}
+          <path d={fillPath} fill="url(#wp-fill)" />
+
+          {/* Line */}
+          <path d={linePath} fill="none" stroke="url(#wp-ln)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+
+          {/* Dots */}
+          {pts.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#F0309A" strokeWidth="2.5" />
           ))}
-        </g>
-
-        {/* Area fill */}
-        <path d={fillPath} fill="url(#wp-fill)" />
-
-        {/* Line */}
-        <path d={linePath} fill="none" stroke="url(#wp-ln)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-
-        {/* Dots */}
-        {pts.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#F0309A" strokeWidth="2.5" />
-        ))}
-      </svg>
+        </svg>
+      )}
     </div>
   )
 }

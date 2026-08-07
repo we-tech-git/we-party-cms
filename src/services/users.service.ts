@@ -63,12 +63,28 @@ function normalizeUser(u: Raw): AdminUser {
 
 function normalizeDetails(u: Raw): AdminUserDetails {
   const count = asRecord(u._count)
+
+  const getEventCount = (
+    countKey: string,
+    userFields: string[],
+    arrayFields: string[]
+  ): number | null => {
+    const numVal = num(count[countKey], ...userFields.map((f) => u[f]))
+    if (numVal != null) return numVal
+
+    for (const arrayKey of arrayFields) {
+      const arr = u[arrayKey]
+      if (Array.isArray(arr)) return arr.length
+    }
+    return null
+  }
+
   return {
     ...normalizeUser(u),
     lastActive: str(u.lastActive, u.lastLoginAt, u.lastSeenAt, u.last_login_at, u.updatedAt, u.updated_at),
-    eventsConfirmed: num(u.eventsConfirmed, u.confirmedEvents, u.attendancesCount, count.attendances, count.confirmedEvents),
-    eventsLiked: num(u.eventsLiked, u.likedEvents, u.likesCount, count.likes, count.likedEvents),
-    eventsCommented: num(u.eventsCommented, u.commentedEvents, u.commentsCount, count.comments, count.commentedEvents),
+    eventsConfirmed: getEventCount('attendances', ['eventsConfirmed', 'confirmedEvents', 'attendancesCount'], ['eventAttendances', 'attendances']),
+    eventsLiked: getEventCount('likes', ['eventsLiked', 'likedEvents', 'likesCount'], ['eventLikes', 'likes']),
+    eventsCommented: getEventCount('comments', ['eventsCommented', 'commentedEvents', 'commentsCount'], ['eventComments', 'comments']),
   }
 }
 
@@ -88,14 +104,14 @@ export async function getAdminUserDetails(id: string): Promise<AdminUserDetails>
   return normalizeDetails(asRecord(obj))
 }
 
-/** POST /users/{id}/block — blocks the user (prevents login; keeps data). */
+/** PATCH /users/{id}/block — blocks the user (prevents login; keeps data). */
 export async function blockUser(id: string): Promise<void> {
-  await axiosInstance.post(`/users/${id}/block`)
+  await axiosInstance.patch(`/users/${id}/block`)
 }
 
-/** POST /users/{id}/unblock — restores access. */
+/** PATCH /users/{id}/unblock — restores access. */
 export async function unblockUser(id: string): Promise<void> {
-  await axiosInstance.post(`/users/${id}/unblock`)
+  await axiosInstance.patch(`/users/${id}/unblock`)
 }
 
 /** DELETE /users — removes a user permanently (id sent in the request body,

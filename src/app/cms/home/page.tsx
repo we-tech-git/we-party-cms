@@ -189,7 +189,7 @@ export default function ProducerDashboard() {
         {/* Left column */}
         <div className="flex flex-col gap-5 min-w-0">
           <SpotlightCard topEvent={data?.topEvent ?? null} />
-          <ReachChart growthChart={data?.growthChart} />
+          <ReachChart growthChart={data?.growthChart} isLoading={isLoading} />
           <EngagementFunnel
             totalViews={data?.totalViews}
             totalLikes={data?.totalLikes}

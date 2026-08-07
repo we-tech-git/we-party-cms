@@ -40,11 +40,12 @@ function hashIndex(s: string, mod: number) {
   return h % mod
 }
 
-/** Map whatever the API sends into a known status key, or undefined if it
- * isn't one we render (keeps STATUS_META lookups safe). */
-function normalizeStatus(raw?: string | null): InterestStatus | undefined {
+/** Map whatever the API sends into a known status key. An interest with no
+ * status yet (newly suggested by a user, still untriaged) is treated as
+ * PENDING so it still gets the Aprovar/Rejeitar actions. */
+function normalizeStatus(raw?: string | null): InterestStatus {
   const k = raw?.toUpperCase()
-  return k === 'APPROVED' || k === 'PENDING' || k === 'REJECTED' ? k : undefined
+  return k === 'APPROVED' || k === 'REJECTED' ? k : 'PENDING'
 }
 
 /* ----------------------------------------------------------- subcomponents - */

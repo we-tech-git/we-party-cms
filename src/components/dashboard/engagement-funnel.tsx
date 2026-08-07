@@ -29,10 +29,12 @@ function pct(a?: number, b?: number): string {
 }
 
 export function EngagementFunnel({ totalViews, totalLikes, totalAttendances, totalShares }: EngagementFunnelProps) {
-  const views = totalViews ?? 45892
-  const likes = totalLikes ?? 3218
-  const attendances = totalAttendances ?? 1284
-  const shares = totalShares ?? 642
+  const isLoading = totalViews === undefined && totalLikes === undefined && totalAttendances === undefined && totalShares === undefined
+
+  const views = totalViews ?? 0
+  const likes = totalLikes ?? 0
+  const attendances = totalAttendances ?? 0
+  const shares = totalShares ?? 0
 
   const maxVal = Math.max(views, likes, attendances, shares, 1)
 
@@ -94,6 +96,13 @@ export function EngagementFunnel({ totalViews, totalLikes, totalAttendances, tot
         </span>
       </div>
 
+      {isLoading && (
+        <p className="py-6 text-[13.5px] font-semibold text-center" style={{ color: 'var(--ink-soft)' }}>
+          Carregando métricas…
+        </p>
+      )}
+
+      {!isLoading && (
       <div className="flex flex-col gap-2.5">
         {steps.map((step, i) => (
           <div key={i} className="flex items-center gap-3.5">
@@ -115,6 +124,7 @@ export function EngagementFunnel({ totalViews, totalLikes, totalAttendances, tot
           </div>
         ))}
       </div>
+      )}
     </div>
   )
 }

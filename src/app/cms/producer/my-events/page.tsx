@@ -13,6 +13,7 @@ import { mapEventStatus, calcEventScore, calcPopularity, type UiEventStatus } fr
 import { EventCard } from './_components/event-card'
 import { EventsToolbar } from './_components/events-toolbar'
 import { CommentDrawer } from './_components/comment-drawer'
+import { ActivityDrawer } from './_components/activity-drawer'
 import { DeleteModal } from './_components/delete-modal'
 import { BulkBar } from './_components/bulk-bar'
 
@@ -41,6 +42,7 @@ export default function MyEventsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [openCommentEvent, setOpenCommentEvent] = useState<EventDto | null>(null)
+  const [openActivityEvent, setOpenActivityEvent] = useState<EventDto | null>(null)
   const [pendingDelete, setPendingDelete] = useState<EventDto | null>(null)
 
   const events = useMemo(() => data?.events ?? [], [data])
@@ -200,6 +202,7 @@ export default function MyEventsPage() {
                 onArchive={e => archiveMutation.mutate(e.id)}
                 onDelete={e => setPendingDelete(e)}
                 onComments={e => setOpenCommentEvent(e)}
+                onActivities={e => setOpenActivityEvent(e)}
                 onEdit={e => router.push(`/cms/producer/edit-event/${e.id}`)}
               />
             ))}
@@ -212,6 +215,13 @@ export default function MyEventsPage() {
         eventId={openCommentEvent?.id ?? null}
         eventTitle={openCommentEvent?.title ?? ''}
         onClose={() => setOpenCommentEvent(null)}
+      />
+
+      {/* Activity Drawer */}
+      <ActivityDrawer
+        eventId={openActivityEvent?.id ?? null}
+        eventTitle={openActivityEvent?.title ?? ''}
+        onClose={() => setOpenActivityEvent(null)}
       />
 
       {/* Delete Modal */}

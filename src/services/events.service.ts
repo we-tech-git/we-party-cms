@@ -9,16 +9,13 @@ import type {
   EventFaqDto,
   FaqItem,
   CommentsResponse,
+  EventActivitiesResponse,
 } from '@/types/events.types'
 
 export async function getMyDashboard(refresh?: boolean): Promise<ProducerDashboardResponse> {
-  // `recent=true` asks the backend to include the consolidated `recentActivities`
-  // feed alongside the usual metrics (ordered most-recent-first, capped at 20).
-  const params: Record<string, boolean> = { recent: true }
+  const params: Record<string, boolean> = {}
   if (refresh) params.refresh = true
   const { data } = await axiosInstance.get<ProducerDashboardResponse>('/events/my-dashboard', { params })
-  // TEMP DEBUG — remove once recentActivities shape is confirmed against the live API.
-  console.warn('[my-dashboard] raw response', data)
   return data
 }
 
@@ -105,4 +102,20 @@ export async function createEventFaq(eventId: string, faq: FaqItem): Promise<Eve
 /** Deletes a single FAQ — DELETE /events/{eventId}/faq/{faqId}. */
 export async function deleteEventFaq(eventId: string, faqId: string): Promise<void> {
   await axiosInstance.delete(`/events/${eventId}/faq/${faqId}`)
+}
+
+/**
+ * Recent activities (comments, likes, attendances, shares) for a single event —
+ * GET /events/{id}/activities, paginated (max 50/page). Restricted to the
+ * event's owner or an admin.
+ */
+export async function getEventActivities(
+  eventId: string,
+  offset = 0,
+  limit = 20,
+): Promise<EventActivitiesResponse> {
+  const { data } = await axiosInstance.get<EventActivitiesResponse>(`/events/${eventId}/activities`, {
+    params: { offset, limit },
+  })
+  return data
 }

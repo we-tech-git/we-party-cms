@@ -105,6 +105,7 @@ export const ptBR = {
       edit: 'Editar evento',
       boost: 'Impulsionar alcance',
       manageComments: 'Gerenciar comentários',
+      viewActivities: 'Ver atividades',
       duplicate: 'Duplicar',
       archive: 'Arquivar',
       delete: 'Excluir',
@@ -119,6 +120,13 @@ export const ptBR = {
       empty: 'Nenhum comentário ainda',
       loading: 'Carregando comentários…',
       delete: 'Excluir',
+    },
+    activityDrawer: {
+      kicker: 'Atividades do evento',
+      empty: 'Nenhuma atividade ainda',
+      loading: 'Carregando atividades…',
+      loadMore: 'Carregar mais',
+      loadingMore: 'Carregando…',
     },
     bulk: {
       selected: '{count} selecionado(s)',

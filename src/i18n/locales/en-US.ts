@@ -107,6 +107,7 @@ export const enUS: Dictionary = {
       edit: 'Edit event',
       boost: 'Boost reach',
       manageComments: 'Manage comments',
+      viewActivities: 'View activities',
       duplicate: 'Duplicate',
       archive: 'Archive',
       delete: 'Delete',
@@ -121,6 +122,13 @@ export const enUS: Dictionary = {
       empty: 'No comments yet',
       loading: 'Loading comments…',
       delete: 'Delete',
+    },
+    activityDrawer: {
+      kicker: 'Event activities',
+      empty: 'No activity yet',
+      loading: 'Loading activity…',
+      loadMore: 'Load more',
+      loadingMore: 'Loading…',
     },
     bulk: {
       selected: '{count} selected',

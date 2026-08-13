@@ -22,6 +22,7 @@ type EventCardProps = {
   onArchive: (event: EventDto) => void
   onDelete: (event: EventDto) => void
   onComments: (event: EventDto) => void
+  onActivities: (event: EventDto) => void
   onEdit: (event: EventDto) => void
 }
 
@@ -33,7 +34,7 @@ const POPULARITY_MSG: Record<UiEventStatus, string> = {
   arquivado: '🗄️ Arquivado',
 }
 
-export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onEdit }: EventCardProps) {
+export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onActivities, onEdit }: EventCardProps) {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -135,6 +136,7 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
                 { label: t('myEvents.card.edit'), icon: 'edit', act: 'edit' },
                 { label: t('myEvents.card.boost'), icon: 'trend', act: 'boost', disabled: true },
                 { label: t('myEvents.card.manageComments'), icon: 'comment', act: 'cmt' },
+                { label: t('myEvents.card.viewActivities'), icon: 'eye', act: 'activities' },
                 { label: t('myEvents.card.duplicate'), icon: 'copy', act: 'dup', disabled: true },
               ].map(item => (
                 <button
@@ -146,6 +148,7 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
                     setMenuOpen(false)
                     if (item.act === 'edit') onEdit(event)
                     if (item.act === 'cmt') onComments(event)
+                    if (item.act === 'activities') onActivities(event)
                   }}
                 >
                   <MenuIcon name={item.icon} />

@@ -28,35 +28,41 @@ export interface RecentEventDto {
   totalConfirmed: number
 }
 
-/** Kinds of recent activity the backend surfaces in the producer dashboard feed. */
-export type ProducerActivityType = 'comment' | 'like' | 'attendance' | 'share'
+/** Kinds of activity the backend surfaces for an event (comments, likes, attendance, shares). */
+export type EventActivityType = 'comment' | 'like' | 'attendance' | 'share'
 
-export interface ProducerActivityUser {
-  id?: string
+export interface ActivityUserDto {
+  id: string
   name: string
-  username?: string
   profileImage?: string | null
 }
 
-export interface ProducerActivityEventRef {
+export interface ActivityEventDto {
   id: string
   title: string
 }
 
 /**
- * A single recent activity done by a user on one of the producer's events.
- * Consolidated across all of the producer's events and ordered most-recent-first
- * by the backend. The exact payload is undocumented in the OpenAPI spec, so a few
- * fields are optional and read tolerantly when rendered.
+ * A single activity on one of the producer's events. Shared shape between the
+ * consolidated dashboard feed (`GET /events/my-dashboard`) and the per-event
+ * feed (`GET /events/{id}/activities`), per the backend's OpenAPI schema.
  */
-export interface ProducerActivityDto {
-  id?: string
-  type: ProducerActivityType
-  user: ProducerActivityUser
-  event: ProducerActivityEventRef
+export interface EventActivityDto {
+  id: string
+  type: EventActivityType
+  /** Type-specific payload — e.g. the comment text for `comment` activities. */
+  data: string | null
   createdAt: string
-  /** Present for `comment` activities — the comment text. */
-  content?: string | null
+  user: ActivityUserDto
+  event: ActivityEventDto
+}
+
+/** Response shape for `GET /events/{id}/activities`. */
+export interface EventActivitiesResponse {
+  items: EventActivityDto[]
+  total: number
+  offset: number
+  limit: number
 }
 
 export interface ProducerDashboardResponse {
@@ -72,7 +78,7 @@ export interface ProducerDashboardResponse {
   topEvent: TopEventDto | null
   recentEvents: RecentEventDto[]
   /** Consolidated recent activities across the producer's events (up to 20). */
-  recentActivities?: ProducerActivityDto[]
+  recentActivities: EventActivityDto[]
 }
 
 export interface FaqItem {

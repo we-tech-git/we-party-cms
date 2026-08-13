@@ -48,6 +48,10 @@ function extractTotal(payload: unknown, fallback: number): number {
   return num(p.total, p.count, asRecord(p.data).total, asRecord(p.meta).total) ?? fallback
 }
 
+/** KNOWN BACKEND GAP: GET /users (list) doesn't include isBlocked/blockedAt at
+ * all — only GET /users/{id} (detail) does. So rows always derive 'active'
+ * here regardless of real status, until the backend list serializer is fixed
+ * to include it. This function is correct for whichever fields it's given. */
 function deriveStatus(u: Raw): UserStatus {
   const raw = str(u.status, u.accountStatus, u.state)?.toUpperCase() ?? ''
   if (raw.includes('BLOCK') || raw.includes('BAN') || raw.includes('SUSPEND')) return 'blocked'

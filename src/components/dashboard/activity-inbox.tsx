@@ -5,10 +5,10 @@ import { useI18n } from '@/i18n/context'
 import { relativeTime } from '@/lib/date'
 import { UserAvatar } from '@/components/cms/user-avatar'
 import type { TKey } from '@/i18n/types'
-import type { ProducerActivityDto, ProducerActivityType } from '@/types/events.types'
+import type { EventActivityDto, EventActivityType } from '@/types/events.types'
 
 /** Visual treatment (icon glyph + colors) per activity type. */
-const TYPE_STYLE: Record<ProducerActivityType, { symbol: string; bg: string; color: string; verbKey: TKey }> = {
+const TYPE_STYLE: Record<EventActivityType, { symbol: string; bg: string; color: string; verbKey: TKey }> = {
   comment: { symbol: '💬', bg: '#E6F1FF', color: 'var(--blue)', verbKey: 'home.activityComment' },
   like: { symbol: '♥', bg: '#FFE9F2', color: 'var(--pink)', verbKey: 'home.activityLike' },
   attendance: { symbol: '✓', bg: '#EEEAFF', color: 'var(--violet)', verbKey: 'home.activityAttendance' },
@@ -16,7 +16,7 @@ const TYPE_STYLE: Record<ProducerActivityType, { symbol: string; bg: string; col
 }
 
 interface ActivityInboxProps {
-  activities?: ProducerActivityDto[]
+  activities?: EventActivityDto[]
   isLoading?: boolean
 }
 
@@ -101,10 +101,10 @@ export function ActivityInbox({ activities, isLoading }: ActivityInboxProps) {
                   <strong>{item.user?.name ?? '—'}</strong> {t(style.verbKey)}{' '}
                   <strong>{item.event?.title ?? '—'}</strong>
                 </p>
-                {item.type === 'comment' && item.content && (
+                {item.type === 'comment' && item.data && (
                   <>
                     <p className="text-[13px] mt-0.5 truncate" style={{ color: 'var(--ink-soft)', fontWeight: 500 }}>
-                      &ldquo;{item.content}&rdquo;
+                      &ldquo;{item.data}&rdquo;
                     </p>
                     <button
                       onClick={() => router.push('/cms/producer/my-events')}

@@ -1,5 +1,12 @@
 import { axiosInstance } from '@/lib/axios'
-import type { AdminUser, AdminUserDetails, AdminUsersPage, UserStatus } from '@/types/users.types'
+import type {
+  AdminUser,
+  AdminUserDetails,
+  AdminUsersPage,
+  UserComment,
+  UserEventRef,
+  UserStatus,
+} from '@/types/users.types'
 
 /* ============================================================ admin users == */
 
@@ -61,8 +68,48 @@ function normalizeUser(u: Raw): AdminUser {
   }
 }
 
+/** Pull the array under the first key that actually holds one. */
+function pickArray(u: Raw, ...keys: string[]): Raw[] {
+  for (const k of keys) {
+    const v = u[k]
+    if (Array.isArray(v)) return v as Raw[]
+  }
+  return []
+}
+
+/** Map an event-interaction entry (attendance / like) to a flat reference. */
+function toEventRef(raw: Raw, ...atKeys: string[]): UserEventRef {
+  // The API may nest the event ({ event: {...} }) or spread it at the top level.
+  const nested = asRecord(raw.event)
+  const ev = Object.keys(nested).length > 0 ? nested : raw
+  return {
+    id: str(ev.id) ?? '',
+    title: str(ev.title, ev.name) ?? 'Evento sem título',
+    startDate: str(ev.startDate, ev.start_date),
+    at: str(...atKeys.map((k) => raw[k]), raw.createdAt),
+  }
+}
+
+function toComment(raw: Raw): UserComment {
+  const ev = asRecord(raw.event)
+  return {
+    id: str(raw.id) ?? '',
+    content: str(raw.content, raw.text, raw.body) ?? '',
+    createdAt: str(raw.createdAt, raw.created_at),
+    isReply: raw.isReply === true || str(raw.parentId) != null,
+    eventId: str(ev.id, raw.eventId),
+    eventTitle: str(ev.title, ev.name),
+  }
+}
+
 function normalizeDetails(u: Raw): AdminUserDetails {
   const count = asRecord(u._count)
+
+  const confirmedEvents = pickArray(u, 'eventAttendances', 'attendances', 'confirmedEvents').map((r) =>
+    toEventRef(r, 'confirmedAt'),
+  )
+  const likedEvents = pickArray(u, 'likedEvents', 'eventLikes', 'likes').map((r) => toEventRef(r, 'likedAt'))
+  const comments = pickArray(u, 'comments', 'eventComments').map(toComment)
 
   const getEventCount = (
     countKey: string,
@@ -82,9 +129,12 @@ function normalizeDetails(u: Raw): AdminUserDetails {
   return {
     ...normalizeUser(u),
     lastActive: str(u.lastActive, u.lastLoginAt, u.lastSeenAt, u.last_login_at, u.updatedAt, u.updated_at),
-    eventsConfirmed: getEventCount('attendances', ['eventsConfirmed', 'confirmedEvents', 'attendancesCount'], ['eventAttendances', 'attendances']),
-    eventsLiked: getEventCount('likes', ['eventsLiked', 'likedEvents', 'likesCount'], ['eventLikes', 'likes']),
-    eventsCommented: getEventCount('comments', ['eventsCommented', 'commentedEvents', 'commentsCount'], ['eventComments', 'comments']),
+    eventsConfirmed: getEventCount('attendances', ['eventsConfirmed', 'attendancesCount'], ['eventAttendances', 'attendances']),
+    eventsLiked: getEventCount('likes', ['eventsLiked', 'likesCount'], ['eventLikes', 'likedEvents']),
+    eventsCommented: getEventCount('comments', ['eventsCommented', 'commentsCount'], ['eventComments', 'comments']),
+    confirmedEvents,
+    likedEvents,
+    comments,
   }
 }
 

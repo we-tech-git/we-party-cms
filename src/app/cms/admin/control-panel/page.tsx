@@ -3,15 +3,16 @@
 /**
  * Painel de Controle (dev/admin) — visão geral e controle das ações do site.
  *
- * Ainda não existe API de métricas/atividade/ações pendentes/saúde de serviços
- * no backend, então as seções abaixo mostram um estado vazio "em breve" em vez
- * de dados simulados. Quando os endpoints existirem, troque cada seção por um
- * hook de fetch real mantendo o mesmo layout.
+ * Métricas e atividade vêm de GET /admin/stats e GET /admin/activities.
+ * Denúncias/moderação e configurações do site ainda não têm API: aqueles blocos
+ * seguem em estado indisponível de propósito, sem dados simulados.
  */
 
 import Link from 'next/link'
 import { useState } from 'react'
 import { GRAD } from '@/lib/brand'
+import { useAdminStats, usePlatformActivities } from '@/hooks/use-admin-overview'
+import { PlatformActivityFeed } from '@/components/dashboard/platform-activity-feed'
 
 /* ------------------------------------------------------------------ utils -- */
 
@@ -41,12 +42,32 @@ function SectionTitle({ icon, children, badge }: { icon: React.ReactNode; childr
   )
 }
 
-function StatCard({ label, grad, icon }: { label: string; grad: string; icon?: React.ReactNode }) {
+/**
+ * `value` undefined = ainda carregando; null = métrica indisponível no backend
+ * (mostra "—" em vez de zero, que seria uma informação falsa).
+ */
+function StatCard({
+  label,
+  grad,
+  icon,
+  value,
+  isLoading,
+  hint,
+}: {
+  label: string
+  grad: string
+  icon?: React.ReactNode
+  value?: number | null
+  isLoading?: boolean
+  hint?: string
+}) {
+  const display = isLoading ? '…' : value == null ? '—' : value.toLocaleString('pt-BR')
   return (
-    <div className="relative overflow-hidden rounded-[18px] px-6 py-5.5 text-white flex items-center justify-between" style={{ background: grad, boxShadow: 'var(--shadow-sm)' }}>
+    <div className="relative overflow-hidden rounded-[18px] px-6 py-5.5 text-white flex items-center justify-between" style={{ background: grad, boxShadow: 'var(--shadow-sm)' }} title={hint}>
       <div className="min-w-0">
-        <div className="text-[26px] font-extrabold leading-none tabular-nums" style={{ fontFamily: 'var(--font-bricolage)' }}>—</div>
+        <div className="text-[26px] font-extrabold leading-none tabular-nums" style={{ fontFamily: 'var(--font-bricolage)' }}>{display}</div>
         <div className="text-[13px] font-semibold opacity-90 mt-1.5 truncate">{label}</div>
+        {hint && <div className="text-[11px] font-semibold opacity-75 mt-0.5 truncate">{hint}</div>}
       </div>
       {icon && <span className="opacity-50 flex-none">{icon}</span>}
     </div>
@@ -108,6 +129,9 @@ export default function ControlPanelPage() {
     Object.fromEntries(QUICK_SETTINGS.map((s) => [s.key, s.defaultChecked])),
   )
 
+  const { data: stats, isLoading: statsLoading } = useAdminStats()
+  const { data: activities, isLoading: activitiesLoading, isError: activitiesError, refetch: refetchActivities } = usePlatformActivities(30)
+
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
@@ -125,12 +149,40 @@ export default function ControlPanelPage() {
         </div>
       </div>
 
-      {/* Business quick stats — sem API de métricas admin ainda */}
+      {/* Métricas da plataforma — GET /admin/stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard label="Usuários online" grad="linear-gradient(135deg,#7C5CFF,#a78bfa)" />
-        <StatCard label="Total de eventos" grad="linear-gradient(135deg,#10A87D,#34d399)" />
-        <StatCard label="Ações pendentes" grad="linear-gradient(135deg,#F59E0B,#fbbf24)" />
-        <StatCard label="Receita (mês)" grad="linear-gradient(135deg,#3E7BFB,#60a5fa)" />
+        <StatCard
+          label="Usuários cadastrados"
+          grad="linear-gradient(135deg,#7C5CFF,#a78bfa)"
+          value={stats?.totalUsers}
+          isLoading={statsLoading}
+          hint={stats && stats.blockedUsers > 0 ? `${stats.blockedUsers} bloqueado(s)` : undefined}
+          icon={<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="9" cy="8" r="3.5" /><path d="M3 21v-1a6 6 0 0112 0v1M16 4.5a3.5 3.5 0 010 7M21 21v-1a6 6 0 00-4-5.7" /></svg>}
+        />
+        <StatCard
+          label="Total de eventos"
+          grad="linear-gradient(135deg,#10A87D,#34d399)"
+          value={stats?.totalEvents}
+          isLoading={statsLoading}
+          hint={stats ? `${stats.publishedEvents.toLocaleString('pt-BR')} publicado(s)` : undefined}
+          icon={<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>}
+        />
+        <StatCard
+          label="Ações pendentes"
+          grad="linear-gradient(135deg,#F59E0B,#fbbf24)"
+          value={stats?.pendingActions}
+          isLoading={statsLoading}
+          hint="interesses na fila"
+          icon={<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></svg>}
+        />
+        <StatCard
+          label="Pendências"
+          grad="linear-gradient(135deg,#3E7BFB,#60a5fa)"
+          value={stats?.openReports}
+          isLoading={statsLoading}
+          hint="denúncias — módulo não implementado"
+          icon={<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22V15" /></svg>}
+        />
       </div>
 
       {/* Main grid — two rows of three cards, all the same size/dimension */}
@@ -143,26 +195,56 @@ export default function ControlPanelPage() {
             Ações pendentes
           </SectionTitle>
           <div className="flex-1 flex flex-col justify-center">
-            <EmptyState
-              icon={<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>}
-              title="Indisponível"
-              subtitle="Ainda não há uma API de ações pendentes."
-            />
+            {statsLoading ? (
+              <div className="h-24 rounded-[14px] animate-pulse" style={{ background: 'var(--line-2)' }} />
+            ) : stats && stats.pendingActions > 0 ? (
+              <Link
+                href="/cms/admin/interests"
+                className="flex items-center gap-3.5 rounded-[14px] px-4 py-4 transition hover:-translate-y-0.5"
+                style={{ background: '#fff', border: '1px solid var(--line-2)' }}
+              >
+                <span className="w-11 h-11 rounded-[13px] grid place-items-center flex-none text-white" style={{ background: 'linear-gradient(135deg,#F59E0B,#fbbf24)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z" /></svg>
+                </span>
+                <div className="min-w-0">
+                  <p className="font-extrabold text-[15px] leading-tight">
+                    {stats.pendingActions} interesse(s) aguardando aprovação
+                  </p>
+                  <p className="text-[12.5px] font-semibold mt-0.5" style={{ color: 'var(--violet)' }}>
+                    Revisar agora →
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <EmptyState
+                icon={<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>}
+                title="Nada pendente"
+                subtitle="Nenhuma ação aguardando sua decisão."
+              />
+            )}
           </div>
         </div>
 
-        {/* Recent activity */}
+        {/* Atividade recente — auditoria de toda a plataforma */}
         <div className="rounded-[22px] p-5 sm:p-6 flex flex-col min-h-70" style={panel}>
           <SectionTitle
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 8v4l3 2" /><circle cx="12" cy="12" r="9" /></svg>}
+            badge={
+              activities?.total ? (
+                <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-[8px]" style={{ background: '#EEEAFF', color: 'var(--violet)' }}>
+                  {activities.total.toLocaleString('pt-BR')} no total
+                </span>
+              ) : undefined
+            }
           >
             Atividade recente
           </SectionTitle>
           <div className="flex-1 flex flex-col justify-center">
-            <EmptyState
-              icon={<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>}
-              title="Indisponível"
-              subtitle="Ainda não há uma API de atividade recente."
+            <PlatformActivityFeed
+              activities={activities?.items}
+              isLoading={activitiesLoading}
+              isError={activitiesError}
+              onRetry={() => refetchActivities()}
             />
           </div>
         </div>
@@ -179,22 +261,6 @@ export default function ControlPanelPage() {
                 <span className="text-[13px] font-bold leading-tight">{l.label}</span>
               </Link>
             ))}
-          </div>
-        </div>
-
-        {/* Services */}
-        <div className="rounded-[22px] p-5 sm:p-6 flex flex-col min-h-70" style={card}>
-          <SectionTitle
-            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 12h4l2-7 4 14 2-7h6" /></svg>}
-          >
-            Saúde do sistema · serviços
-          </SectionTitle>
-          <div className="flex-1 flex flex-col justify-center">
-            <EmptyState
-              icon={<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>}
-              title="Monitoramento não conectado"
-              subtitle="Sem endpoint de observabilidade configurado."
-            />
           </div>
         </div>
 

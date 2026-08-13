@@ -9,47 +9,13 @@ import { useUpdateProfileImage } from '@/hooks/use-update-profile-image'
 import { useI18n } from '@/i18n/context'
 import { GRAD, SHADOW_SM } from '@/lib/brand'
 import { LanguageSwitcher } from './language-switcher'
-
-/** Square avatar: shows the user's photo, falling back to their initial. */
-function AvatarBox({
-  photo,
-  alt,
-  initial,
-  size,
-  radius,
-}: {
-  photo: string | null
-  alt: string
-  initial: string
-  size: number
-  radius: number
-}) {
-  return (
-    <span
-      className="grid place-items-center text-white font-extrabold overflow-hidden flex-none"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: radius,
-        background: photo ? '#fff' : 'linear-gradient(135deg,#7b5cff,#c54bff)',
-        fontFamily: 'var(--font-bricolage)',
-      }}
-    >
-      {photo ? (
-        <img src={photo} alt={alt} className="w-full h-full object-cover" />
-      ) : (
-        initial
-      )}
-    </span>
-  )
-}
+import { UserAvatar } from './user-avatar'
 
 export function CmsTopbar() {
   const { t } = useI18n()
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
-  const initial = (user?.name ?? 'U')[0].toUpperCase()
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -106,8 +72,6 @@ export function CmsTopbar() {
     uploadImage.mutate(file)
   }
 
-  const avatarAlt = t('topbar.avatarAlt', { name: user?.name ?? '' })
-
   return (
     <header
       className="sticky top-0 z-60 flex items-center gap-3 sm:gap-4.5 px-[clamp(14px,3vw,34px)] py-3.5"
@@ -155,7 +119,7 @@ export function CmsTopbar() {
             aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
-            <AvatarBox photo={photo} alt={avatarAlt} initial={initial} size={36} radius={11} />
+            <UserAvatar name={user?.name ?? ''} image={photo} size={36} radius={11} />
             <svg
               className="hidden sm:block transition-transform"
               style={{ transform: menuOpen ? 'rotate(180deg)' : undefined }}
@@ -176,7 +140,7 @@ export function CmsTopbar() {
                 className="flex items-center gap-2.5 p-2.5 rounded-[12px] mb-1"
                 style={{ background: 'linear-gradient(135deg,rgba(124,92,255,.07),rgba(216,27,126,.07))' }}
               >
-                <AvatarBox photo={photo} alt={avatarAlt} initial={initial} size={44} radius={12} />
+                <UserAvatar name={user?.name ?? ''} image={photo} size={44} radius={12} />
                 <div className="min-w-0">
                   <p className="font-bold text-[14px] truncate">{user?.name ?? t('home.producer')}</p>
                   <p className="text-[12px] font-medium truncate" style={{ color: 'var(--wp-muted)' }}>
@@ -276,13 +240,7 @@ export function CmsTopbar() {
               className="self-center w-35 h-35 rounded-full grid place-items-center overflow-hidden p-1"
               style={{ background: 'linear-gradient(135deg,rgba(124,92,255,.18),rgba(216,27,126,.18))' }}
             >
-              {photo ? (
-                <img src={photo} alt={t('topbar.avatarAlt', { name: user?.name ?? '' })} className="w-full h-full object-cover rounded-full" />
-              ) : (
-                <span className="w-full h-full rounded-full grid place-items-center text-white text-[44px] font-extrabold" style={{ background: 'linear-gradient(135deg,#7b5cff,#c54bff)', fontFamily: 'var(--font-bricolage)' }}>
-                  {initial}
-                </span>
-              )}
+              <UserAvatar name={user?.name ?? ''} image={photo} size={132} />
             </div>
 
             <div className="flex flex-col gap-2.5">

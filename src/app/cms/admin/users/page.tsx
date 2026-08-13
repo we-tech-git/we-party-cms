@@ -15,7 +15,8 @@ import { useMemo, useState } from 'react'
 import { GRAD } from '@/lib/brand'
 import { BackButton } from '@/components/cms/back-button'
 import { useAdminUsers, useUserBlockMutations } from '@/hooks/use-admin-users'
-import { UserAvatar, UserStatusBadge, UserDetailCard, toUserDetails, fmtDate } from '@/components/cms/user-detail-card'
+import { UserStatusBadge, UserDetailCard, toUserDetails, fmtDate } from '@/components/cms/user-detail-card'
+import { UserAvatar } from '@/components/cms/user-avatar'
 import type { AdminUser, UserStatus } from '@/types/users.types'
 
 const card = { background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' } as const
@@ -209,7 +210,7 @@ export default function UsersPage() {
                     <tr key={u.id} className="transition-colors hover:bg-[#FBFAFE]" style={{ borderBottom: '1px solid var(--line-2)', opacity: busy ? 0.55 : 1 }}>
                       <td className="px-5 py-3.5">
                         <button onClick={() => setDetail(u)} className="flex items-center gap-3 text-left transition hover:opacity-80" title="Ver perfil">
-                          <UserAvatar user={u} />
+                          <UserAvatar name={u.name} image={u.profileImage} seed={u.id} />
                           <div className="min-w-0">
                             <p className="font-bold text-[14px] truncate">{u.name}</p>
                             {u.username && <p className="text-[12px] font-medium" style={{ color: 'var(--wp-muted)' }}>@{u.username}</p>}

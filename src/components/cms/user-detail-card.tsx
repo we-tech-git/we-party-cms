@@ -10,26 +10,10 @@
  * esteja desativada, exibe o que foi passado em `user`.
  */
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useUserDetails } from '@/hooks/use-admin-users'
-import type { AdminUser, AdminUserDetails, UserStatus } from '@/types/users.types'
-
-const AVATAR_GRADS = [
-  'linear-gradient(135deg,#7b5cff,#c54bff)',
-  'linear-gradient(135deg,#FF9D3D,#F0309A)',
-  'linear-gradient(135deg,#3E7BFB,#5b93ff)',
-  'linear-gradient(135deg,#10A87D,#34d399)',
-  'linear-gradient(135deg,#ec4899,#f472b6)',
-]
-function initials(name: string) {
-  const p = name.trim().split(/\s+/)
-  return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase() || '?'
-}
-function hashIndex(s: string, mod: number) {
-  let h = 0
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
-  return h % mod
-}
+import type { AdminUser, AdminUserDetails, UserComment, UserEventRef, UserStatus } from '@/types/users.types'
+import { UserAvatar } from './user-avatar'
 
 export function fmtDate(iso: string | null) {
   if (!iso) return '—'
@@ -39,18 +23,6 @@ export function fmtDate(iso: string | null) {
 }
 export function fmtNum(n: number | null) {
   return n == null ? '—' : n.toLocaleString('pt-BR')
-}
-
-export function UserAvatar({ user, size = 42 }: { user: { name: string; id: string; profileImage: string | null }; size?: number }) {
-  if (user.profileImage) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={user.profileImage} alt={user.name} className="rounded-full object-cover flex-none" style={{ width: size, height: size }} />
-  }
-  return (
-    <span className="grid place-items-center text-white font-extrabold flex-none rounded-full" style={{ width: size, height: size, background: AVATAR_GRADS[hashIndex(user.id || user.name, AVATAR_GRADS.length)], fontFamily: 'var(--font-bricolage)', fontSize: size * 0.4 }}>
-      {initials(user.name)}
-    </span>
-  )
 }
 
 export function UserStatusBadge({ status }: { status: UserStatus }) {
@@ -65,7 +37,76 @@ export function UserStatusBadge({ status }: { status: UserStatus }) {
 
 /** Build a details object from a list row, leaving the richer fields empty. */
 export function toUserDetails(user: AdminUser): AdminUserDetails {
-  return { ...user, lastActive: null, eventsConfirmed: null, eventsLiked: null, eventsCommented: null }
+  return {
+    ...user,
+    lastActive: null,
+    eventsConfirmed: null,
+    eventsLiked: null,
+    eventsCommented: null,
+    confirmedEvents: [],
+    likedEvents: [],
+    comments: [],
+  }
+}
+
+type ActivityTab = 'confirmed' | 'liked' | 'commented'
+
+/** Small date used inside the activity lists (dd/mm/aa). */
+function fmtShort(iso: string | null) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+}
+
+function EventList({ items, emptyLabel }: { items: UserEventRef[]; emptyLabel: string }) {
+  if (items.length === 0) return <EmptyActivity label={emptyLabel} />
+  return (
+    <ul className="flex flex-col gap-1.5">
+      {items.map((e) => (
+        <li key={e.id} className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.25" style={{ background: '#fff', border: '1px solid var(--line-2)' }}>
+          <span className="text-[13px] font-bold truncate">{e.title}</span>
+          <span className="text-[11.5px] font-semibold tabular-nums flex-none" style={{ color: 'var(--wp-muted)' }}>
+            {fmtShort(e.at ?? e.startDate)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function CommentList({ items }: { items: UserComment[] }) {
+  if (items.length === 0) return <EmptyActivity label="Nenhum comentário publicado" />
+  return (
+    <ul className="flex flex-col gap-1.5">
+      {items.map((c) => (
+        <li key={c.id} className="rounded-[10px] px-3 py-2.25" style={{ background: '#fff', border: '1px solid var(--line-2)' }}>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11.5px] font-extrabold truncate" style={{ color: 'var(--violet)' }}>
+              {c.eventTitle ?? 'Evento removido'}
+            </span>
+            {c.isReply && (
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-[6px] flex-none" style={{ background: '#EEEAFF', color: 'var(--violet)' }}>
+                resposta
+              </span>
+            )}
+            <span className="ml-auto text-[11px] font-semibold tabular-nums flex-none" style={{ color: 'var(--wp-muted)' }}>
+              {fmtShort(c.createdAt)}
+            </span>
+          </div>
+          <p className="text-[13px] font-medium break-words" style={{ color: 'var(--ink-soft)' }}>{c.content}</p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function EmptyActivity({ label }: { label: string }) {
+  return (
+    <p className="text-[13px] font-semibold text-center py-5" style={{ color: 'var(--wp-muted)' }}>
+      {label}
+    </p>
+  )
 }
 
 export function UserDetailCard({
@@ -86,6 +127,9 @@ export function UserDetailCard({
   const loadingMetrics = fetchDetails && isLoading && !data
   const metric = (v: number | null) => (loadingMetrics && v == null ? '…' : fmtNum(v))
 
+  // Aba de atividade aberta; `null` mantém o card compacto (estado inicial).
+  const [tab, setTab] = useState<ActivityTab | null>(null)
+
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     return () => {
@@ -102,7 +146,7 @@ export function UserDetailCard({
         </button>
 
         <div className="flex items-center gap-4 mb-5">
-          <UserAvatar user={u} size={72} />
+          <UserAvatar name={u.name} image={u.profileImage} seed={u.id || u.name} size={72} />
           <div className="min-w-0">
             <h2 className="text-[20px] font-extrabold leading-tight truncate" style={{ fontFamily: 'var(--font-bricolage)' }}>{u.name}</h2>
             {u.username && <p className="text-[13px] font-medium mb-1.5" style={{ color: 'var(--wp-muted)' }}>@{u.username}</p>}
@@ -116,19 +160,42 @@ export function UserDetailCard({
           </p>
         )}
 
-        {/* Event metrics */}
-        <div className="grid grid-cols-3 gap-2.5 mb-4">
-          {[
-            { label: 'Confirmados', value: u.eventsConfirmed, color: 'var(--green)', bg: '#E6FBF3' },
-            { label: 'Curtidos', value: u.eventsLiked, color: 'var(--pink)', bg: '#FFE9F2' },
-            { label: 'Comentados', value: u.eventsCommented, color: 'var(--blue)', bg: '#E6F1FF' },
-          ].map((m) => (
-            <div key={m.label} className="rounded-[14px] px-3 py-3 text-center" style={{ background: m.bg }}>
-              <div className="text-[20px] font-extrabold leading-none tabular-nums" style={{ color: m.color, fontFamily: 'var(--font-bricolage)' }}>{metric(m.value)}</div>
-              <div className="text-[11.5px] font-bold mt-1" style={{ color: 'var(--ink-soft)' }}>{m.label}</div>
-            </div>
-          ))}
+        {/* Event metrics — clicáveis: abrem a lista da atividade correspondente */}
+        <div className={tab ? 'grid grid-cols-3 gap-2.5 mb-2.5' : 'grid grid-cols-3 gap-2.5 mb-4'}>
+          {([
+            { id: 'confirmed', label: 'Confirmados', value: u.eventsConfirmed, count: u.confirmedEvents.length, color: 'var(--green)', bg: '#E6FBF3' },
+            { id: 'liked', label: 'Curtidos', value: u.eventsLiked, count: u.likedEvents.length, color: 'var(--pink)', bg: '#FFE9F2' },
+            { id: 'commented', label: 'Comentados', value: u.eventsCommented, count: u.comments.length, color: 'var(--blue)', bg: '#E6F1FF' },
+          ] as const).map((m) => {
+            const open = tab === m.id
+            // Sem itens não há o que abrir — o tile vira um indicador estático.
+            const clickable = m.count > 0
+            return (
+              <button
+                key={m.id}
+                type="button"
+                disabled={!clickable}
+                aria-expanded={open}
+                onClick={() => setTab(open ? null : m.id)}
+                title={clickable ? `Ver ${m.label.toLowerCase()}` : undefined}
+                className="rounded-[14px] px-3 py-3 text-center transition disabled:cursor-default enabled:hover:-translate-y-0.5"
+                style={{ background: m.bg, boxShadow: open ? `inset 0 0 0 2px ${m.color}` : undefined }}
+              >
+                <div className="text-[20px] font-extrabold leading-none tabular-nums" style={{ color: m.color, fontFamily: 'var(--font-bricolage)' }}>{metric(m.value)}</div>
+                <div className="text-[11.5px] font-bold mt-1" style={{ color: 'var(--ink-soft)' }}>{m.label}</div>
+              </button>
+            )
+          })}
         </div>
+
+        {/* Painel de atividade da aba aberta */}
+        {tab && (
+          <div className="rounded-[14px] p-2.5 mb-4 max-h-56 overflow-y-auto" style={{ background: '#FBFAFE', border: '1px solid var(--line-2)' }}>
+            {tab === 'confirmed' && <EventList items={u.confirmedEvents} emptyLabel="Nenhuma presença confirmada" />}
+            {tab === 'liked' && <EventList items={u.likedEvents} emptyLabel="Nenhum evento curtido" />}
+            {tab === 'commented' && <CommentList items={u.comments} />}
+          </div>
+        )}
 
         <div className="flex flex-col gap-2 mb-5">
           {([

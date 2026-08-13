@@ -40,6 +40,7 @@ export const ptBR = {
     engagement: 'Engajamento',
     sectionDev: 'Desenvolvimento',
     controlPanel: 'Painel de controle',
+    users: 'Usuários',
     aiPromoTitle: '✨ Impulsione com IA',
     aiPromoDesc:
       'A IA do WeParty escolhe o melhor momento e público pra seu evento aparecer mais na descoberta.',

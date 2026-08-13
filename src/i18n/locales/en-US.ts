@@ -41,6 +41,7 @@ export const enUS: Dictionary = {
     engagement: 'Engagement',
     sectionDev: 'Development',
     controlPanel: 'Control panel',
+    users: 'Users',
     aiPromoTitle: '✨ Boost with AI',
     aiPromoDesc:
       'WeParty AI picks the best time and audience so your event shows up more in discovery.',

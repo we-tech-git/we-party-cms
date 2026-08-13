@@ -11,6 +11,7 @@ import { EngagementFunnel } from '@/components/dashboard/engagement-funnel'
 import { ActiveEvents } from '@/components/dashboard/active-events'
 import { AiSuggestions } from '@/components/dashboard/ai-suggestions'
 import { ActivityInbox } from '@/components/dashboard/activity-inbox'
+import { UserAvatar } from '@/components/cms/user-avatar'
 import { useProducerDashboard } from '@/hooks/use-producer-dashboard'
 
 function fmtPeople(n?: number): string {
@@ -32,7 +33,6 @@ export default function ProducerDashboard() {
   const router = useRouter()
   const { t, locale } = useI18n()
   const user = useAuthStore((s) => s.user)
-  const initial = (user?.name ?? 'P')[0].toUpperCase()
   const { data, isLoading, isFetching, forceRefresh } = useProducerDashboard()
 
   // Localized "today" — first letter uppercased for pt-BR weekday/month casing.
@@ -104,17 +104,14 @@ export default function ProducerDashboard() {
     <div className="flex flex-col gap-5">
       {/* Greeting */}
       <div className="flex items-center gap-4.5 flex-wrap">
-        <div
-          className="w-16 h-16 rounded-[20px] grid place-items-center text-white font-extrabold text-[26px] border-[3px] border-white flex-none overflow-hidden"
-          style={{ background: 'linear-gradient(135deg,#7b5cff,#c54bff)', boxShadow: 'var(--shadow)', fontFamily: 'var(--font-bricolage)' }}
-        >
-          {user?.profileImage ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
-          ) : (
-            initial
-          )}
-        </div>
+        <UserAvatar
+          name={user?.name ?? ''}
+          image={user?.profileImage}
+          size={64}
+          radius={20}
+          className="border-[3px] border-white"
+          style={{ boxShadow: 'var(--shadow)' }}
+        />
         <div>
           <h1 className="font-extrabold text-[clamp(22px,5vw,30px)] leading-[1.05]" style={{ fontFamily: 'var(--font-bricolage)' }}>
             {t('home.welcome')}{' '}

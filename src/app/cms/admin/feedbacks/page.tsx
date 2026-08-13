@@ -13,6 +13,7 @@
 import { useMemo, useState } from 'react'
 import { GRAD } from '@/lib/brand'
 import { BackButton } from '@/components/cms/back-button'
+import { UserAvatar } from '@/components/cms/user-avatar'
 
 /* ------------------------------------------------------------------ types -- */
 
@@ -36,18 +37,6 @@ type Feedback = {
 
 const card = { background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' } as const
 
-const AVATAR_GRADS = [
-  'linear-gradient(135deg,#7b5cff,#c54bff)',
-  'linear-gradient(135deg,#FF9D3D,#F0309A)',
-  'linear-gradient(135deg,#3E7BFB,#5b93ff)',
-  'linear-gradient(135deg,#10A87D,#34d399)',
-  'linear-gradient(135deg,#ec4899,#f472b6)',
-]
-function initials(name: string) {
-  const p = name.trim().split(/\s+/)
-  return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase()
-}
-
 const TYPE_META: Record<FbType, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   suggestion: { label: 'Sugestão', color: 'var(--violet)', bg: '#EEEAFF', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z" /></svg> },
   bug: { label: 'Bug', color: '#DC2626', bg: '#FEE2E2', icon: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="8" y="6" width="8" height="14" rx="4" /><path d="M8 10H3M21 10h-5M8 16H3M21 16h-5M12 2v4M9 4l1 2M15 4l-1 2" /></svg> },
@@ -69,14 +58,6 @@ const STATUS_META: Record<FbStatus, { label: string; color: string; bg: string }
 const INITIAL_FEEDBACKS: Feedback[] = []
 
 /* ----------------------------------------------------------- subcomponents - */
-
-function Avatar({ name, id, size = 40 }: { name: string; id: number; size?: number }) {
-  return (
-    <span className="grid place-items-center text-white font-extrabold flex-none rounded-full" style={{ width: size, height: size, background: AVATAR_GRADS[id % AVATAR_GRADS.length], fontFamily: 'var(--font-bricolage)', fontSize: size * 0.4 }}>
-      {initials(name)}
-    </span>
-  )
-}
 
 function Stars({ value }: { value: number }) {
   return (
@@ -206,7 +187,7 @@ export default function FeedbacksPage() {
             return (
               <button key={f.id} onClick={() => { setSelectedId(f.id); setResponseText('') }} className="text-left rounded-[18px] p-4 transition hover:-translate-y-0.5" style={{ ...card, outline: active ? '2px solid var(--violet)' : 'none', outlineOffset: active ? '0' : undefined }}>
                 <div className="flex items-center gap-3 mb-2.5">
-                  <Avatar name={f.name} id={f.id} />
+                  <UserAvatar name={f.name} seed={String(f.id)} />
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-[14px] truncate">{f.name}</p>
                     <p className="text-[12px] font-medium" style={{ color: 'var(--wp-muted)' }}>{f.date}</p>
@@ -234,7 +215,7 @@ export default function FeedbacksPage() {
           {selected ? (
             <div className="rounded-[22px] p-5 sm:p-6" style={card}>
               <div className="flex items-center gap-3 mb-4">
-                <Avatar name={selected.name} id={selected.id} size={52} />
+                <UserAvatar name={selected.name} seed={String(selected.id)} size={52} />
                 <div className="min-w-0 flex-1">
                   <p className="font-extrabold text-[16px] truncate" style={{ fontFamily: 'var(--font-bricolage)' }}>{selected.name}</p>
                   <p className="text-[13px] font-medium truncate" style={{ color: 'var(--wp-muted)' }}>{selected.email}</p>

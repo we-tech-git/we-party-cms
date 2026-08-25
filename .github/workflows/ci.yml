@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [develop]
+
+# Quando chegam vários pushes seguidos no mesmo PR, cancela o run anterior
+# em vez de pagar por todos. Importa especialmente para PR de agente, que
+# tende a empurrar correções em sequência.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  branch-name:
+    name: Convenção de branch
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar nome do branch
+        env:
+          # Via env, nunca interpolado direto no script (evita injeção).
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          PADRAO='^(feat|fix|chore|docs|refactor|perf|test|ci)/(WEPARTY-[0-9]+-)?[a-z0-9]+([._-][a-z0-9]+)*$'
+          if ! printf '%s' "$BRANCH" | grep -Eq "$PADRAO"; then
+            echo "::error::Branch '$BRANCH' fora do padrão."
+            echo "Esperado: <tipo>/[WEPARTY-<n>-]<slug-em-kebab-case>"
+            echo "Tipos: feat, fix, chore, docs, refactor, perf, test, ci"
+            echo "Exemplos: feat/WEPARTY-123-favoritar-evento | chore/higiene-repositorio"
+            exit 1
+          fi
+          echo "Branch '$BRANCH' está no padrão."
+
+  ci:
+    name: Lint, Type-check & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+
+      # --frozen-lockfile falha se o yarn.lock estiver dessincronizado do
+      # package.json, em vez de "consertar" silenciosamente.
+      - name: Instalar dependências
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      # Passo separado do build: dá sinal de erro de tipo em ~2s em vez de
+      # esperar o next build inteiro (que é lento por causa do React Compiler).
+      - name: Type-check
+        run: yarn type-check
+
+      # Não precisa de .env: as NEXT_PUBLIC_* ausentes viram undefined, não
+      # quebram o build. Quem injeta as variáveis de verdade é a Vercel.
+      #
+      # `yarn api:generate` NÃO entra aqui de propósito: ele busca o OpenAPI
+      # da API dev ao vivo, e isso deixaria a CI vermelha toda vez que o
+      # ambiente dev oscilasse, por motivo alheio ao PR. O client é
+      # versionado; se divergir do contrato, o type-check acusa.
+      - name: Build
+        run: yarn build

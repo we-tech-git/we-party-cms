@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [develop]
+    branches: [main]
 
 # Quando chegam vários pushes seguidos no mesmo PR, cancela o run anterior
 # em vez de pagar por todos. Importa especialmente para PR de agente, que

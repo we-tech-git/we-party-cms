@@ -40,9 +40,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# AI tool local directories
+# lockfile de outro gerenciador — o projeto usa Yarn Classic
+package-lock.json
+
+# ferramentas de IA — preferencia local (nao versionado)
 .agent/
 .claude/
 .kimi/
-.opencode/
 .qwen/
+
+# .opencode/ E versionado: carrega os comandos opsx-* que o worker precisa
+# num clone limpo. O .opencode/.gitignore interno ja exclui node_modules.

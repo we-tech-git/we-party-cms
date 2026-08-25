@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "worker": {
+      "description": "Agente headless que implementa tarefas do Plane neste repositório. Usado pelo workflow do agente dev, nunca interativamente.",
+      "mode": "primary",
+      "model": "openrouter/moonshotai/kimi-k3",
+      "permission": {
+        "external_directory": "deny",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "question": "deny",
+        "read": {
+          "*": "allow",
+          "**/.env*": "deny",
+          "**/*.pem": "deny",
+          "**/id_rsa*": "deny"
+        },
+        "edit": {
+          "*": "allow",
+          "**/.env*": "deny",
+          ".github/workflows/**": "deny",
+          "opencode.json": "deny"
+        },
+        "bash": {
+          "*": "allow",
+          "sudo *": "deny",
+          "rm -rf *": "deny",
+          "docker *": "deny",
+          "curl *": "deny",
+          "wget *": "deny",
+          "cat *.env*": "deny",
+          "gh auth *": "deny",
+          "gh secret *": "deny",
+          "gh pr merge *": "deny",
+          "git push --force*": "deny",
+          "git push * main*": "deny",
+          "git push * develop*": "deny"
+        }
+      }
+    }
+  }
+}

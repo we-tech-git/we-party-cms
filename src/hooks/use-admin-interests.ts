@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getAdminInterests,
+  getInterestDetail,
   createInterest,
   updateInterest,
   deleteInterest,
@@ -40,4 +41,13 @@ export function useInterestMutations() {
   })
 
   return { create, update, remove }
+}
+
+export function useInterestDetail(id: string | undefined) {
+  return useQuery({
+    queryKey: ['admin', 'interests', id],
+    queryFn: () => getInterestDetail(id as string),
+    enabled: !!id,
+    staleTime: 60_000,
+  })
 }

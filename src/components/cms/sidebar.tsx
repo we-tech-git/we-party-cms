@@ -51,6 +51,15 @@ const devLinks: NavItem[] = [
       </svg>
     ),
   },
+  {
+    href: '/cms/admin/reports',
+    labelKey: 'nav.reports',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+        <path d="M12 22s-8-4.5-10.5-9.5C-.5 9 1.5 5 5 5c1.8 0 3.5.9 7 3.5C15.5 5.9 17.2 5 19 5c3.5 0 5.5 4 3.5 7.5C20 17.5 12 22 12 22z" /><path d="M7 13l3 3 7-7" />
+      </svg>
+    ),
+  },
 ]
 
 type NavItem = {

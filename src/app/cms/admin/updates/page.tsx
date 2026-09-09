@@ -3,11 +3,13 @@
 /**
  * Revisão e publicação das novidades de /public/updates (we-party-web-app).
  *
- * Hoje só cobre a criação/edição manual — a ingestão automática via webhook
- * do GitHub + geração de copy com opencode ainda não existe no backend (ver
+ * Cobre tanto a criação/edição manual quanto os rascunhos que chegam
+ * automaticamente via webhook do GitHub (PR mesclado + checkbox de
+ * elegibilidade marcado — ver
  * backend/docs-weparty-social-backed/.wp-social-script-tests/weparty-updates/).
- * Quando existir, rascunhos com copyStatus=PENDING_AI vão aparecer aqui e o
- * botão "Gerar copy com IA" entra nesta tela.
+ * Rascunhos com copyStatus=PENDING_AI aparecem com o badge "Gerando copy…"
+ * até o opencode escrever o texto final; o botão "Gerar copy com IA" reroda
+ * isso sob demanda.
  */
 
 import { useMemo, useState } from 'react'
@@ -44,6 +46,17 @@ const TAB_ITEMS: { key: 'all' | PlatformUpdateWorkflowStatus, label: string }[] 
 function toDateInputValue (iso: string | null): string {
   if (!iso) return ''
   return iso.slice(0, 10)
+}
+
+/** Data + hora legível pro painel de metadados (só leitura). */
+function formatDateTime (iso: string | null): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+/** Primeiros 7 caracteres do SHA — igual ao short hash que o GitHub mostra. */
+function shortSha (sha: string): string {
+  return sha.slice(0, 7)
 }
 
 interface FormState {
@@ -271,9 +284,10 @@ export default function PlatformUpdatesPage () {
         </div>
       )}
 
-      {/* Modal de edição/criação */}
+      {/* Modal de edição/criação — mais largo quando editando (sobra espaço pro
+          painel de metadados) pra caber tudo sem espremer em desktop. */}
       {showModal && (
-        <ModalShell onClose={closeModal}>
+        <ModalShell onClose={closeModal} width={editing ? 920 : 640}>
           <button onClick={closeModal} disabled={busy} aria-label="Fechar" className="absolute top-4 right-4 w-8 h-8 rounded-[8px] grid place-items-center transition hover:bg-[#FFF0F3] disabled:opacity-40" style={{ background: 'rgba(107,114,128,.1)', color: '#6b7280' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M6 6l12 12M18 6L6 18" /></svg>
           </button>
@@ -289,7 +303,8 @@ export default function PlatformUpdatesPage () {
             )}
           </div>
 
-          <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col lg:flex-row gap-6 lg:items-start">
+          <div className="flex flex-col gap-3.5 flex-1 min-w-0">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 {fieldLabel('Categoria')}
@@ -408,6 +423,61 @@ export default function PlatformUpdatesPage () {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Painel de metadados — só leitura, só quando editando (nada a mostrar
+              numa novidade que ainda não existe). Fica ao lado em desktop
+              (lg:flex-row no pai) e embaixo do form em telas menores. */}
+          {editing && (
+            <div className="w-full lg:w-64 flex-none rounded-[16px] p-4 flex flex-col gap-3.5" style={{ background: '#FAFAFB', border: '1px solid var(--line-2)' }}>
+              <p className="text-[11px] font-extrabold uppercase tracking-wider" style={{ color: 'var(--wp-muted)' }}>Detalhes</p>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-extrabold" style={{ background: STATUS_META[editing.status].bg, color: STATUS_META[editing.status].color }}>
+                  {STATUS_META[editing.status].label}
+                </span>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-extrabold" style={editing.copyStatus === 'READY' ? { background: '#E6FBF3', color: 'var(--green)' } : { background: '#FFF4E0', color: 'var(--amber)' }}>
+                  {editing.copyStatus === 'READY' ? 'Copy pronto' : 'Gerando copy…'}
+                </span>
+              </div>
+
+              <div>
+                {fieldLabel('Origem')}
+                {editing.origin === 'MANUAL' ? (
+                  <p className="text-[13px] font-semibold">Criada manualmente no CMS</p>
+                ) : (
+                  <div className="text-[13px] font-semibold flex flex-col gap-1">
+                    <span>{editing.sourceRepo}</span>
+                    {editing.sourcePrUrl && (
+                      <a href={editing.sourcePrUrl} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: 'var(--violet)' }}>
+                        PR #{editing.sourcePrNumber}
+                      </a>
+                    )}
+                    {editing.sourceCommitShas.length > 0 && (
+                      <div className="flex flex-col gap-0.5 mt-1">
+                        {editing.sourceCommitShas.map(sha => (
+                          <span key={sha} className="font-mono text-[11.5px]" style={{ color: 'var(--wp-muted)' }}>{shortSha(sha)}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                {fieldLabel('Criada em')}
+                <p className="text-[13px] font-semibold">{formatDateTime(editing.createdAt)}</p>
+              </div>
+              <div>
+                {fieldLabel('Atualizada em')}
+                <p className="text-[13px] font-semibold">{formatDateTime(editing.updatedAt)}</p>
+              </div>
+              <div>
+                {fieldLabel('Publicada em')}
+                <p className="text-[13px] font-semibold">{formatDateTime(editing.publishedAt)}</p>
+              </div>
+            </div>
+          )}
           </div>
         </ModalShell>
       )}

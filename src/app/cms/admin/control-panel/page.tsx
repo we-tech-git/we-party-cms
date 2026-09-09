@@ -120,6 +120,7 @@ const QUICK_LINKS = [
   { href: '/cms/admin/feedbacks', label: 'Ver feedbacks', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15a4 4 0 01-4 4H8l-5 4V7a4 4 0 014-4h10a4 4 0 014 4z" /></svg> },
   { href: '/cms/admin/interests', label: 'Gerenciar interesses', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z" /></svg> },
   { href: '/cms/admin/events', label: 'Gerenciar eventos', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" /></svg> },
+  { href: '/cms/admin/updates', label: 'Revisar novidades', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2v20M2 12h20" /></svg> },
 ]
 
 /* ------------------------------------------------------------------- page -- */

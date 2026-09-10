@@ -18,7 +18,14 @@ const TAB_ITEMS = [
   { key: 'all' as const, label: 'Todas' },
   { key: 'EVENT' as const, label: 'Eventos' },
   { key: 'COMMENT' as const, label: 'Comentários' },
+  { key: 'INTEREST_COMMENT' as const, label: 'Comentários de interesse' },
 ]
+
+const TYPE_LABEL: Record<ReportType, string> = {
+  EVENT: 'Evento',
+  COMMENT: 'Comentário',
+  INTEREST_COMMENT: 'Comentário de interesse',
+}
 
 function StatCard({ value, label, grad, icon }: { value: string; label: string; grad: string; icon: React.ReactNode }) {
   return (
@@ -136,18 +143,26 @@ export default function ReportsPage() {
           {reports.map((r) => {
             const busy = updateStatus.isPending
             const isEvent = r.type === 'EVENT'
+            const isInterestComment = r.type === 'INTEREST_COMMENT'
+            const badgeGrad = isEvent
+              ? 'linear-gradient(135deg,#3E7BFB,#5b93ff)'
+              : isInterestComment
+                ? 'linear-gradient(135deg,#7C5CFF,#a78bfa)'
+                : 'linear-gradient(135deg,#10A87D,#34d399)'
+            const badgeLetter = isEvent ? 'E' : isInterestComment ? 'I' : 'C'
+            const title = isEvent ? r.event?.title : isInterestComment ? r.interestComment?.content : r.comment?.content
             return (
               <div key={r.id} className="rounded-[18px] p-4 flex flex-col gap-3 cursor-pointer transition hover:-translate-y-0.5" style={{ ...card, opacity: busy ? 0.55 : 1 }} onClick={() => !busy && setDetail(r)}>
                 <div className="flex items-start gap-3">
-                  <span className="w-10 h-10 rounded-[12px] grid place-items-center text-white font-extrabold flex-none" style={{ background: isEvent ? 'linear-gradient(135deg,#3E7BFB,#5b93ff)' : 'linear-gradient(135deg,#10A87D,#34d399)', fontFamily: 'var(--font-bricolage)' }}>
-                    {isEvent ? 'E' : 'C'}
+                  <span className="w-10 h-10 rounded-[12px] grid place-items-center text-white font-extrabold flex-none" style={{ background: badgeGrad, fontFamily: 'var(--font-bricolage)' }}>
+                    {badgeLetter}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-extrabold text-[14px] line-clamp-2" style={{ fontFamily: 'var(--font-bricolage)' }}>
-                      {isEvent ? r.event?.title : r.comment?.content}
+                      {title}
                     </p>
                     <p className="text-[11.5px] font-medium mt-0.5" style={{ color: 'var(--wp-muted)' }}>
-                      {isEvent ? 'Evento' : 'Comentário'} · por @{r.reporter.username} · {new Date(r.createdAt).toLocaleDateString('pt-BR')}
+                      {TYPE_LABEL[r.type]} · por @{r.reporter.username} · {new Date(r.createdAt).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-extrabold flex-none" style={{ background: STATUS_META[r.status].bg, color: STATUS_META[r.status].color }}>
@@ -171,11 +186,20 @@ export default function ReportsPage() {
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold mb-2" style={{ background: STATUS_META[detail.status].bg, color: STATUS_META[detail.status].color }}>
                 {STATUS_META[detail.status].label}
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold ml-2" style={{ background: detail.type === 'EVENT' ? '#E0E7FF' : '#E6FBF3', color: detail.type === 'EVENT' ? '#4F46E5' : 'var(--green)' }}>
-                {detail.type === 'EVENT' ? 'Evento' : 'Comentário'}
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold ml-2"
+                style={
+                  detail.type === 'EVENT'
+                    ? { background: '#E0E7FF', color: '#4F46E5' }
+                    : detail.type === 'INTEREST_COMMENT'
+                      ? { background: '#EDE9FE', color: '#7C5CFF' }
+                      : { background: '#E6FBF3', color: 'var(--green)' }
+                }
+              >
+                {TYPE_LABEL[detail.type]}
               </span>
               <h2 className="text-[20px] font-extrabold mt-2" style={{ fontFamily: 'var(--font-bricolage)' }}>
-                {detail.type === 'EVENT' ? detail.event?.title : 'Comentário'}
+                {detail.type === 'EVENT' ? detail.event?.title : TYPE_LABEL[detail.type]}
               </h2>
             </div>
 
@@ -208,6 +232,20 @@ export default function ReportsPage() {
                   <p className="text-[12px] font-medium" style={{ color: 'var(--wp-muted)' }}>
                     {new Date(detail.comment.createdAt).toLocaleDateString('pt-BR')}
                     {detail.comment.parentId ? ' · Resposta' : ''}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {detail.type === 'INTEREST_COMMENT' && detail.interestComment && (
+              <div className="rounded-[14px] p-4" style={{ background: '#F9FAFB' }}>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider mb-2" style={{ color: 'var(--wp-muted)' }}>Comentário reportado</p>
+                <p className="text-[14px] font-medium">{detail.interestComment.content}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-[12px] font-extrabold">{detail.interestComment.user.name}</p>
+                  <p className="text-[12px] font-medium" style={{ color: 'var(--wp-muted)' }}>
+                    {new Date(detail.interestComment.createdAt).toLocaleDateString('pt-BR')}
+                    {detail.interestComment.parentId ? ' · Resposta' : ''}
                   </p>
                 </div>
               </div>

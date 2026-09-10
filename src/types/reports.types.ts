@@ -1,4 +1,4 @@
-export type ReportType = 'EVENT' | 'COMMENT'
+export type ReportType = 'EVENT' | 'COMMENT' | 'INTEREST_COMMENT'
 export type ReportStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED'
 
 export interface ReportReporterDto {
@@ -23,6 +23,15 @@ export interface ReportCommentDto {
   eventId: string
 }
 
+export interface ReportInterestCommentDto {
+  id: string
+  content: string
+  createdAt: string
+  parentId: string | null
+  user: { id: string; name: string }
+  interestId: string
+}
+
 export interface ReportDto {
   id: string
   type: ReportType
@@ -32,6 +41,7 @@ export interface ReportDto {
   reporter: ReportReporterDto
   event: ReportEventDto | null
   comment: ReportCommentDto | null
+  interestComment: ReportInterestCommentDto | null
 }
 
 export interface ReportsResponse {

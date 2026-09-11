@@ -23,12 +23,12 @@ jobs:
           # Via env, nunca interpolado direto no script (evita injeção).
           BRANCH: ${{ github.head_ref }}
         run: |
-          PADRAO='^(feat|fix|chore|docs|refactor|perf|test|ci)/(WEPARTY-[0-9]+-)?[a-z0-9]+([._-][a-z0-9]+)*$'
+          PADRAO='^(feat|fix|chore|docs|refactor|perf|test|ci)/(WEPARTY-[0-9]+(-[a-z0-9]+([._-][a-z0-9]+)*)?|[a-z0-9]+([._-][a-z0-9]+)*)$'
           if ! printf '%s' "$BRANCH" | grep -Eq "$PADRAO"; then
             echo "::error::Branch '$BRANCH' fora do padrão."
-            echo "Esperado: <tipo>/[WEPARTY-<n>-]<slug-em-kebab-case>"
+            echo "Esperado: <tipo>/WEPARTY-<n>[-<slug-em-kebab-case>] ou <tipo>/<slug-em-kebab-case>"
             echo "Tipos: feat, fix, chore, docs, refactor, perf, test, ci"
-            echo "Exemplos: feat/WEPARTY-123-favoritar-evento | chore/higiene-repositorio"
+            echo "Exemplos: feat/WEPARTY-123 | feat/WEPARTY-123-favoritar-evento | chore/higiene-repositorio"
             exit 1
           fi
           echo "Branch '$BRANCH' está no padrão."

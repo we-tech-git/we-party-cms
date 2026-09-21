@@ -3,9 +3,10 @@
 /**
  * Painel de Controle (dev/admin) — visão geral e controle das ações do site.
  *
- * Métricas e atividade vêm de GET /admin/stats e GET /admin/activities.
- * Denúncias/moderação e configurações do site ainda não têm API: aqueles blocos
- * seguem em estado indisponível de propósito, sem dados simulados.
+ * Métricas e atividade vêm de GET /admin/stats e GET /admin/activities;
+ * denúncias vêm de GET /reports (ver `/cms/admin/reports`). Configurações do
+ * site ainda não têm API: aquele bloco segue em estado indisponível de
+ * propósito, sem dados simulados.
  */
 
 import Link from 'next/link'
@@ -120,6 +121,7 @@ const QUICK_LINKS = [
   { href: '/cms/admin/feedbacks', label: 'Ver feedbacks', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15a4 4 0 01-4 4H8l-5 4V7a4 4 0 014-4h10a4 4 0 014 4z" /></svg> },
   { href: '/cms/admin/interests', label: 'Gerenciar interesses', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z" /></svg> },
   { href: '/cms/admin/events', label: 'Gerenciar eventos', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" /></svg> },
+  { href: '/cms/admin/reports', label: 'Ver denúncias', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22V15" /></svg> },
 ]
 
 /* ------------------------------------------------------------------- page -- */
@@ -175,14 +177,16 @@ export default function ControlPanelPage() {
           hint="interesses na fila"
           icon={<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l3 2" /></svg>}
         />
-        <StatCard
-          label="Pendências"
-          grad="linear-gradient(135deg,#3E7BFB,#60a5fa)"
-          value={stats?.openReports}
-          isLoading={statsLoading}
-          hint="denúncias — módulo não implementado"
-          icon={<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22V15" /></svg>}
-        />
+        <Link href="/cms/admin/reports">
+          <StatCard
+            label="Pendências"
+            grad="linear-gradient(135deg,#3E7BFB,#60a5fa)"
+            value={stats?.openReports}
+            isLoading={statsLoading}
+            hint="denúncias aguardando revisão"
+            icon={<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22V15" /></svg>}
+          />
+        </Link>
       </div>
 
       {/* Main grid — two rows of three cards, all the same size/dimension */}
@@ -288,19 +292,41 @@ export default function ControlPanelPage() {
           </div>
         </div>
 
-        {/* Reports — no moderation/reports endpoint yet */}
-        <div className="rounded-[22px] p-5 sm:p-6 flex flex-col min-h-70" style={card}>
+        {/* Denúncias — GET /admin/stats.openReports (conta PENDING) */}
+        <div className="rounded-[22px] p-5 sm:p-6 flex flex-col min-h-70" style={panel}>
           <SectionTitle
             icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22V15" /></svg>}
           >
             Denúncias
           </SectionTitle>
           <div className="flex-1 flex flex-col justify-center">
-            <EmptyState
-              icon={<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" /></svg>}
-              title="Indisponível"
-              subtitle="Ainda não há uma API de denúncias/moderação."
-            />
+            {statsLoading ? (
+              <div className="h-24 rounded-[14px] animate-pulse" style={{ background: 'var(--line-2)' }} />
+            ) : stats && stats.openReports != null && stats.openReports > 0 ? (
+              <Link
+                href="/cms/admin/reports"
+                className="flex items-center gap-3.5 rounded-[14px] px-4 py-4 transition hover:-translate-y-0.5"
+                style={{ background: '#fff', border: '1px solid var(--line-2)' }}
+              >
+                <span className="w-11 h-11 rounded-[13px] grid place-items-center flex-none text-white" style={{ background: 'linear-gradient(135deg,#3E7BFB,#60a5fa)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22V15" /></svg>
+                </span>
+                <div className="min-w-0">
+                  <p className="font-extrabold text-[15px] leading-tight">
+                    {stats.openReports} denúncia(s) pendente(s)
+                  </p>
+                  <p className="text-[12.5px] font-semibold mt-0.5" style={{ color: 'var(--violet)' }}>
+                    Revisar agora →
+                  </p>
+                </div>
+              </Link>
+            ) : (
+              <EmptyState
+                icon={<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>}
+                title="Tudo em ordem"
+                subtitle="Nenhuma denúncia pendente no momento."
+              />
+            )}
           </div>
         </div>
       </div>

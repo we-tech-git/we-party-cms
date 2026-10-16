@@ -12,3 +12,4 @@
 ## 4. Verificação
 - [x] 4.1 `yarn lint`, `yarn type-check`, `yarn build`
 - [x] 4.2 `GET https://api.wepartyapp.com/api-json` responde 200
+- [x] 4.3 `yarn api:generate` baixa o contrato da nova origem; a geração para na validação do próprio spec do backend (2 erros: `DELETE`/`PATCH /events/{eventId}/faq/{faqId}` sem `eventId` declarado como path param). Correção é do backend (`@ApiParam` no `event-faq.controller.ts`), fora desta rodada.

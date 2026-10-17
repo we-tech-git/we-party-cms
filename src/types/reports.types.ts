@@ -19,8 +19,8 @@ export interface ReportCommentDto {
   content: string
   createdAt: string
   parentId: string | null
-  eventId: string
   user: { id: string; name: string }
+  eventId: string
 }
 
 export interface ReportInterestCommentDto {
@@ -28,11 +28,10 @@ export interface ReportInterestCommentDto {
   content: string
   createdAt: string
   parentId: string | null
-  interestId: string
   user: { id: string; name: string }
+  interestId: string
 }
 
-/** Mirrors an item of GET /reports. */
 export interface ReportDto {
   id: string
   type: ReportType
@@ -45,14 +44,6 @@ export interface ReportDto {
   interestComment: ReportInterestCommentDto | null
 }
 
-export interface ReportsQuery {
-  status?: ReportStatus
-  type?: ReportType
-  limit?: number
-  offset?: number
-}
-
-/** Response shape for GET /reports. */
 export interface ReportsResponse {
   data: ReportDto[]
   total: number

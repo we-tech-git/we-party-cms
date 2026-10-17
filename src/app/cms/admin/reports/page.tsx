@@ -1,26 +1,10 @@
 'use client'
 
-/**
- * Moderação de denúncias (admin) — conectado à API real:
- *   GET   /reports       (lista, filtros status/type)
- *   PATCH /reports/{id}  (aceitar/rejeitar)
- *
- * Sem dados mockados — usa React Query (useAdminReports / useReportMutations).
- * A API pagina em no máximo 100 itens por chamada; a UI busca 100 por aba de
- * status e avisa quando `total` é maior do que o que veio, em vez de fingir
- * paginação de verdade.
- */
-
 import { useMemo, useState } from 'react'
 import { GRAD } from '@/lib/brand'
 import { BackButton } from '@/components/cms/back-button'
-import { UserAvatar } from '@/components/cms/user-avatar'
-import { relativeTime } from '@/lib/date'
-import { useI18n } from '@/i18n/context'
 import { useAdminReports, useReportMutations } from '@/hooks/use-admin-reports'
-import type { ReportDto, ReportStatus } from '@/types/reports.types'
-
-/* ---------------------------------------------------------------- helpers -- */
+import type { ReportDto, ReportStatus, ReportType } from '@/types/reports.types'
 
 const card = { background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' } as const
 
@@ -30,159 +14,116 @@ const STATUS_META: Record<ReportStatus, { label: string; color: string; bg: stri
   REJECTED: { label: 'Rejeitada', color: '#DC2626', bg: '#FEE2E2' },
 }
 
-const eventIcon = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" /></svg>
-)
-const commentIcon = (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15a4 4 0 01-4 4H8l-5 4V7a4 4 0 014-4h10a4 4 0 014 4z" /></svg>
-)
+const TAB_ITEMS = [
+  { key: 'all' as const, label: 'Todas' },
+  { key: 'EVENT' as const, label: 'Eventos' },
+  { key: 'COMMENT' as const, label: 'Comentários' },
+  { key: 'INTEREST_COMMENT' as const, label: 'Comentários de interesse' },
+]
 
-const TYPE_META: Record<ReportDto['type'], { label: string; icon: React.ReactNode }> = {
-  EVENT: { label: 'Evento', icon: eventIcon },
-  COMMENT: { label: 'Comentário', icon: commentIcon },
-  INTEREST_COMMENT: { label: 'Comentário de interesse', icon: commentIcon },
+const TYPE_LABEL: Record<ReportType, string> = {
+  EVENT: 'Evento',
+  COMMENT: 'Comentário',
+  INTEREST_COMMENT: 'Comentário de interesse',
 }
 
-const STATUS_TABS: { value: ReportStatus | undefined; label: string }[] = [
-  { value: 'PENDING', label: 'Pendentes' },
-  { value: 'ACCEPTED', label: 'Aceitas' },
-  { value: 'REJECTED', label: 'Rejeitadas' },
-  { value: undefined, label: 'Todas' },
-]
-
-const TYPE_TABS: { value: 'ALL' | 'EVENT' | 'COMMENT'; label: string }[] = [
-  { value: 'ALL', label: 'Todos' },
-  { value: 'EVENT', label: 'Eventos' },
-  { value: 'COMMENT', label: 'Comentários' },
-]
-
-/** Resumo do conteúdo denunciado — evento ou comentário (de evento ou de
- * interesse), tolerando o alvo ter sido removido nesse meio tempo. */
-function TargetPreview({ report }: { report: ReportDto }) {
-  const muted = { color: 'var(--wp-muted)' } as const
-
-  if (report.type === 'EVENT') {
-    if (!report.event) {
-      return <p className="text-[13px] font-medium italic" style={muted}>Evento não encontrado (pode ter sido removido).</p>
-    }
-    return (
-      <div>
-        <p className="text-[13.5px] font-bold truncate">{report.event.title}</p>
-        <p className="text-[12px] font-medium" style={muted}>Criado por {report.event.creator.name}</p>
-      </div>
-    )
-  }
-
-  const comment = report.type === 'COMMENT' ? report.comment : report.interestComment
-  if (!comment) {
-    return <p className="text-[13px] font-medium italic" style={muted}>Comentário não encontrado (pode ter sido removido).</p>
-  }
+function StatCard({ value, label, grad, icon }: { value: string; label: string; grad: string; icon: React.ReactNode }) {
   return (
-    <div>
-      <p className="text-[13.5px] font-semibold italic line-clamp-2">&ldquo;{comment.content}&rdquo;</p>
-      <p className="text-[12px] font-medium mt-0.5" style={muted}>por {comment.user.name}</p>
+    <div className="flex items-center gap-4 rounded-[18px] px-5 py-4.5" style={card}>
+      <span className="w-12 h-12 rounded-[14px] grid place-items-center text-white flex-none" style={{ background: grad }}>{icon}</span>
+      <div className="min-w-0">
+        <div className="text-[24px] font-extrabold leading-none tabular-nums" style={{ fontFamily: 'var(--font-bricolage)' }}>{value}</div>
+        <div className="text-[13px] font-semibold mt-1 truncate" style={{ color: 'var(--wp-muted)' }}>{label}</div>
+      </div>
     </div>
   )
 }
 
-/* ------------------------------------------------------------------- page -- */
+function ModalShell({ onClose, children, width = 520 }: { onClose: () => void; children: React.ReactNode; width?: number }) {
+  return (
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+      <div className="absolute inset-0" style={{ background: 'rgba(17,24,39,.6)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div role="dialog" aria-modal="true" className="relative z-1 rounded-[24px] bg-white p-7 max-h-[85vh] overflow-y-auto" style={{ width: `min(92vw, ${width}px)`, boxShadow: 'var(--shadow)' }}>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 export default function ReportsPage() {
-  const { locale } = useI18n()
-  const [statusTab, setStatusTab] = useState<ReportStatus | undefined>('PENDING')
-  const [typeTab, setTypeTab] = useState<'ALL' | 'EVENT' | 'COMMENT'>('ALL')
-  const [query, setQuery] = useState('')
+  const [tab, setTab] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<ReportStatus | 'all'>('all')
+  const [detail, setDetail] = useState<ReportDto | null>(null)
 
-  const { data, isLoading, isError, refetch, isFetching } = useAdminReports(statusTab)
+  const typeParam = tab === 'all' ? undefined : tab
+  const statusParam = statusFilter === 'all' ? undefined : statusFilter
+
+  const { data, isLoading, isError, refetch } = useAdminReports({
+    status: statusParam,
+    type: typeParam as ReportType | undefined,
+    limit: 50,
+  })
   const { updateStatus } = useReportMutations()
 
   const reports = useMemo(() => data?.data ?? [], [data])
+  const stats = useMemo(() => ({
+    total: data?.total ?? 0,
+    pending: reports.filter((r) => r.status === 'PENDING').length,
+    accepted: reports.filter((r) => r.status === 'ACCEPTED').length,
+    rejected: reports.filter((r) => r.status === 'REJECTED').length,
+  }), [reports, data?.total])
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return reports.filter((r) => {
-      if (typeTab === 'EVENT' && r.type !== 'EVENT') return false
-      if (typeTab === 'COMMENT' && r.type === 'EVENT') return false
-      if (!q) return true
-      const haystack = [
-        r.reason,
-        r.reporter.name,
-        r.reporter.username,
-        r.event?.title,
-        r.comment?.content,
-        r.interestComment?.content,
-      ].filter(Boolean).join(' ').toLowerCase()
-      return haystack.includes(q)
-    })
-  }, [reports, typeTab, query])
-
-  function setDecision(id: string, status: ReportStatus) {
-    updateStatus.mutate({ id, status })
+  const handleAction = (id: string, status: 'ACCEPTED' | 'REJECTED') => {
+    updateStatus.mutate({ id, status }, { onSuccess: () => setDetail(null) })
   }
 
   return (
     <div className="flex flex-col gap-5">
       <BackButton fallback="/cms/admin/control-panel" />
 
-      {/* Header */}
       <div className="flex items-end gap-4 flex-wrap">
         <span className="w-14 h-14 rounded-[18px] grid place-items-center text-white flex-none" style={{ background: GRAD, boxShadow: '0 14px 28px -14px rgba(240,48,154,.7)' }}>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22V15" /></svg>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 22s-8-4.5-10.5-9.5C-.5 9 1.5 5 5 5c1.8 0 3.5.9 7 3.5C15.5 5.9 17.2 5 19 5c3.5 0 5.5 4 3.5 7.5C20 17.5 12 22 12 22z" /><path d="M7 13l3 3 7-7" /></svg>
         </span>
         <div className="min-w-0">
           <h1 className="font-extrabold text-[clamp(22px,5vw,30px)] leading-[1.05]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-            <span style={{ background: 'linear-gradient(120deg,var(--violet),var(--pink))', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Denúncias</span>
+            Moderação de <span style={{ background: 'linear-gradient(120deg,var(--violet),var(--pink))', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>denúncias</span>
           </h1>
           <p className="font-semibold mt-0.5 text-[14px]" style={{ color: 'var(--ink-soft)' }}>
-            Eventos e comentários denunciados por usuários
-            {isFetching && !isLoading && <span style={{ color: 'var(--violet)' }}> · atualizando…</span>}
+            Revise e gerencie denúncias de eventos e comentários
           </p>
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-55">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--wp-muted)' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-            </span>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar por motivo, denunciante ou conteúdo…"
-              className="w-full rounded-[13px] pl-11 pr-4 py-3 text-[14px] font-medium outline-none transition focus:border-violet"
-              style={{ background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)' }}
-            />
-          </div>
-          <div className="flex p-1 rounded-[13px] flex-wrap" style={{ background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)' }}>
-            {TYPE_TABS.map((t) => (
-              <button key={t.value} onClick={() => setTypeTab(t.value)} className="px-3.5 py-2 rounded-[10px] text-[13px] font-extrabold transition" style={typeTab === t.value ? { background: GRAD, color: '#fff' } : { color: 'var(--wp-muted)' }}>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      <div className={`grid grid-cols-2 gap-4 ${reports.length > 0 ? 'xl:grid-cols-4' : 'xl:grid-cols-1 max-w-xs'}`}>
+        <StatCard value={isLoading ? '…' : String(stats.total)} label="Total de denúncias" grad="linear-gradient(135deg,#7C5CFF,#a78bfa)" icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 22s-8-4.5-10.5-9.5C-.5 9 1.5 5 5 5c1.8 0 3.5.9 7 3.5C15.5 5.9 17.2 5 19 5c3.5 0 5.5 4 3.5 7.5C20 17.5 12 22 12 22z" /></svg>} />
+        {reports.length > 0 && <>
+          <StatCard value={isLoading ? '…' : String(stats.pending)} label="Pendentes" grad="linear-gradient(135deg,#F59E0B,#fbbf24)" icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>} />
+          <StatCard value={isLoading ? '…' : String(stats.accepted)} label="Aceitas" grad="linear-gradient(135deg,#10A87D,#34d399)" icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M20 6L9 17l-5-5" /></svg>} />
+          <StatCard value={isLoading ? '…' : String(stats.rejected)} label="Rejeitadas" grad="linear-gradient(135deg,#ef4444,#f87171)" icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>} />
+        </>}
+      </div>
 
-        <div className="flex p-1 rounded-[13px] flex-wrap w-fit" style={{ background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)' }}>
-          {STATUS_TABS.map((t) => (
-            <button key={t.label} onClick={() => setStatusTab(t.value)} className="px-3.5 py-2 rounded-[10px] text-[13px] font-extrabold transition" style={statusTab === t.value ? { background: GRAD, color: '#fff' } : { color: 'var(--wp-muted)' }}>
-              {t.label}
-            </button>
+      {/* Tabs */}
+      <div className="flex p-1 rounded-[13px] flex-wrap self-start" style={{ background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)' }}>
+        {TAB_ITEMS.map(({ key, label }) => (
+          <button key={key} onClick={() => setTab(key)} className="px-4 py-2 rounded-[10px] text-[13px] font-extrabold transition" style={tab === key ? { background: GRAD, color: '#fff' } : { color: 'var(--wp-muted)' }}>{label}</button>
+        ))}
+      </div>
+
+      {/* Status filters */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex p-1 rounded-[13px] flex-wrap" style={{ background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)' }}>
+          {([['all', 'Todos'], ['PENDING', 'Pendentes'], ['ACCEPTED', 'Aceitas'], ['REJECTED', 'Rejeitadas']] as const).map(([v, l]) => (
+            <button key={v} onClick={() => setStatusFilter(v)} className="px-3.5 py-2 rounded-[10px] text-[13px] font-extrabold transition" style={statusFilter === v ? { background: GRAD, color: '#fff' } : { color: 'var(--wp-muted)' }}>{l}</button>
           ))}
         </div>
-
-        {!isLoading && !isError && data && data.total > data.data.length && (
-          <p className="text-[12px] font-semibold" style={{ color: 'var(--wp-muted)' }}>
-            Mostrando {data.data.length} de {data.total.toLocaleString('pt-BR')} — refine o filtro de status pra ver o restante.
-          </p>
-        )}
       </div>
 
       {/* Body */}
       {isLoading ? (
-        <div className="flex flex-col gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid gap-3 sm:grid-cols-2 min-[1280px]:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="rounded-[18px] h-28 animate-pulse" style={{ background: 'var(--line-2)' }} />
           ))}
         </div>
@@ -192,66 +133,41 @@ export default function ReportsPage() {
           <p className="text-[14px] font-semibold" style={{ color: 'var(--ink-soft)' }}>Não foi possível carregar as denúncias</p>
           <button onClick={() => refetch()} className="rounded-[12px] px-5 py-2.5 font-extrabold text-[13.5px] text-white" style={{ background: GRAD }}>Tentar novamente</button>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : reports.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-16 rounded-[22px]" style={card}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" /></svg>
-          <span className="text-[14px] font-semibold" style={{ color: 'var(--wp-muted)' }}>
-            {reports.length === 0 ? 'Nenhuma denúncia nessa categoria' : 'Nenhuma denúncia encontrada'}
-          </span>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--wp-muted)" strokeWidth="1.6"><path d="M20 6L9 17l-5-5" /></svg>
+          <span className="text-[14px] font-semibold" style={{ color: 'var(--wp-muted)' }}>Nenhuma denúncia encontrada</span>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          {filtered.map((r) => {
-            const busy = updateStatus.isPending && updateStatus.variables?.id === r.id
+        <div className="grid gap-3 sm:grid-cols-2 min-[1280px]:grid-cols-3">
+          {reports.map((r) => {
+            const busy = updateStatus.isPending
+            const isEvent = r.type === 'EVENT'
+            const isInterestComment = r.type === 'INTEREST_COMMENT'
+            const badgeGrad = isEvent
+              ? 'linear-gradient(135deg,#3E7BFB,#5b93ff)'
+              : isInterestComment
+                ? 'linear-gradient(135deg,#7C5CFF,#a78bfa)'
+                : 'linear-gradient(135deg,#10A87D,#34d399)'
+            const badgeLetter = isEvent ? 'E' : isInterestComment ? 'I' : 'C'
+            const title = isEvent ? r.event?.title : isInterestComment ? r.interestComment?.content : r.comment?.content
             return (
-              <div key={r.id} className="rounded-[18px] p-4 flex flex-col sm:flex-row sm:items-center gap-4" style={{ ...card, opacity: busy ? 0.55 : 1 }}>
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <UserAvatar name={r.reporter.name} seed={r.reporter.id} size={38} radius={12} />
+              <div key={r.id} className="rounded-[18px] p-4 flex flex-col gap-3 cursor-pointer transition hover:-translate-y-0.5" style={{ ...card, opacity: busy ? 0.55 : 1 }} onClick={() => !busy && setDetail(r)}>
+                <div className="flex items-start gap-3">
+                  <span className="w-10 h-10 rounded-[12px] grid place-items-center text-white font-extrabold flex-none" style={{ background: badgeGrad, fontFamily: 'var(--font-bricolage)' }}>
+                    {badgeLetter}
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-[13.5px] font-extrabold truncate">{r.reporter.name}</p>
-                      <span className="text-[11px] font-bold" style={{ color: 'var(--wp-muted)' }}>@{r.reporter.username}</span>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-extrabold" style={{ background: '#EEEAFF', color: 'var(--violet)' }}>
-                        {TYPE_META[r.type].icon}
-                        {TYPE_META[r.type].label}
-                      </span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-extrabold" style={{ background: STATUS_META[r.status].bg, color: STATUS_META[r.status].color }}>
-                        {STATUS_META[r.status].label}
-                      </span>
-                    </div>
-                    {r.reason && (
-                      <p className="text-[13px] font-medium mt-1" style={{ color: 'var(--ink-soft)' }}>&ldquo;{r.reason}&rdquo;</p>
-                    )}
-                    <div className="mt-2 rounded-[12px] px-3 py-2" style={{ background: '#FBFAFE', border: '1px solid var(--line-2)' }}>
-                      <TargetPreview report={r} />
-                    </div>
-                    <p className="text-[11.5px] font-semibold mt-1.5" style={{ color: 'var(--wp-muted)' }}>{relativeTime(r.createdAt, locale)}</p>
+                    <p className="font-extrabold text-[14px] line-clamp-2" style={{ fontFamily: 'var(--font-bricolage)' }}>
+                      {title}
+                    </p>
+                    <p className="text-[11.5px] font-medium mt-0.5" style={{ color: 'var(--wp-muted)' }}>
+                      {TYPE_LABEL[r.type]} · por @{r.reporter.username} · {new Date(r.createdAt).toLocaleDateString('pt-BR')}
+                    </p>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 flex-none">
-                  {r.status === 'PENDING' && (
-                    <>
-                      <button onClick={() => setDecision(r.id, 'ACCEPTED')} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[12.5px] font-extrabold transition hover:brightness-95 disabled:opacity-50" style={{ background: '#E6FBF3', color: 'var(--green)' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M20 6L9 17l-5-5" /></svg>
-                        Aceitar
-                      </button>
-                      <button onClick={() => setDecision(r.id, 'REJECTED')} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[12.5px] font-extrabold transition hover:brightness-95 disabled:opacity-50" style={{ background: '#FEE2E2', color: '#DC2626' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                        Rejeitar
-                      </button>
-                    </>
-                  )}
-                  {r.status === 'ACCEPTED' && (
-                    <button onClick={() => setDecision(r.id, 'REJECTED')} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[12.5px] font-extrabold transition hover:brightness-95 disabled:opacity-50" style={{ background: '#FEE2E2', color: '#DC2626' }}>
-                    Marcar como rejeitada
-                    </button>
-                  )}
-                  {r.status === 'REJECTED' && (
-                    <button onClick={() => setDecision(r.id, 'ACCEPTED')} disabled={busy} className="flex items-center justify-center gap-1.5 rounded-[10px] px-3.5 py-2 text-[12.5px] font-extrabold transition hover:brightness-95 disabled:opacity-50" style={{ background: '#E6FBF3', color: 'var(--green)' }}>
-                    Marcar como aceita
-                    </button>
-                  )}
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-extrabold flex-none" style={{ background: STATUS_META[r.status].bg, color: STATUS_META[r.status].color }}>
+                    {STATUS_META[r.status].label}
+                  </span>
                 </div>
               </div>
             )
@@ -259,8 +175,115 @@ export default function ReportsPage() {
         </div>
       )}
 
-      {updateStatus.isError && (
-        <p className="text-[12.5px] font-semibold text-center" style={{ color: '#DC2626' }}>Não foi possível atualizar a denúncia. Tente novamente.</p>
+      {/* Detail modal */}
+      {detail && (
+        <ModalShell onClose={() => !updateStatus.isPending && setDetail(null)} width={560}>
+          <button onClick={() => !updateStatus.isPending && setDetail(null)} aria-label="Fechar" className="absolute top-4 right-4 w-8 h-8 rounded-[8px] grid place-items-center transition hover:bg-[#FFF0F3]" style={{ background: 'rgba(107,114,128,.1)', color: '#6b7280' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+          <div className="flex flex-col gap-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold mb-2" style={{ background: STATUS_META[detail.status].bg, color: STATUS_META[detail.status].color }}>
+                {STATUS_META[detail.status].label}
+              </span>
+              <span
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold ml-2"
+                style={
+                  detail.type === 'EVENT'
+                    ? { background: '#E0E7FF', color: '#4F46E5' }
+                    : detail.type === 'INTEREST_COMMENT'
+                      ? { background: '#EDE9FE', color: '#7C5CFF' }
+                      : { background: '#E6FBF3', color: 'var(--green)' }
+                }
+              >
+                {TYPE_LABEL[detail.type]}
+              </span>
+              <h2 className="text-[20px] font-extrabold mt-2" style={{ fontFamily: 'var(--font-bricolage)' }}>
+                {detail.type === 'EVENT' ? detail.event?.title : TYPE_LABEL[detail.type]}
+              </h2>
+            </div>
+
+            {/* Reporter */}
+            <div className="rounded-[14px] p-4" style={{ background: '#F9FAFB' }}>
+              <p className="text-[11px] font-extrabold uppercase tracking-wider mb-2" style={{ color: 'var(--wp-muted)' }}>Denunciante</p>
+              <p className="text-[14px] font-extrabold">{detail.reporter.name} <span className="font-medium" style={{ color: 'var(--wp-muted)' }}>@{detail.reporter.username}</span></p>
+              <p className="text-[12px] font-medium mt-0.5" style={{ color: 'var(--wp-muted)' }}>
+                {new Date(detail.createdAt).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+
+            {/* Content */}
+            {detail.type === 'EVENT' && detail.event && (
+              <div className="rounded-[14px] p-4" style={{ background: '#F9FAFB' }}>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider mb-2" style={{ color: 'var(--wp-muted)' }}>Evento reportado</p>
+                <p className="text-[15px] font-extrabold" style={{ fontFamily: 'var(--font-bricolage)' }}>{detail.event.title}</p>
+                <p className="text-[12px] font-medium mt-1" style={{ color: 'var(--wp-muted)' }}>
+                  Criado por {detail.event.creator.name} · {new Date(detail.event.createdAt).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            )}
+
+            {detail.type === 'COMMENT' && detail.comment && (
+              <div className="rounded-[14px] p-4" style={{ background: '#F9FAFB' }}>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider mb-2" style={{ color: 'var(--wp-muted)' }}>Comentário reportado</p>
+                <p className="text-[14px] font-medium">{detail.comment.content}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-[12px] font-extrabold">{detail.comment.user.name}</p>
+                  <p className="text-[12px] font-medium" style={{ color: 'var(--wp-muted)' }}>
+                    {new Date(detail.comment.createdAt).toLocaleDateString('pt-BR')}
+                    {detail.comment.parentId ? ' · Resposta' : ''}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {detail.type === 'INTEREST_COMMENT' && detail.interestComment && (
+              <div className="rounded-[14px] p-4" style={{ background: '#F9FAFB' }}>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider mb-2" style={{ color: 'var(--wp-muted)' }}>Comentário reportado</p>
+                <p className="text-[14px] font-medium">{detail.interestComment.content}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <p className="text-[12px] font-extrabold">{detail.interestComment.user.name}</p>
+                  <p className="text-[12px] font-medium" style={{ color: 'var(--wp-muted)' }}>
+                    {new Date(detail.interestComment.createdAt).toLocaleDateString('pt-BR')}
+                    {detail.interestComment.parentId ? ' · Resposta' : ''}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Reason */}
+            {detail.reason && (
+              <div className="rounded-[14px] p-4" style={{ background: '#F9FAFB' }}>
+                <p className="text-[11px] font-extrabold uppercase tracking-wider mb-2" style={{ color: 'var(--wp-muted)' }}>Motivo</p>
+                <p className="text-[13px] font-medium" style={{ color: 'var(--ink-soft)' }}>{detail.reason}</p>
+              </div>
+            )}
+
+            {/* Actions */}
+            {detail.status === 'PENDING' && (
+              <div className="flex gap-2.5 mt-1">
+                <button
+                  onClick={() => handleAction(detail.id, 'ACCEPTED')}
+                  disabled={updateStatus.isPending}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-[12px] py-3 font-extrabold text-[14px] text-white transition hover:-translate-y-0.5 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg,#10A87D,#34d399)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M20 6L9 17l-5-5" /></svg>
+                  {updateStatus.isPending ? 'Processando…' : 'Aceitar'}
+                </button>
+                <button
+                  onClick={() => handleAction(detail.id, 'REJECTED')}
+                  disabled={updateStatus.isPending}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-[12px] py-3 font-extrabold text-[14px] text-white transition hover:-translate-y-0.5 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg,#ef4444,#dc2626)' }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                  {updateStatus.isPending ? 'Processando…' : 'Rejeitar'}
+                </button>
+              </div>
+            )}
+          </div>
+        </ModalShell>
       )}
     </div>
   )

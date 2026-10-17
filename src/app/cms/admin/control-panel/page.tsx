@@ -123,6 +123,7 @@ const QUICK_LINKS = [
   { href: '/cms/admin/events', label: 'Gerenciar eventos', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" /></svg> },
   { href: '/cms/admin/reports', label: 'Ver denúncias', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><path d="M4 22V15" /></svg> },
   { href: '/cms/admin/social-posts', label: 'Posts sociais', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="2" y="3" width="20" height="14" rx="3" /><path d="M8 21h8M12 17v4" /></svg> },
+  { href: '/cms/admin/updates', label: 'Revisar novidades', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 2v20M2 12h20" /></svg> },
 ]
 
 /* ------------------------------------------------------------------- page -- */

@@ -1,5 +1,5 @@
 import { axiosInstance } from '@/lib/axios'
-import type { InterestDto, AdminInterestDto, UpdateInterestPayload } from '@/types/events.types'
+import type { InterestDto, AdminInterestDto, UpdateInterestPayload, InterestDetailsResponse } from '@/types/events.types'
 
 /** Unwrap the `{ data }` envelope the API uses, tolerating a bare array too. */
 function unwrap<T>(payload: { data?: T } | T): T {
@@ -39,4 +39,10 @@ export async function updateInterest(id: string, payload: UpdateInterestPayload)
 /** DELETE /interest/{id}. */
 export async function deleteInterest(id: string): Promise<void> {
   await axiosInstance.delete(`/interest/${id}`)
+}
+
+/** GET /interest/{id} — full details with users and events. */
+export async function getInterestDetail(id: string): Promise<InterestDetailsResponse> {
+  const { data } = await axiosInstance.get<{ data: InterestDetailsResponse } | InterestDetailsResponse>(`/interest/${id}`)
+  return unwrap<InterestDetailsResponse>(data)
 }

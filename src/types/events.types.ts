@@ -106,6 +106,9 @@ export interface AdminInterestDto {
   status?: InterestStatus
   createdAt?: string
   updatedAt?: string
+  eventCount?: number
+  eventViewCount?: number
+  userCount?: number
 }
 
 export interface UpdateInterestPayload {
@@ -234,4 +237,52 @@ export interface UpdateEventPayload {
   // FAQ endpoint — FAQs are sent inline on the event itself).
   faq: FaqItem[]
   photos?: string[]
+}
+
+export interface InterestDetailCreatorDto {
+  id: string
+  name: string
+  username: string
+  email: string
+}
+
+export interface InterestDetailInterestDto {
+  id: string
+  name: string
+  description: string | null
+  status: string
+  createdAt: string
+  eventCount: number
+  eventViewCount: number
+  creator: InterestDetailCreatorDto
+}
+
+export interface InterestDetailUserDto {
+  id: string
+  name: string
+  username: string
+  email: string
+  profileImage: string | null
+  interestedAt: string
+}
+
+export interface InterestDetailEventDto {
+  id: string
+  title: string
+  startDate: string
+  endDate: string | null
+  city: string | null
+  state: string | null
+  status: string
+  viewCount: number
+  createdAt: string
+  associatedAt: string
+}
+
+export interface InterestDetailsResponse {
+  interest: InterestDetailInterestDto
+  totalUsers: number
+  users: InterestDetailUserDto[]
+  totalEvents: number
+  events: InterestDetailEventDto[]
 }

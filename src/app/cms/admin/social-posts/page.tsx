@@ -10,9 +10,9 @@
  * Os posts chegam aqui via POST /social-posts, gerado pelo squad
  * `weparty-mkt-content` (Opensquad, repo separado) — carrossel/story já
  * renderizado com o texto aplicado, não uma descrição. Aprovar/Rejeitar
- * aqui só muda o status da fila: publicar de fato no Instagram é uma
- * etapa futura, ainda não implementada (ver
- * openspec/changes/social-posts-approval-queue no repo do backend).
+ * aqui só muda o status da fila. Quem publica no Instagram é o script
+ * `cms-publisher` do Opensquad, que lê os APROVADOS, publica e registra o
+ * resultado no backend (status → PUBLISHED, com o link do post).
  */
 
 import { useMemo, useState } from 'react'
@@ -31,6 +31,7 @@ const STATUS_META: Record<SocialPostStatus, { label: string; color: string; bg: 
   PENDING_APPROVAL: { label: 'Pendente', color: 'var(--amber)', bg: '#FFF4E0' },
   APPROVED: { label: 'Aprovado', color: 'var(--green)', bg: '#E6FBF3' },
   REJECTED: { label: 'Rejeitado', color: '#DC2626', bg: '#FEE2E2' },
+  PUBLISHED: { label: 'Publicado', color: 'var(--violet)', bg: '#EEEAFF' },
 }
 
 const FORMAT_META: Record<SocialPostFormat, { label: string; ratio: string }> = {
@@ -41,6 +42,7 @@ const FORMAT_META: Record<SocialPostFormat, { label: string; ratio: string }> = 
 const STATUS_TABS: { value: SocialPostStatus | undefined; label: string }[] = [
   { value: 'PENDING_APPROVAL', label: 'Pendentes' },
   { value: 'APPROVED', label: 'Aprovados' },
+  { value: 'PUBLISHED', label: 'Publicados' },
   { value: 'REJECTED', label: 'Rejeitados' },
   { value: undefined, label: 'Todos' },
 ]
@@ -178,6 +180,13 @@ function DetailPanel({
         <p className="text-[13.5px] font-medium whitespace-pre-wrap leading-relaxed">{post.caption}</p>
       </div>
 
+      {post.xText && (
+        <div>
+          <p className="text-[11.5px] font-extrabold uppercase tracking-wide mb-1.5" style={{ color: 'var(--wp-muted)' }}>Texto para o X</p>
+          <p className="text-[13.5px] font-medium whitespace-pre-wrap leading-relaxed">{post.xText}</p>
+        </div>
+      )}
+
       {post.hashtags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {post.hashtags.map((h) => (
@@ -198,6 +207,25 @@ function DetailPanel({
         <div className="rounded-[12px] px-3 py-2.5" style={{ background: '#FEF2F2', border: '1px solid #FECACA' }}>
           <p className="text-[11.5px] font-extrabold" style={{ color: '#DC2626' }}>Motivo da rejeição</p>
           <p className="text-[13px] font-medium mt-0.5" style={{ color: 'var(--ink-soft)' }}>{post.rejectionReason}</p>
+        </div>
+      )}
+
+      {post.status === 'PUBLISHED' && post.publications && (
+        <div className="rounded-[12px] px-3 py-2.5" style={{ background: '#F5F3FF', border: '1px solid #DDD6FE' }}>
+          <p className="text-[11.5px] font-extrabold" style={{ color: 'var(--violet)' }}>Publicado</p>
+          {Object.entries(post.publications).map(([platform, pub]) => (
+            <p key={platform} className="text-[13px] font-medium mt-0.5" style={{ color: 'var(--ink-soft)' }}>
+              {platform === 'INSTAGRAM' ? 'Instagram' : platform} · {relativeTime(pub.publishedAt, locale)}
+              {pub.url && /^https?:\/\//i.test(pub.url) && (
+                <>
+                  {' · '}
+                  <a href={pub.url} target="_blank" rel="noopener noreferrer" className="font-bold underline" style={{ color: 'var(--violet)' }}>
+                    ver post
+                  </a>
+                </>
+              )}
+            </p>
+          ))}
         </div>
       )}
 

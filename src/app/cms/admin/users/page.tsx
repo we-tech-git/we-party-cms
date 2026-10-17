@@ -217,7 +217,9 @@ export default function UsersPage() {
                           </div>
                         </button>
                       </td>
-                      <td className="px-5 py-3.5 text-[13.5px] font-medium" style={{ color: 'var(--ink-soft)' }}>{u.email}</td>
+                      <td className="px-5 py-3.5 text-[13.5px] font-medium" style={{ color: 'var(--ink-soft)' }}>
+                        <span className="block max-w-55 truncate" title={u.email}>{u.email}</span>
+                      </td>
                       <td className="px-5 py-3.5">
                         {u.role ? <span className="text-[12px] font-bold px-2.5 py-1 rounded-[8px]" style={(u.role).toUpperCase().includes('PROD') ? { background: '#EEEAFF', color: 'var(--violet)' } : { background: 'var(--line-2)', color: 'var(--ink-soft)' }}>{u.role}</span> : <span style={{ color: 'var(--wp-muted)' }}>—</span>}
                       </td>

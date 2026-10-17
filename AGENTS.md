@@ -44,22 +44,22 @@ src/
 ## Integração com o backend (importante)
 
 > ⚠️ **ESTADO REAL:** o diretório `src/lib/api/` **não existe**. O Orval está
-> configurado mas nunca foi executado com sucesso — o `input.target` aponta para
-> `/api-docs-json`, caminho que não existe (o backend serve o JSON em **`/api-json`**
-> e a UI em `/api/docs`). **Toda a integração é escrita à mão em
-> `src/services/*.service.ts`** usando o `axiosInstance`. É lá que se mexe.
-> Para adotar o Orval de fato, corrija antes o `input.target`.
+> configurado mas nunca foi executado (até a WEPARTY-154 o `input.target` apontava
+> para o host desativado `api.dev` e o caminho inexistente `/api-docs-json`; o backend
+> serve o JSON em **`/api-json`** e a UI em `/api/docs`). **Toda a integração é escrita
+> à mão em `src/services/*.service.ts`** usando o `axiosInstance`. É lá que se mexe.
 
-Config em `orval.config.ts` (ainda não operante):
-  - **input** (spec): `https://api.dev.wepartyapp.com/api-docs-json` (Swagger/OpenAPI do backend)
+Config em `orval.config.ts` (origem corrigida, client ainda não gerado):
+  - **input** (spec): `process.env.ORVAL_OPENAPI_URL ?? 'https://api.wepartyapp.com/api-json'` (Swagger/OpenAPI do backend; use `ORVAL_OPENAPI_URL=http://localhost:3000/api-json` para um backend local)
   - **output**: `src/lib/api` (mode `tags-split`, client `react-query`, httpClient `axios`), schemas em `src/lib/api/model`
   - **mutator**: `src/lib/axios.ts` → `axiosInstance`
-- **Base URL:** `process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.dev.wepartyapp.com'` (em `src/lib/axios.ts`).
+- **Base URL:** `process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.wepartyapp.com'` (em `src/lib/axios.ts`).
 - Ao mudar endpoints/DTOs no backend: rodar `api:generate` para atualizar `src/lib/api`.
 - CEP/endereço: usa API externa ViaCEP (`viacep.com.br`) no formulário de evento.
 
 ## Variáveis de ambiente (prefixo `NEXT_PUBLIC` p/ client)
-- `NEXT_PUBLIC_API_BASE_URL` — URL base da API (default `https://api.dev.wepartyapp.com`)
+- `NEXT_PUBLIC_API_BASE_URL` — URL base da API (default `https://api.wepartyapp.com`)
+- `ORVAL_OPENAPI_URL` — só para `api:generate`: origem do contrato OpenAPI (default `https://api.wepartyapp.com/api-json`)
 
 ## Documentação (no repo)
 - `openspec/` — specs de capacidades/mudanças

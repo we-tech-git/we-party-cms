@@ -1,13 +1,55 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# Project context: mostrado ao agente ao criar artefatos (proposal, design,
+# specs, tasks). Fonte: código + AGENTS.md. Atualize quando a stack mudar.
+context: |
+  Produto: we-party-cms, o CMS/painel do We Party (rede social de eventos).
+  Dois públicos: produtor de eventos (/cms/producer) e admin (/cms/admin).
+  Consome a API REST do we-party-social-backend (NestJS + Prisma).
+
+  Stack:
+  - Next.js 16 (App Router, React Compiler ligado) + React 19 + TypeScript.
+    Esta versão do Next tem breaking changes; consulte
+    node_modules/next/dist/docs/ antes de escrever código (ex.: src/proxy.ts).
+  - Tailwind CSS 4 + shadcn/ui (@base-ui/react) + lucide-react.
+  - @tanstack/react-query 5 (estado de servidor), Zustand 5 (estado de
+    cliente), axios, react-hook-form + zod.
+  - i18n próprio em src/i18n/ (context.tsx + locales/).
+  - Orval configurado (orval.config.ts, lê /api-json do backend), mas o client
+    gerado (src/lib/api/) ainda não existe.
+
+  Comandos (Yarn Classic, Node 22 via .nvmrc; não usar npm):
+  yarn dev | yarn lint | yarn type-check | yarn build | yarn api:generate.
+  Não há suíte de testes; a verificação é lint + type-check + build.
+
+  Arquitetura (src/):
+  - app/(auth)/login, app/cms/{home,producer,admin}: páginas finas, que só
+    orquestram hooks e delegam render.
+  - services/*.service.ts: toda chamada HTTP, via axiosInstance de
+    src/lib/axios.ts; normalizam a resposta. Componente não chama axios.
+  - hooks/use-*.ts: TanStack Query sobre os services.
+  - types/*.types.ts: tipos da API espelhando os DTOs do backend.
+  - components/ui (shadcn), components/cms, components/dashboard; stores/.
+
+  Convenções obrigatórias (detalhe em AGENTS.md):
+  - Reuso antes de criar: procurar em components/ui e components/cms; estender
+    via prop em vez de duplicar markup.
+  - Ação assíncrona: botão desabilitado com loading no clique + toast de
+    sucesso/erro; impedir duplo disparo. Exceção: like, comentário, "eu vou",
+    favorito usam atualização otimista com rollback (só toast de erro).
+  - Métrica que o backend não calcula chega null e renderiza "—", nunca 0.
+  - Segurança: sem dangerouslySetInnerHTML com conteúdo de usuário,
+    target="_blank" com rel="noopener noreferrer", redirect só relativo,
+    token fora de URL/log; validação do front é só UX.
+
+  Fluxo:
+  - Branch no padrão <tipo>/WEPARTY-<n>[-slug] ou <tipo>/<slug>, tipos
+    feat|fix|chore|docs|refactor|perf|test|ci (a CI reprova outros nomes).
+  - Nunca push direto em main/develop; sempre branch + PR.
+  - CI em PR: branch-name -> lint -> type-check -> build.
+  - Commits pequenos, prefixados com a tarefa do Plane (WEPARTY-<n>).
+  - Mudança de contrato no backend: atualizar src/types/ e src/services/.
+  - Specs e documentação em português.
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.

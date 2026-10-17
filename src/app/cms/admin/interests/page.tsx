@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { GRAD } from '@/lib/brand'
 import { BackButton } from '@/components/cms/back-button'
 import { useAdminInterests, useInterestMutations } from '@/hooks/use-admin-interests'
@@ -89,6 +90,7 @@ type FormState = { id: string | null; name: string; description: string }
 export default function InterestsPage() {
   const { data, isLoading, isError, refetch, isFetching } = useAdminInterests()
   const { create, update, remove } = useInterestMutations()
+  const router = useRouter()
 
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<'all' | InterestStatus>('all')
@@ -220,9 +222,19 @@ export default function InterestsPage() {
                     <p className="font-extrabold text-[15px] truncate" style={{ fontFamily: 'var(--font-bricolage)' }}>{i.name}</p>
                     {i.description ? (
                       <p className="text-[12.5px] font-medium line-clamp-2 mt-0.5" style={{ color: 'var(--wp-muted)' }}>{i.description}</p>
-                    ) : (
-                      <p className="text-[12.5px] font-medium mt-0.5 italic" style={{ color: 'var(--wp-muted)' }}>Sem descrição</p>
-                    )}
+) : (
+                    <p className="text-[12.5px] font-medium mt-0.5 italic" style={{ color: 'var(--wp-muted)' }}>Sem descrição</p>
+                  )}
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span className="inline-flex items-center gap-1 text-[11.5px] font-extrabold" style={{ color: 'var(--wp-muted)' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+                      {String(i.eventCount ?? 0)}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11.5px] font-extrabold" style={{ color: 'var(--wp-muted)' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
+                      {String(i.userCount ?? 0)}
+                    </span>
+                  </div>
                   </div>
                   {i.status && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold flex-none" style={{ background: STATUS_META[i.status].bg, color: STATUS_META[i.status].color }}>
@@ -258,6 +270,9 @@ export default function InterestsPage() {
                   )}
                   <button onClick={() => setForm({ id: i.id, name: i.name, description: i.description ?? '' })} title="Editar" className="w-9 h-9 rounded-[10px] grid place-items-center flex-none transition hover:brightness-95" style={{ background: '#E0E7FF', color: '#4F46E5' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" /></svg>
+                  </button>
+                  <button onClick={() => router.push(`/cms/admin/interests/${i.id}`)} title="Ver detalhes" className="w-9 h-9 rounded-[10px] grid place-items-center flex-none transition hover:brightness-95" style={{ background: '#E0E7FF', color: '#4F46E5' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                   </button>
                   <button onClick={() => setToDelete(i)} title="Excluir" className="w-9 h-9 rounded-[10px] grid place-items-center flex-none transition hover:brightness-95" style={{ background: '#FEE2E2', color: '#DC2626' }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14" /></svg>

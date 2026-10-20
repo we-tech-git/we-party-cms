@@ -1,14 +1,15 @@
 'use client'
 
-import { useFormContext, useWatch } from 'react-hook-form'
+import { useController, useFormContext } from 'react-hook-form'
 import type { CreateEventForm } from '../_schema'
 
 export function EventInfoForm() {
   const { register, control, formState: { errors } } = useFormContext<CreateEventForm>()
-  // useWatch (não watch): com o React Compiler ligado, watch() não re-renderiza o componente e o contador travava em 0.
-  const descLen = (useWatch({ control, name: 'description' }) ?? '').length
+  // Campo controlado (useController) em vez de register + watch: com o React Compiler ligado, o
+  // textarea não controlado perdia o que era digitado e o contador não saía de 0.
+  const { field: descField } = useController({ control, name: 'description' })
+  const descLen = (descField.value ?? '').length
   const titleReg = register('title')
-  const descReg = register('description')
 
   return (
     <div
@@ -58,7 +59,8 @@ export function EventInfoForm() {
           Descrição
         </label>
         <textarea
-          {...descReg}
+          {...descField}
+          value={descField.value ?? ''}
           maxLength={600}
           rows={4}
           placeholder="Conte o que rola no evento: line-up, atrações, clima, o que torna ele especial..."
@@ -70,7 +72,7 @@ export function EventInfoForm() {
             minHeight: '110px',
           }}
           onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)' }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; void descReg.onBlur(e) }}
+          onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; descField.onBlur() }}
         />
         <div className="text-right text-[12px] font-semibold" style={{ color: 'var(--wp-muted)' }}>
           {descLen}/600

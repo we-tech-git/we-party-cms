@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useFormContext } from 'react-hook-form'
+import { useFormContext, useWatch } from 'react-hook-form'
 import { useMutation } from '@tanstack/react-query'
 import { GRAD } from '@/lib/brand'
 import { useInterests } from '@/hooks/use-interests'
@@ -13,8 +13,8 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function InterestsSelector() {
-  const { setValue, watch } = useFormContext<CreateEventForm>()
-  const interestIds = watch('interestIds') ?? []
+  const { setValue, control } = useFormContext<CreateEventForm>()
+  const interestIds = useWatch({ control, name: 'interestIds' }) ?? []
   const { data: allInterests = [] } = useInterests()
 
   const [search, setSearch] = useState('')

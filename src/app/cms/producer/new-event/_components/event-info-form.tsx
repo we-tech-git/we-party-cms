@@ -1,11 +1,12 @@
 'use client'
 
-import { useFormContext } from 'react-hook-form'
+import { useFormContext, useWatch } from 'react-hook-form'
 import type { CreateEventForm } from '../_schema'
 
 export function EventInfoForm() {
-  const { register, watch, formState: { errors } } = useFormContext<CreateEventForm>()
-  const descLen = (watch('description') ?? '').length
+  const { register, control, formState: { errors } } = useFormContext<CreateEventForm>()
+  // useWatch (não watch): com o React Compiler ligado, watch() não re-renderiza o componente e o contador travava em 0.
+  const descLen = (useWatch({ control, name: 'description' }) ?? '').length
   const titleReg = register('title')
   const descReg = register('description')
 

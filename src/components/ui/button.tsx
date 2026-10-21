@@ -18,6 +18,15 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        /* Visual B (Figma: Design System › Button). Primary = gradiente, único destaque da tela. */
+        primary:
+          "bg-(image:--wp-gradient) text-white font-bold hover:brightness-105 active:brightness-95 focus-visible:ring-wp-magenta/40 disabled:bg-none disabled:bg-neutral-200 disabled:text-wp-faint disabled:opacity-100",
+        dark:
+          "bg-ink text-white font-bold hover:bg-ink/90 focus-visible:ring-wp-magenta/40 disabled:bg-neutral-200 disabled:text-wp-faint disabled:opacity-100",
+        soft:
+          "bg-tint-pink text-wp-magenta font-bold hover:bg-tint-pink/70 focus-visible:ring-wp-magenta/30",
+        line:
+          "border-wp-line bg-white text-ink font-semibold hover:bg-tint-pink/50 focus-visible:ring-wp-magenta/30 disabled:bg-neutral-100 disabled:text-wp-faint disabled:opacity-100",
       },
       size: {
         default:
@@ -25,6 +34,10 @@ const buttonVariants = cva(
         xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        /* Visual B: MD = 48px (formulários, CTA), compact = 38px (barras, cards) */
+        md: "h-12 gap-2 rounded-ctl px-6 text-base [&_svg:not([class*='size-'])]:size-[18px]",
+        compact:
+          "h-[38px] gap-1.5 rounded-ctl px-4 text-sm [&_svg:not([class*='size-'])]:size-4",
         icon: "size-8",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Bricolage_Grotesque, Poppins } from 'next/font/google'
+import { Baloo_Thambi_2, Bricolage_Grotesque, Poppins } from 'next/font/google'
 import './globals.css'
 import { QueryProvider } from '@/providers/query-provider'
 import { AuthHydration } from '@/providers/auth-hydration'
@@ -20,6 +20,14 @@ const bricolage = Bricolage_Grotesque({
   display: 'swap',
 })
 
+// Baloo Thambi 2: apenas o logotipo WE PARTY
+const baloo = Baloo_Thambi_2({
+  variable: '--font-baloo',
+  subsets: ['latin'],
+  weight: ['800'],
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'WeParty CMS',
   description: 'Backoffice para produtores e administradores do WeParty',
@@ -31,7 +39,7 @@ export default function RootLayout({
   return (
     // poppins.className aplica font-family diretamente (sem CSS variable chain)
     // bricolage.variable expõe --font-bricolage para uso em style={{}}
-    <html lang="pt-BR" className={`${poppins.className} ${bricolage.variable} h-full`}>
+    <html lang="pt-BR" className={`${poppins.className} ${bricolage.variable} ${baloo.variable} h-full`}>
       <body className="min-h-full flex flex-col">
         <I18nProvider>
           <QueryProvider>

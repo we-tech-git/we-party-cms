@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useFormContext, useController } from 'react-hook-form'
+import { useFormContext, useController, useWatch } from 'react-hook-form'
 import { useInterests } from '@/hooks/use-interests'
 import { useI18n } from '@/i18n/context'
 import type { Locale } from '@/i18n/types'
@@ -17,17 +17,17 @@ function formatPreviewDate(date: string, time: string, locale: Locale, fallback:
 
 export function LivePreview() {
   const { t, locale } = useI18n()
-  const { watch } = useFormContext<CreateEventForm>()
+  const { control } = useFormContext<CreateEventForm>()
   const { data: allInterests = [] } = useInterests()
 
-  const title = watch('title')
-  const startDate = watch('startDate')
-  const startTime = watch('startTime')
-  const city = watch('city')
-  const interestIds = watch('interestIds') ?? []
-  const faqs = (watch('faqs') ?? []).filter((f) => f.question.trim() && f.answer.trim())
-  const photos = watch('photos') ?? []
-  const existingPhotoUrls = watch('existingPhotoUrls') ?? []
+  const title = useWatch({ control, name: 'title' })
+  const startDate = useWatch({ control, name: 'startDate' })
+  const startTime = useWatch({ control, name: 'startTime' })
+  const city = useWatch({ control, name: 'city' })
+  const interestIds = useWatch({ control, name: 'interestIds' }) ?? []
+  const faqs = (useWatch({ control, name: 'faqs' }) ?? []).filter((f) => f.question.trim() && f.answer.trim())
+  const photos = useWatch({ control, name: 'photos' }) ?? []
+  const existingPhotoUrls = useWatch({ control, name: 'existingPhotoUrls' }) ?? []
   const { field: { value: isPublic } } = useController<CreateEventForm, 'isPublic'>({ name: 'isPublic' })
   const { field: { value: allowComments } } = useController<CreateEventForm, 'allowComments'>({ name: 'allowComments' })
   const firstPhoto = photos.length > 0 ? photos[0] : null

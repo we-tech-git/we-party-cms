@@ -51,3 +51,7 @@ package-lock.json
 
 # .opencode/ E versionado: carrega os comandos opsx-* que o worker precisa
 # num clone limpo. O .opencode/.gitignore interno ja exclui node_modules.
+
+# storybook
+storybook-static/
+*.log

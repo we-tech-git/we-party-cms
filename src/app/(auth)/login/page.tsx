@@ -7,186 +7,187 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PasswordInput } from '@/components/ui/password-input'
+import { SocialButton } from '@/components/ui/social-button'
+import { useToast } from '@/components/ui/toast'
+import { useGoogleCode } from '@/hooks/use-google-code'
+import { useI18n } from '@/i18n/context'
 import { useAuthStore } from '@/stores/auth.store'
-import { loginUser } from '@/services/auth.service'
+import { loginUser, loginWithGoogle } from '@/services/auth.service'
+import type { LoginResponse } from '@/types/auth.types'
 
-const loginSchema = z.object({
-  email: z.string().min(1, 'E-mail obrigatório').email('E-mail inválido'),
-  password: z.string().min(1, 'Senha obrigatória'),
-})
+type LoginFormData = { email: string; password: string }
 
-type LoginFormData = z.infer<typeof loginSchema>
+const REMEMBERED_EMAIL_KEY = 'REMEMBERED_EMAIL'
 
 export default function LoginPage() {
+  const { t } = useI18n()
   const router = useRouter()
   const saveAuthData = useAuthStore((s) => s.saveAuthData)
-  const [rememberMe, setRememberMe] = useState(() =>
-    typeof window !== 'undefined' && !!localStorage.getItem('REMEMBERED_EMAIL')
-  )
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
+  const { toastNode, showToast } = useToast()
+  const [rememberMe, setRememberMe] = useState(false)
+
+  const loginSchema = z.object({
+    email: z.string().min(1, t('login.errors.emailRequired')).email(t('login.errors.emailInvalid')),
+    password: z.string().min(1, t('login.errors.passwordRequired')),
+  })
 
   const {
     register,
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-  })
+  } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) })
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('REMEMBERED_EMAIL')
-    if (savedEmail) setValue('email', savedEmail)
+    const savedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY)
+    if (savedEmail) {
+      setValue('email', savedEmail)
+      // Hidrata o "lembrar-me" uma única vez após montar (evita mismatch de SSR).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRememberMe(true)
+    }
   }, [setValue])
 
-  function showToast(message: string, type: 'success' | 'error' | 'warning') {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 4000)
+  function handleSuccess(data: LoginResponse, remember: boolean) {
+    if (!data?.success || !data?.data?.token) {
+      showToast(t('login.invalidCredentials'), 'error')
+      return
+    }
+    saveAuthData(data)
+    // Só o e-mail é lembrado (nunca a senha/token) e apenas se o usuário marcou a opção.
+    if (remember) localStorage.setItem(REMEMBERED_EMAIL_KEY, data.data.email)
+    else localStorage.removeItem(REMEMBERED_EMAIL_KEY)
+    showToast(t('login.success'), 'success')
+    setTimeout(() => router.push('/cms/home'), 800)
   }
 
   const { mutate, isPending } = useMutation({
     mutationFn: loginUser,
-    onSuccess(data) {
-      if (data?.success && data?.data?.token) {
-        saveAuthData(data)
-
-        if (rememberMe) {
-          localStorage.setItem('REMEMBERED_EMAIL', data.data.email)
-        } else {
-          localStorage.removeItem('REMEMBERED_EMAIL')
-        }
-
-        showToast('Login realizado com sucesso!', 'success')
-        setTimeout(() => router.push('/cms/home'), 1200)
-      } else {
-        showToast('Credenciais inválidas. Tente novamente.', 'error')
-      }
-    },
-    onError(error: unknown) {
-      const axiosError = error as { response?: { data?: { message?: string } }; config?: { data?: string } }
+    onSuccess: (data) => handleSuccess(data, rememberMe),
+    onError(error: unknown, variables) {
       const message =
-        axiosError?.response?.data?.message ?? 'Erro ao fazer login. Verifique suas credenciais.'
-
+        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        t('login.genericError')
       if (message.toLowerCase().includes('email não verificado')) {
         showToast(message, 'warning')
-        const email = axiosError?.config?.data
-          ? JSON.parse(axiosError.config.data).email
-          : ''
-        localStorage.setItem('NEW_CREATED_USER', JSON.stringify(email))
+        localStorage.setItem('NEW_CREATED_USER', JSON.stringify(variables.email))
       } else {
         showToast(message, 'error')
       }
     },
   })
 
-  function onSubmit(values: LoginFormData) {
-    mutate(values)
-  }
+  const google = useMutation({
+    mutationFn: loginWithGoogle,
+    onSuccess: (data) => handleSuccess(data, false),
+    onError: () => showToast(t('login.googleFailed'), 'error'),
+  })
 
-  const toastColors = {
-    success: 'bg-green-500',
-    error: 'bg-red-500',
-    warning: 'bg-orange-400',
-  }
+  const googleCode = useGoogleCode(
+    (code) => google.mutate(code),
+    () => showToast(t('login.googleFailed'), 'error'),
+  )
+
+  const busy = isPending || google.isPending
 
   return (
     <>
-      {/* Título mobile */}
-      <h2
-        className="mb-3 block text-center text-4xl font-extrabold uppercase md:hidden"
-        style={{
-          fontFamily: "'Baloo Thambi 2', cursive",
-          background: 'linear-gradient(to right, #FFC947, #F978A3)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        WE PARTY
-      </h2>
-
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Entrar</h1>
+        <h1 className="text-[32px] leading-tight font-bold text-ink" data-testid="login-title">
+          {t('login.title')}
+        </h1>
+        <p className="mt-1 text-sm text-wp-sub">{t('login.subtitle')}</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      <form
+        onSubmit={handleSubmit((values) => mutate(values))}
+        noValidate
+        className="flex flex-col gap-5"
+        data-testid="login-form"
+      >
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-            E-mail
+          <Label htmlFor="email" className="text-sm font-medium text-neutral-700">
+            {t('login.email')}
           </Label>
           <Input
             id="email"
             type="email"
             autoComplete="email"
-            placeholder="seu@email.com"
+            placeholder={t('login.emailPlaceholder')}
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? 'email-error' : undefined}
+            data-testid="login-email"
             {...register('email')}
-            className={`h-12 rounded-xl border px-4 text-[#072961] shadow-sm transition-all focus:ring-2 focus:ring-[#F978A3]/30 ${
-              errors.email ? 'border-red-400' : 'border-[#F0F0F0] focus:border-[#F978A3]'
-            }`}
           />
           {errors.email && (
-            <span className="text-sm text-red-500">{errors.email.message}</span>
+            <span id="email-error" role="alert" className="text-sm text-wp-danger" data-testid="login-email-error">
+              {errors.email.message}
+            </span>
           )}
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-            Senha
+          <Label htmlFor="password" className="text-sm font-medium text-neutral-700">
+            {t('login.password')}
           </Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
-            placeholder="••••••••"
+            placeholder={t('login.passwordPlaceholder')}
+            showLabel={t('login.showPassword')}
+            hideLabel={t('login.hidePassword')}
+            aria-invalid={!!errors.password}
+            aria-describedby={errors.password ? 'password-error' : undefined}
+            data-testid="login-password"
             {...register('password')}
-            className={`h-12 rounded-xl border px-4 text-[#072961] shadow-sm transition-all focus:ring-2 focus:ring-[#F978A3]/30 ${
-              errors.password ? 'border-red-400' : 'border-[#F0F0F0] focus:border-[#F978A3]'
-            }`}
           />
           {errors.password && (
-            <span className="text-sm text-red-500">{errors.password.message}</span>
+            <span id="password-error" role="alert" className="text-sm text-wp-danger" data-testid="login-password-error">
+              {errors.password.message}
+            </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <input
-            id="rememberMe"
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            className="accent-[#F978A3]"
-          />
-          <label htmlFor="rememberMe" className="text-sm text-gray-500">
-            Lembrar-me
-          </label>
-        </div>
+        <Checkbox
+          label={t('login.remember')}
+          checked={rememberMe}
+          onChange={(e) => setRememberMe(e.target.checked)}
+          data-testid="login-remember"
+        />
 
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="mt-2 h-12 w-full rounded-xl bg-gradient-to-r from-[#FFC947] to-[#F978A3] text-base font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-        >
+        <Button type="submit" variant="primary" size="md" disabled={busy} className="w-full" data-testid="login-submit">
           {isPending ? (
-            <span className="flex items-center gap-2">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-              Entrando...
-            </span>
+            <>
+              <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden />
+              {t('login.submitting')}
+            </>
           ) : (
-            'Entrar'
+            t('login.submit')
           )}
         </Button>
       </form>
 
-      {/* Toast */}
-      {toast && (
-        <div
-          className={`fixed bottom-6 left-1/2 -translate-x-1/2 rounded-lg px-5 py-3 text-sm text-white shadow-lg transition-all ${toastColors[toast.type]}`}
-        >
-          {toast.message}
-        </div>
-      )}
+      <div className="my-6 flex items-center gap-3 text-[13px] text-wp-sub" role="separator">
+        <span className="h-px flex-1 bg-wp-line" />
+        {t('login.orWith')}
+        <span className="h-px flex-1 bg-wp-line" />
+      </div>
+
+      <SocialButton
+        disabled={busy || (googleCode.enabled && !googleCode.ready)}
+        onClick={() =>
+          googleCode.enabled ? googleCode.requestCode() : showToast(t('login.googleUnavailable'), 'warning')
+        }
+        data-testid="login-google"
+      >
+        {t('login.google')}
+      </SocialButton>
+
+      {toastNode}
     </>
   )
 }

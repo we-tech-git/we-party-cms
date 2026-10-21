@@ -2,17 +2,27 @@
 
 import { useRef, useState } from 'react'
 import Image from 'next/image'
+import { Upload, X, TriangleAlert } from 'lucide-react'
 import { useFormContext } from 'react-hook-form'
+import { IconTile } from '@/components/cms/icon-tile'
+import { cn } from '@/lib/utils'
 import type { CreateEventForm } from '../_schema'
 import { MAX_PHOTOS } from '../_schema'
 
+/**
+ * Tipos aceitos como capa. SVG fica de fora de propósito: SVG executa script (checklist de segurança, AGENTS.md).
+ * Validação de cliente é só UX — o backend precisa validar tipo/tamanho/conteúdo também.
+ */
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
+export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+
 export function CoverDropzone() {
   const { setValue, getValues } = useFormContext<CreateEventForm>()
-  // Already-stored photos (edit mode) the user can keep or drop.
   const [existing, setExisting] = useState<string[]>(() => getValues('existingPhotoUrls') ?? [])
   const [localFiles, setLocalFiles] = useState<File[]>([])
   const [previews, setPreviews] = useState<string[]>([])
   const [dragging, setDragging] = useState(false)
+  const [rejected, setRejected] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const totalCount = existing.length + localFiles.length
@@ -21,12 +31,13 @@ export function CoverDropzone() {
 
   function addFiles(incoming: FileList | null) {
     if (!incoming) return
-    const valid = Array.from(incoming).filter(f => f.type.startsWith('image/'))
+    const all = Array.from(incoming)
+    const valid = all.filter((f) => ALLOWED_IMAGE_TYPES.includes(f.type) && f.size <= MAX_IMAGE_BYTES)
+    setRejected(valid.length < all.length ? 'Alguns arquivos foram ignorados: use JPG, PNG, WebP, GIF ou AVIF de até 5 MB.' : null)
     if (!valid.length) return
-    const available = MAX_PHOTOS - totalCount
-    const toAdd = valid.slice(0, available)
+    const toAdd = valid.slice(0, MAX_PHOTOS - totalCount)
     if (!toAdd.length) return
-    const newPreviews = toAdd.map(f => URL.createObjectURL(f))
+    const newPreviews = toAdd.map((f) => URL.createObjectURL(f))
     const updatedFiles = [...localFiles, ...toAdd]
     setLocalFiles(updatedFiles)
     setPreviews([...previews, ...newPreviews])
@@ -43,108 +54,77 @@ export function CoverDropzone() {
   function removeFile(index: number) {
     URL.revokeObjectURL(previews[index])
     const updatedFiles = localFiles.filter((_, i) => i !== index)
-    const updatedPreviews = previews.filter((_, i) => i !== index)
     setLocalFiles(updatedFiles)
-    setPreviews(updatedPreviews)
+    setPreviews(previews.filter((_, i) => i !== index))
     setValue('photos', updatedFiles, { shouldDirty: true })
   }
 
+  const thumbs = [
+    ...existing.map((url, i) => ({ url, remove: () => removeExisting(i) })),
+    ...previews.map((url, i) => ({ url, remove: () => removeFile(i) })),
+  ]
+
   return (
-    <div>
+    <div data-testid="cover-dropzone" className="flex flex-col gap-3">
       {hasPhotos && (
-        <div className="flex flex-wrap gap-3 mb-4">
-          {existing.map((url, i) => (
-            <div key={url} className="relative w-[80px] h-[80px] rounded-[14px] overflow-hidden flex-none">
-              <Image src={url} alt="" fill className="object-cover" unoptimized />
+        <ul className="flex flex-wrap gap-3">
+          {thumbs.map((th) => (
+            <li key={th.url} className="relative size-20 shrink-0 overflow-hidden rounded-[14px] border border-wp-line">
+              <Image src={th.url} alt="" fill className="object-cover" unoptimized />
               <button
                 type="button"
-                onClick={() => removeExisting(i)}
-                className="absolute top-1 right-1 w-[22px] h-[22px] rounded-full grid place-items-center"
-                style={{ background: 'rgba(20,8,30,.7)', color: '#fff' }}
+                aria-label="Remover foto"
+                onClick={th.remove}
+                className="absolute top-1 right-1 grid size-5.5 place-items-center rounded-full bg-ink/80 text-white outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                <X className="size-3" strokeWidth={3} />
               </button>
-            </div>
+            </li>
           ))}
-          {previews.map((url, i) => (
-            <div key={url} className="relative w-[80px] h-[80px] rounded-[14px] overflow-hidden flex-none">
-              <Image src={url} alt="" fill className="object-cover" unoptimized />
-              <button
-                type="button"
-                onClick={() => removeFile(i)}
-                className="absolute top-1 right-1 w-[22px] h-[22px] rounded-full grid place-items-center"
-                style={{ background: 'rgba(20,8,30,.7)', color: '#fff' }}
-              >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
+        </ul>
       )}
 
       {!atLimit && (
         <div
-          className={[
-            'relative overflow-hidden rounded-[20px] min-h-[180px] flex flex-col items-center justify-center gap-2 text-center',
-            'cursor-pointer transition-transform duration-150 border-2 border-dashed',
-            dragging ? '-translate-y-0.5 border-[var(--pink)]' : 'border-[#f0b9d2]',
-          ].join(' ')}
-          style={{ background: 'linear-gradient(135deg,#FFF6FA,#FBF4FF)' }}
+          role="button"
+          tabIndex={0}
+          aria-label={hasPhotos ? 'Adicionar mais fotos' : 'Adicionar imagem de capa'}
+          data-testid="cover-drop-area"
           onClick={() => inputRef.current?.click()}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), inputRef.current?.click())}
           onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
           onDragEnter={(e) => { e.preventDefault(); setDragging(true) }}
           onDragLeave={() => setDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault()
-            setDragging(false)
-            addFiles(e.dataTransfer.files)
-          }}
+          onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files) }}
+          className={cn(
+            'flex min-h-40 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-panel border-[1.5px] border-dashed bg-white text-center outline-none transition-colors focus-visible:ring-3 focus-visible:ring-wp-primary/30',
+            dragging ? 'border-wp-magenta bg-tint-pink/40' : 'border-[#f6b8d0]'
+          )}
         >
-          <span
-            className="w-[60px] h-[60px] rounded-[18px] grid place-items-center mb-2"
-            style={{ background: '#fff', boxShadow: 'var(--shadow-sm)' }}
-          >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" strokeWidth="2.2">
-              <path d="M12 16V4M8 8l4-4 4 4" />
-              <path d="M20 16v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3" />
-            </svg>
-          </span>
-          <strong className="font-extrabold text-[18px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-            {hasPhotos ? 'Adicionar mais fotos' : 'Adicione a imagem de capa'}
-          </strong>
-          <span className="font-semibold text-[14px]" style={{ color: 'var(--ink-soft)' }}>
-            Arraste e solte ou clique para enviar
-          </span>
-          <span className="font-medium text-[13px]" style={{ color: 'var(--wp-muted)' }}>
-            {hasPhotos
-              ? `${totalCount}/${MAX_PHOTOS} fotos selecionadas`
-              : 'É a primeira coisa que o público vê no feed — escolha uma foto que chame atenção 🔥'}
+          <IconTile tone="pink" size="md" className="mb-1.5"><Upload /></IconTile>
+          <strong className="text-base font-semibold text-ink">{hasPhotos ? 'Adicionar mais fotos' : 'Adicione a imagem de capa'}</strong>
+          <span className="text-[13px] text-wp-sub">Arraste e solte ou clique para enviar</span>
+          <span className="px-4 text-xs text-wp-faint">
+            {hasPhotos ? `${totalCount}/${MAX_PHOTOS} fotos selecionadas` : 'É a primeira coisa que o público vê no feed — escolha uma foto que chame atenção'}
           </span>
         </div>
       )}
 
       {atLimit && (
-        <div
-          className="flex items-center justify-center gap-2 rounded-[16px] px-4 py-3 text-[13px] font-semibold"
-          style={{ background: '#FFF4E5', color: 'var(--amber)', border: '1.5px solid #FFD9A0' }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" />
-          </svg>
-          Limite de {MAX_PHOTOS} fotos atingido
+        <div className="flex items-center justify-center gap-2 rounded-2xl border border-wp-orange/30 bg-tint-orange px-4 py-3 text-[13px] font-semibold text-wp-orange">
+          <TriangleAlert className="size-4" /> Limite de {MAX_PHOTOS} fotos atingido
         </div>
       )}
+
+      {rejected && <p role="alert" className="text-xs font-medium text-wp-danger" data-testid="cover-rejected">{rejected}</p>}
 
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={ALLOWED_IMAGE_TYPES.join(',')}
         multiple
         className="sr-only"
+        tabIndex={-1}
         onChange={(e) => addFiles(e.target.files)}
       />
     </div>

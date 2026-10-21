@@ -16,6 +16,10 @@ import { LocationForm } from './location-form'
 import { InterestsSelector } from './interests-selector'
 import { FaqEditor } from './faq-editor'
 import { LivePreview } from './live-preview'
+import { Plus } from 'lucide-react'
+import { PageHeader } from '@/components/cms/page-header'
+import { Panel } from '@/components/cms/panel'
+import { Toast } from '@/components/ui/toast'
 import { VisibilitySettings } from './visibility-settings'
 import { ActionBar } from './action-bar'
 
@@ -95,30 +99,20 @@ export function EventForm(props: EventFormProps) {
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(onSubmit, onInvalid)} noValidate>
         <div className="flex flex-col gap-5">
-          {/* Page header */}
-          <div>
-            <h1
-              className="font-extrabold text-[28px] leading-[1.05]"
-              style={{ fontFamily: 'var(--font-bricolage)' }}
-            >
-              {isEdit ? t('newEvent.editTitle') : t('newEvent.createTitle')}
-            </h1>
-            <p className="font-semibold mt-1 text-[14.5px]" style={{ color: 'var(--ink-soft)' }}>
-              {isEdit ? t('newEvent.editSubtitle') : t('newEvent.createSubtitle')}
-            </p>
-          </div>
+          <PageHeader
+            icon={<Plus />}
+            title={isEdit ? t('newEvent.editTitle') : t('newEvent.createTitle')}
+            subtitle={isEdit ? t('newEvent.editSubtitle') : t('newEvent.createSubtitle')}
+          />
 
           {/* Two-column grid */}
-          <div className="grid gap-5 items-start grid-cols-1 min-[1181px]:grid-cols-[minmax(0,1fr)_372px]">
+          <div className="grid gap-5 items-start grid-cols-1 min-[1181px]:grid-cols-[minmax(0,1fr)_340px]">
             {/* Left column — form sections */}
             <div className="flex flex-col gap-5 min-w-0">
               {/* Cover upload */}
-              <div
-                className="rounded-(--r) p-4.5"
-                style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
-              >
+              <Panel className="p-4">
                 <CoverDropzone />
-              </div>
+              </Panel>
 
               <EventInfoForm />
               <DateTimeForm />
@@ -128,10 +122,7 @@ export function EventForm(props: EventFormProps) {
             </div>
 
             {/* Right column — preview + settings (sticky) */}
-            <div
-              className="flex flex-col gap-5 min-w-0 max-[1180px]:order-first"
-              style={{ position: 'sticky', top: '90px' }}
-            >
+            <div className="flex flex-col gap-5 min-w-0 max-[1180px]:order-first min-[1181px]:sticky min-[1181px]:top-20">
               <LivePreview />
               <VisibilitySettings />
             </div>
@@ -141,18 +132,8 @@ export function EventForm(props: EventFormProps) {
         </div>
       </form>
 
-      {/* Validation toast */}
-      {toast && (
-        <div
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-[16px] px-5 py-4 text-[14px] font-semibold text-white shadow-xl pointer-events-none"
-          style={{ background: 'linear-gradient(135deg,#1a0b2e,#3a1060)', border: '1px solid rgba(255,77,141,.35)', whiteSpace: 'nowrap' }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff4d8d" strokeWidth="2.4">
-            <circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" />
-          </svg>
-          {toast}
-        </div>
-      )}
+      {/* Toast de validação (role=alert) */}
+      {toast && <Toast message={toast} type="warning" />}
     </FormProvider>
   )
 }

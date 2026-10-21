@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { LOCALES, LOCALE_LABELS } from '@/i18n/types'
-import { SHADOW_SM } from '@/lib/brand'
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useI18n()
@@ -25,8 +24,7 @@ export function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 h-10.5 px-3 rounded-[12px] font-extrabold text-[13px] transition-colors hover:text-[#D81B7E]"
-        style={{ background: '#fff', border: '1px solid rgba(34,26,61,.08)', boxShadow: SHADOW_SM, color: 'var(--ink-soft)' }}
+        className="flex h-10 items-center gap-1.5 rounded-[12px] border border-wp-line bg-white px-3 text-[13px] font-semibold text-ink outline-none transition-colors hover:bg-wp-bg focus-visible:ring-3 focus-visible:ring-wp-primary/30"
         aria-label="Idioma / Language"
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -41,8 +39,7 @@ export function LanguageSwitcher() {
       {open && (
         <ul
           role="listbox"
-          className="absolute right-0 top-12 z-70 min-w-44 rounded-[14px] p-1.5 bg-white"
-          style={{ border: '1px solid rgba(34,26,61,.08)', boxShadow: 'var(--shadow)' }}
+          className="absolute right-0 top-12 z-70 min-w-44 rounded-[14px] border border-wp-line bg-white p-1.5 shadow-card"
         >
           {LOCALES.map((loc) => {
             const meta = LOCALE_LABELS[loc]

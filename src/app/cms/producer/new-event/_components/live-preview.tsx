@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useFormContext, useController, useWatch } from 'react-hook-form'
+import { CalendarDays, Eye, Heart, MapPin } from 'lucide-react'
+import { Chip } from '@/components/ui/chip'
 import { useInterests } from '@/hooks/use-interests'
 import { useI18n } from '@/i18n/context'
 import type { Locale } from '@/i18n/types'
@@ -55,102 +57,51 @@ export function LivePreview() {
   const previewDate = formatPreviewDate(startDate, startTime, locale, t('newEvent.preview.dateTime'))
 
   return (
-    <div>
-      <div
-        className="text-[11px] font-extrabold tracking-widest uppercase flex items-center gap-2 mb-2.5"
-        style={{ color: 'var(--wp-muted)' }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
+    <div data-testid="live-preview">
+      <p className="mb-2.5 flex items-center gap-2 text-[11px] font-semibold tracking-[.08em] text-wp-sub uppercase">
+        <Eye className="size-3.5" />
         {t('newEvent.preview.kicker')}
-      </div>
+      </p>
 
-      <div
-        className="rounded-[20px] overflow-hidden"
-        style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow)' }}
-      >
-        {/* Cover */}
+      <div className="overflow-hidden rounded-panel border border-wp-line bg-white shadow-card">
         <div
-          className="relative h-37.5 flex items-end p-3.5"
+          className="relative flex h-37.5 items-end p-3.5"
           style={{
             background: coverUrl
-              ? `linear-gradient(to top,rgba(20,8,30,.6),transparent 60%), url(${coverUrl}) center/cover`
-              : 'linear-gradient(120deg,#ff7e3d,#ff4d8d 55%,#a23bd6)',
+              ? `linear-gradient(to top,rgba(34,26,61,.75),transparent 60%), url(${coverUrl}) center/cover`
+              : 'linear-gradient(135deg,#3a2a5e,#8a2f62)',
           }}
         >
-          <div
-            className="absolute inset-0"
-            style={!coverUrl ? { background: 'linear-gradient(to top,rgba(20,8,30,.6),transparent 60%)' } : undefined}
-          />
-          <span
-            className="absolute top-3 left-3 z-10 text-[10px] font-extrabold tracking-wider uppercase rounded-full px-2.5 py-1.25"
-            style={{ background: 'rgba(255,255,255,.9)', backdropFilter: 'blur(6px)', color: 'var(--violet)' }}
-          >
+          <Chip tone="glass" className="absolute top-3 left-3 z-10 text-[10px] tracking-wider uppercase">
             {isPublic ? t('newEvent.public') : t('newEvent.private')}
-          </span>
-          <div className="relative z-10 flex gap-1.5 flex-wrap">
-            {previewInterests.map(i => (
-              <span
-                key={i.id}
-                className="text-[10px] font-extrabold uppercase tracking-[.04em] rounded-full px-2.25 py-1 text-white"
-                style={{ background: 'rgba(255,255,255,.2)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,.3)' }}
-              >
-                {i.name}
-              </span>
+          </Chip>
+          <div className="relative z-10 flex flex-wrap gap-1.5">
+            {previewInterests.map((i) => (
+              <Chip key={i.id} tone="glass" className="text-[10px] uppercase">{i.name}</Chip>
             ))}
           </div>
         </div>
 
-        {/* Body */}
         <div className="p-4">
-          <h4
-            className="font-extrabold text-[19px] leading-[1.1]"
-            style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--ink)' }}
-          >
-            {title || t('newEvent.preview.eventName')}
-          </h4>
-          <div className="flex flex-col gap-1.25 mt-2.25 font-semibold text-[13px]" style={{ color: 'var(--ink-soft)' }}>
-            <span className="flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.2">
-                <rect x="3" y="4" width="18" height="18" rx="3" /><path d="M3 9h18M8 2v4M16 2v4" />
-              </svg>
-              {previewDate}
-            </span>
-            <span className="flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.2">
-                <path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z" /><circle cx="12" cy="10" r="2.5" />
-              </svg>
-              {city || t('newEvent.preview.city')}
-            </span>
+          <h3 className="text-[19px] leading-tight font-bold text-ink">{title || t('newEvent.preview.eventName')}</h3>
+          <div className="mt-2.5 flex flex-col gap-1.5 text-[13px] text-neutral-600">
+            <span className="flex items-center gap-2"><CalendarDays className="size-3.5 text-wp-magenta" />{previewDate}</span>
+            <span className="flex items-center gap-2"><MapPin className="size-3.5 text-wp-magenta" />{city || t('newEvent.preview.city')}</span>
           </div>
-          <div
-            className="flex gap-4 mt-3.5 pt-3.25 font-bold text-[13px]"
-            style={{ borderTop: '1px solid var(--line-2)', color: 'var(--wp-muted)' }}
-          >
-            <span>♥ 0</span>
+          <div className="mt-3.5 flex flex-wrap gap-4 border-t border-wp-line pt-3 text-[13px] font-medium text-wp-sub">
+            <span className="inline-flex items-center gap-1"><Heart className="size-3.5" /> 0</span>
             <span>{t('newEvent.preview.going')}</span>
             <span>{allowComments ? t('newEvent.preview.commentsOn') : t('newEvent.preview.commentsOff')}</span>
           </div>
 
           {faqs.length > 0 && (
-            <div className="mt-3.5 pt-3.25" style={{ borderTop: '1px solid var(--line-2)' }}>
-              <div
-                className="text-[11px] font-extrabold tracking-[.06em] uppercase mb-2.25"
-                style={{ color: 'var(--wp-muted)' }}
-              >
-                {t('newEvent.preview.faqTitle')}
-              </div>
-              <div className="flex flex-col gap-2.25">
+            <div className="mt-3.5 border-t border-wp-line pt-3">
+              <p className="mb-2 text-[11px] font-semibold tracking-[.06em] text-wp-sub uppercase">{t('newEvent.preview.faqTitle')}</p>
+              <div className="flex flex-col gap-2.5">
                 {faqs.map((f, i) => (
                   <div key={i}>
-                    <div className="font-bold text-[13px]" style={{ color: 'var(--ink)' }}>
-                      {f.question}
-                    </div>
-                    <div className="font-medium text-[12.5px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
-                      {f.answer}
-                    </div>
+                    <div className="text-[13px] font-semibold text-ink">{f.question}</div>
+                    <div className="mt-0.5 text-[12.5px] text-wp-sub">{f.answer}</div>
                   </div>
                 ))}
               </div>

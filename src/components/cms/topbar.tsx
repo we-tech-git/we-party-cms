@@ -1,13 +1,14 @@
 'use client'
 
-/* eslint-disable @next/next/no-img-element */
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/auth.store'
 import { useUpdateProfileImage } from '@/hooks/use-update-profile-image'
 import { useI18n } from '@/i18n/context'
-import { GRAD, SHADOW_SM } from '@/lib/brand'
+import { Button } from '@/components/ui/button'
+import { Logo } from './logo'
+import { useIsAdmin } from '@/hooks/use-is-admin'
 import { LanguageSwitcher } from './language-switcher'
 import { UserAvatar } from './user-avatar'
 
@@ -16,6 +17,7 @@ export function CmsTopbar() {
   const router = useRouter()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+  const { isAdmin } = useIsAdmin()
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
@@ -74,34 +76,15 @@ export function CmsTopbar() {
 
   return (
     <header
-      className="sticky top-0 z-60 flex items-center gap-3 sm:gap-4.5 px-[clamp(14px,3vw,34px)] py-3.5"
-      style={{
-        background: 'rgba(255,244,247,.78)',
-        backdropFilter: 'blur(18px)',
-        borderBottom: '1px solid rgba(34,26,61,.06)',
-      }}
+      data-testid="cms-topbar"
+      className="sticky top-0 z-60 flex h-16 items-center gap-3 border-b border-wp-line bg-white px-4 sm:px-8"
     >
-      {/* Logo */}
-      <div
-        className="flex items-center gap-2 sm:gap-2.75 min-w-0"
-        style={{ fontFamily: 'var(--font-bricolage)', fontWeight: 800, fontSize: 21, letterSpacing: '.02em' }}
-      >
-        <img
-          src="/logoweparty.png"
-          alt="WeParty"
-          className="w-9 h-9 rounded-[11px] object-contain flex-none"
-          style={{ boxShadow: SHADOW_SM }}
-        />
-        <span>WE&nbsp;</span>
-        <span style={{ background: GRAD, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-          PARTY
-        </span>
-        <span className="hidden md:block w-px h-6.5 mx-1" style={{ background: 'rgba(34,26,61,.08)' }} />
-        <span
-          className="hidden md:inline text-[16px] truncate"
-          style={{ fontWeight: 700, background: 'linear-gradient(120deg,#7C5CFF,#D81B7E)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}
-        >
-          {t('topbar.producerSpace')}
+      {/* Marca + contexto (Figma: CMS top bar) */}
+      <div className="flex min-w-0 items-center gap-3.5">
+        <Logo className="text-[22px] leading-none sm:text-[26px]" />
+        <span aria-hidden className="hidden h-6 w-px bg-wp-line md:block" />
+        <span className="hidden truncate text-sm font-semibold text-wp-magenta md:inline">
+          {isAdmin ? t('nav.sectionDev') : t('topbar.producerSpace')}
         </span>
       </div>
 
@@ -113,8 +96,7 @@ export function CmsTopbar() {
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
-            className="flex items-center gap-1.5 p-1 pr-2 rounded-[14px] border-2 border-white transition-shadow hover:shadow-md"
-            style={{ background: 'rgba(255,255,255,.6)', boxShadow: SHADOW_SM }}
+            className="flex items-center gap-1 rounded-[12px] border border-wp-line bg-white p-1 pr-2 outline-none transition-colors hover:bg-wp-bg focus-visible:ring-3 focus-visible:ring-wp-primary/30"
             aria-label={t('topbar.userMenu')}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
@@ -123,7 +105,7 @@ export function CmsTopbar() {
             <svg
               className="hidden sm:block transition-transform"
               style={{ transform: menuOpen ? 'rotate(180deg)' : undefined }}
-              width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8C85A2" strokeWidth="2.4"
+              width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6a7282" strokeWidth="2.4"
             >
               <path d="M6 9l6 6 6-6" />
             </svg>
@@ -132,13 +114,11 @@ export function CmsTopbar() {
           {menuOpen && (
             <div
               role="menu"
-              className="absolute right-0 top-13 z-70 min-w-64 rounded-[16px] p-2 bg-white"
-              style={{ border: '1px solid rgba(34,26,61,.08)', boxShadow: 'var(--shadow)' }}
+              className="absolute right-0 top-13 z-70 min-w-64 rounded-2xl border border-wp-line bg-white p-2 shadow-card"
             >
               {/* Header */}
               <div
-                className="flex items-center gap-2.5 p-2.5 rounded-[12px] mb-1"
-                style={{ background: 'linear-gradient(135deg,rgba(124,92,255,.07),rgba(216,27,126,.07))' }}
+                className="mb-1 flex items-center gap-2.5 rounded-xl bg-wp-bg p-2.5"
               >
                 <UserAvatar name={user?.name ?? ''} image={photo} size={44} radius={12} />
                 <div className="min-w-0">
@@ -215,7 +195,7 @@ export function CmsTopbar() {
             role="dialog"
             aria-modal="true"
             className="relative z-1 w-[min(92vw,420px)] rounded-[24px] bg-white p-7 flex flex-col gap-5"
-            style={{ boxShadow: 'var(--shadow)' }}
+            
           >
             <button
               type="button"
@@ -244,15 +224,15 @@ export function CmsTopbar() {
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <button
+              <Button
                 type="button"
+                variant="primary"
+                size="md"
                 disabled={uploadImage.isPending}
                 onClick={() => fileRef.current?.click()}
-                className="rounded-[12px] py-3.5 font-extrabold text-[15px] text-white transition-transform hover:-translate-y-0.5 disabled:opacity-50 disabled:translate-y-0"
-                style={{ background: GRAD, boxShadow: '0 8px 24px -8px rgba(216,27,126,.5)' }}
               >
                 {uploadImage.isPending ? t('topbar.avatarUploading') : t('topbar.avatarModalUpload')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>,

@@ -47,11 +47,3 @@ export const STATUS_LABELS: Record<UiEventStatus, string> = {
   encerrado: 'Encerrado',
   arquivado: 'Arquivado',
 }
-
-export const STATUS_STYLES: Record<UiEventStatus, { bg: string; color: string; pulse?: boolean }> = {
-  ativo:     { bg: '#fff', color: 'var(--green)', pulse: true },
-  rascunho:  { bg: '#fff', color: 'var(--amber)' },
-  agendado:  { bg: '#fff', color: 'var(--violet)' },
-  encerrado: { bg: 'rgba(255,255,255,.85)', color: '#6b6478' },
-  arquivado: { bg: 'rgba(255,255,255,.85)', color: '#6b6478' },
-}

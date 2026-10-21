@@ -7,10 +7,10 @@ import type { EventActivityDto, EventActivityType } from '@/types/events.types'
 
 /** Visual treatment (icon glyph + colors) per activity type. */
 export const ACTIVITY_TYPE_STYLE: Record<EventActivityType, { symbol: string; bg: string; color: string; verbKey: TKey }> = {
-  comment: { symbol: '💬', bg: '#E6F1FF', color: 'var(--blue)', verbKey: 'home.activityComment' },
-  like: { symbol: '♥', bg: '#FFE9F2', color: 'var(--pink)', verbKey: 'home.activityLike' },
-  attendance: { symbol: '✓', bg: '#EEEAFF', color: 'var(--violet)', verbKey: 'home.activityAttendance' },
-  share: { symbol: '↗', bg: '#E6FBF3', color: 'var(--green)', verbKey: 'home.activityShare' },
+  comment: { symbol: '💬', bg: 'var(--tint-purple)', color: 'var(--wp-purple)', verbKey: 'home.activityComment' },
+  like: { symbol: '♥', bg: 'var(--tint-pink)', color: 'var(--wp-magenta)', verbKey: 'home.activityLike' },
+  attendance: { symbol: '✓', bg: 'var(--tint-green)', color: 'var(--wp-green)', verbKey: 'home.activityAttendance' },
+  share: { symbol: '↗', bg: 'var(--tint-orange)', color: 'var(--wp-orange)', verbKey: 'home.activityShare' },
 }
 
 /** "há 2 horas" / "2 hours ago", falling back to a short date for older items. */
@@ -46,7 +46,7 @@ export function ActivityListItem({ item, showEventName = true, isLast = false }:
   return (
     <div
       className="flex gap-3 py-3.25 items-start"
-      style={{ borderBottom: isLast ? 'none' : '1px solid var(--line-2)' }}
+      style={{ borderBottom: isLast ? 'none' : '1px solid var(--wp-line)' }}
     >
       {item.type === 'comment' && item.user?.profileImage ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -58,7 +58,7 @@ export function ActivityListItem({ item, showEventName = true, isLast = false }:
       ) : item.type === 'comment' ? (
         <span
           className="w-9.5 h-9.5 rounded-[11px] grid place-items-center text-white font-extrabold flex-none text-[14px]"
-          style={{ background: 'linear-gradient(135deg,#ff7a59,#ff4d8d)' }}
+          style={{ background: 'var(--wp-gradient)' }}
         >
           {initial}
         </span>
@@ -72,26 +72,25 @@ export function ActivityListItem({ item, showEventName = true, isLast = false }:
       )}
 
       <div className="flex-1 min-w-0">
-        <p className="text-[13.5px] font-semibold">
+        <p className="text-[13.5px] font-medium text-wp-body">
           <strong>{item.user?.name ?? '—'}</strong> {t(style.verbKey)}{' '}
           {showEventName && <strong>{item.event?.title ?? '—'}</strong>}
         </p>
         {item.type === 'comment' && item.data && (
           <>
-            <p className="text-[13px] mt-0.5 truncate" style={{ color: 'var(--ink-soft)', fontWeight: 500 }}>
+            <p className="text-[13px] mt-0.5 truncate" style={{ color: 'var(--wp-sub)' }}>
               &ldquo;{item.data}&rdquo;
             </p>
             <button
               onClick={() => router.push('/cms/producer/my-events')}
-              className="mt-1.5 font-extrabold text-[12.5px]"
-              style={{ color: 'var(--blue)' }}
+              className="mt-1.5 text-[12.5px] font-semibold text-wp-magenta"
             >
               {t('common.reply')} →
             </button>
           </>
         )}
         {time && (
-          <div className="text-[12px] font-semibold mt-0.5" style={{ color: 'var(--wp-muted)' }}>
+          <div className="mt-0.5 text-xs text-wp-sub">
             {time}
           </div>
         )}

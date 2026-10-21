@@ -1,14 +1,12 @@
 import Link from 'next/link'
-import { GRAD } from '@/lib/brand'
+import { CalendarDays, Check, Eye, Flame, Heart, MapPin, Pencil, Share2, TrendingUp, Plus } from 'lucide-react'
+import { EmptyState } from '@/components/cms/empty-state'
+import { IconTile } from '@/components/cms/icon-tile'
+import { Panel } from '@/components/cms/panel'
+import { Chip } from '@/components/ui/chip'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import type { TopEventDto } from '@/types/events.types'
-
-type SpotlightStat = {
-  icon: React.ReactNode
-  iconBg: string
-  iconColor: string
-  value: string
-  label: string
-}
 
 type SpotlightCardProps = {
   topEvent?: TopEventDto | null
@@ -37,176 +35,88 @@ function engagementScore(ev: TopEventDto): number {
   return Math.min(100, Math.round((engagement / Math.max(ev.viewCount, 1)) * 100))
 }
 
+/** Evento em destaque (Figma: Início › Evento em destaque). Banner no degradê da tinta; sem preto puro nem sombra rosa. */
 export function SpotlightCard({ topEvent }: SpotlightCardProps) {
   if (!topEvent) {
     return (
-      <div
-        className="overflow-hidden rounded-(--r) flex flex-col items-center justify-center gap-4 py-14 px-6 text-center"
-        style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
-      >
-        <div className="text-[44px]">🎉</div>
-        <div>
-          <p className="font-extrabold text-[18px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-            Nenhum evento em destaque ainda
-          </p>
-          <p className="font-semibold text-[14px] mt-1" style={{ color: 'var(--wp-muted)' }}>
-            Crie seu primeiro evento e comece a acumular alcance
-          </p>
-        </div>
-        <Link
-          href="/cms/producer/new-event"
-          className="flex items-center gap-2 rounded-[14px] px-5 py-3 font-extrabold text-white"
-          style={{ background: GRAD, boxShadow: '0 12px 24px -12px rgba(240,48,154,.65)' }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Criar evento
+      <Panel as="section" className="flex flex-col items-center gap-4 px-6 py-12 text-center" data-testid="spotlight-empty">
+        <EmptyState
+          icon={<Flame />}
+          title="Nenhum evento em destaque ainda"
+          description="Crie seu primeiro evento e comece a acumular alcance"
+          className="w-full"
+        />
+        <Link href="/cms/producer/new-event" className={cn(buttonVariants({ variant: 'primary', size: 'md' }))}>
+          <Plus /> Criar evento
         </Link>
-      </div>
+      </Panel>
     )
   }
 
   const score = engagementScore(topEvent)
-  const reachCount = fmtReach(topEvent.totalPeopleReached)
-  const date = formatEventDate(topEvent.startDate)
-
-  const stats: SpotlightStat[] = [
-    {
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></svg>,
-      iconBg: '#E6F1FF', iconColor: 'var(--blue)', value: fmtNum(topEvent.viewCount), label: 'views',
-    },
-    {
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9C.6 9 2 5 5.5 5 8 5 9.4 6.6 12 9c2.6-2.4 4-4 6.5-4C22 5 23.4 9 22 12c-2.5 4.4-10 9-10 9z" /></svg>,
-      iconBg: '#FFE9F2', iconColor: 'var(--pink)', value: fmtNum(topEvent.totalLikes), label: 'curtidas',
-    },
-    {
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6"><path d="M20 6L9 17l-5-5" /></svg>,
-      iconBg: '#EEEAFF', iconColor: 'var(--violet)', value: fmtNum(topEvent.totalConfirmed), label: 'confirmados',
-    },
-    {
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" /></svg>,
-      iconBg: '#E6FBF3', iconColor: 'var(--green)', value: fmtNum(topEvent.shareCount), label: 'compart.',
-    },
+  const stats = [
+    { icon: <Eye />, tone: 'purple' as const, value: fmtNum(topEvent.viewCount), label: 'views' },
+    { icon: <Heart />, tone: 'pink' as const, value: fmtNum(topEvent.totalLikes), label: 'curtidas' },
+    { icon: <Check />, tone: 'green' as const, value: fmtNum(topEvent.totalConfirmed), label: 'confirmados' },
+    { icon: <Share2 />, tone: 'orange' as const, value: fmtNum(topEvent.shareCount), label: 'compart.' },
   ]
 
   return (
-    <div
-      className="overflow-hidden rounded-(--r)"
-      style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow)' }}
-    >
-      {/* Hero banner */}
-      <div
-        className="relative h-39.5 flex items-end px-5.5 py-4.5"
-        style={{
-          background: 'linear-gradient(to top,rgba(20,8,30,.7),transparent 70%), linear-gradient(120deg,#ff7e3d,#ff4d8d 55%,#a23bd6)',
-        }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{ background: 'radial-gradient(400px 160px at 80% -20%,rgba(255,255,255,.35),transparent)' }}
-        />
-
-        <div className="absolute top-4 left-4.5 flex gap-2 z-10">
-          <span
-            className="text-[11px] font-extrabold tracking-[.04em] px-3 py-1.5 rounded-full uppercase flex items-center gap-1.5 bg-white"
-            style={{ color: 'var(--pink)' }}
-          >
-            <span className="w-1.75 h-1.75 rounded-full animate-pulse" style={{ background: 'var(--pink)' }} />
-            Em alta agora
-          </span>
-        </div>
-
-        <div className="relative z-10 text-white">
-          <div className="text-[12px] font-extrabold tracking-widest uppercase opacity-85">Seu evento em destaque</div>
-          <h2
-            className="font-extrabold text-[28px] leading-[1.05]"
-            style={{ fontFamily: 'var(--font-bricolage)', textShadow: '0 3px 18px rgba(0,0,0,.35)' }}
-          >
-            {topEvent.title}
-          </h2>
-          <div className="flex gap-4 mt-1.5 font-semibold text-[13.5px] opacity-95">
-            <span>📍 {topEvent.location}</span>
-            <span>📅 {date}</span>
-          </div>
+    <Panel as="section" className="overflow-hidden p-0" data-testid="spotlight-card">
+      {/* Banner */}
+      <div className="flex min-h-37 flex-col justify-end gap-1.5 bg-(image:--wp-ink-card) px-6 py-5 text-white">
+        <Chip tone="glass" className="mb-1">
+          <Flame /> Em alta agora
+        </Chip>
+        <p className="text-[11px] font-semibold tracking-[.08em] uppercase opacity-75">Seu evento em destaque</p>
+        <h2 className="text-2xl leading-tight font-bold">{topEvent.title}</h2>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium opacity-90">
+          <span className="inline-flex items-center gap-1.5"><MapPin className="size-3.5" /> {topEvent.location}</span>
+          <span className="inline-flex items-center gap-1.5"><CalendarDays className="size-3.5" /> {formatEventDate(topEvent.startDate)}</span>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="px-5.5 py-5">
-        <div className="flex items-center gap-4.5 flex-wrap">
-          <div className="flex-1 min-w-57.5">
-            <div className="flex justify-between font-bold text-[14px] mb-2">
+      {/* Corpo */}
+      <div className="flex flex-col gap-5 px-6 py-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-56 flex-1">
+            <div className="mb-2 flex justify-between text-[13px] font-semibold text-ink">
               <span>Índice de popularidade</span>
-              <span style={{ color: 'var(--pink)', fontFamily: 'var(--font-bricolage)' }}>
-                {score}/100
-              </span>
+              <span className="text-wp-magenta">{score}/100</span>
             </div>
-            <div className="h-3 rounded-full overflow-hidden" style={{ background: '#F1ECF3' }}>
-              <div className="h-full rounded-full" style={{ width: `${score}%`, background: GRAD }} />
+            <div className="h-2 overflow-hidden rounded-full bg-tint-pink" role="progressbar" aria-valuenow={score} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full rounded-full bg-(image:--wp-gradient)" style={{ width: `${score}%` }} />
             </div>
-            <p className="text-[12.5px] font-semibold mt-1.5" style={{ color: 'var(--wp-muted)' }}>
-              Taxa de engajamento sobre visualizações
-            </p>
+            <p className="mt-1.5 text-xs text-wp-sub">Taxa de engajamento sobre visualizações</p>
           </div>
           <div className="text-right">
-            <div className="text-[11px] font-extrabold tracking-[.08em] uppercase" style={{ color: 'var(--wp-muted)' }}>
-              Alcance
-            </div>
-            <div
-              className="text-[26px] font-extrabold leading-none"
-              style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--violet)' }}
-            >
-              {reachCount}
-            </div>
-            <div className="text-[12px] font-semibold" style={{ color: 'var(--wp-muted)' }}>pessoas</div>
+            <p className="text-[10px] font-semibold tracking-[.08em] text-wp-sub uppercase">Alcance</p>
+            <p className="font-heading text-[26px] leading-none font-bold text-wp-purple">{fmtReach(topEvent.totalPeopleReached)}</p>
+            <p className="text-xs text-wp-sub">pessoas</p>
           </div>
         </div>
 
-        <div
-          className="grid grid-cols-4 gap-3 mt-5 pt-4.5"
-          style={{ borderTop: '1px solid var(--line-2)' }}
-        >
-          {stats.map((s, i) => (
-            <div key={i} className="flex items-center gap-2.5">
-              <span
-                className="w-9.5 h-9.5 rounded-[11px] grid place-items-center flex-none"
-                style={{ background: s.iconBg, color: s.iconColor }}
-              >
-                {s.icon}
-              </span>
+        <div className="grid grid-cols-2 gap-3 border-t border-wp-line pt-4 sm:grid-cols-4">
+          {stats.map((s) => (
+            <div key={s.label} className="flex items-center gap-2.5">
+              <IconTile tone={s.tone}>{s.icon}</IconTile>
               <div>
-                <div className="font-extrabold text-[17px] leading-none" style={{ fontFamily: 'var(--font-bricolage)' }}>
-                  {s.value}
-                </div>
-                <div className="text-[12px] font-semibold" style={{ color: 'var(--wp-muted)' }}>{s.label}</div>
+                <p className="font-heading text-[17px] leading-none font-bold text-ink">{s.value}</p>
+                <p className="text-xs text-wp-sub">{s.label}</p>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="flex gap-2.5 mt-4.5 flex-wrap">
-          <button
-            className="flex items-center gap-2 border-[1.5px] rounded-[13px] px-4 py-2.75 font-extrabold text-[14px] text-white transition hover:-translate-y-0.5"
-            style={{ background: GRAD, borderColor: 'transparent', boxShadow: '0 12px 24px -12px rgba(240,48,154,.7)' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M3 17l6-6 4 4 8-8M21 7v5h-5" />
-            </svg>
-            Impulsionar alcance
+        <div className="flex flex-wrap gap-2.5">
+          <button type="button" className={cn(buttonVariants({ variant: 'primary', size: 'compact' }))}>
+            <TrendingUp /> Impulsionar alcance
           </button>
-          <Link
-            href={`/cms/producer/edit-event/${topEvent.id}`}
-            className="flex items-center gap-2 border-[1.5px] rounded-[13px] px-4 py-2.75 font-extrabold text-[14px] transition hover:border-pink hover:text-pink"
-            style={{ border: '1.5px solid var(--line)' }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z" />
-            </svg>
-            Editar
+          <Link href={`/cms/producer/edit-event/${topEvent.id}`} className={cn(buttonVariants({ variant: 'line', size: 'compact' }))}>
+            <Pencil /> Editar
           </Link>
         </div>
       </div>
-    </div>
+    </Panel>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth.store'
+import { writeAuthCookie } from '@/lib/auth-cookie'
 
 /**
  * Garante que o cookie `access_token` exista sempre que o Zustand tiver um
@@ -14,7 +15,7 @@ export function AuthHydration() {
 
   useEffect(() => {
     if (token) {
-      document.cookie = `access_token=${token}; path=/; SameSite=Lax`
+      writeAuthCookie(token)
     }
   }, [token])
 

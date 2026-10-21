@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { LoggedUser, LoginResponse } from '@/types/auth.types'
 import { STORAGE_KEYS } from '@/types/auth.types'
+import { clearAuthCookie, writeAuthCookie } from '@/lib/auth-cookie'
 
 interface AuthState {
   token: string | null
@@ -17,14 +18,14 @@ interface AuthState {
   isAuthenticated: () => boolean
 }
 
-function setAuthCookie(token: string) {
-  // JWT só usa Base64URL + pontos — não precisa de encoding.
-  // O proxy.ts lê este cookie no edge para proteger rotas /cms/*.
-  document.cookie = `access_token=${token}; path=/; SameSite=Lax`
-}
+const SAFE_USER_FIELDS = [
+  'id', 'username', 'name', 'email', 'roles', 'role', 'type', 'userType', 'isEmailVerified', 'profileImage',
+] as const
 
-function clearAuthCookie() {
-  document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax'
+function pickSafeUser(raw: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const k of SAFE_USER_FIELDS) if (k in raw) out[k] = raw[k]
+  return out
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -34,12 +35,15 @@ export const useAuthStore = create<AuthState>()(
       user: null,
 
       saveAuthData(response: LoginResponse) {
-        const { token, ...user } = response.data
+        const { token, ...rest } = response.data
+        // Allowlist: a resposta de login pode trazer campos internos (ex.: googleId, apiKey, tokens de reset).
+        // Só o necessário para a UI é persistido em localStorage.
+        const user = pickSafeUser(rest as unknown as Record<string, unknown>) as unknown as LoggedUser
         set({ token, user })
         if (typeof window !== 'undefined') {
           localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token)
           localStorage.setItem(STORAGE_KEYS.LOGGED_USER, JSON.stringify(user))
-          setAuthCookie(token)
+          writeAuthCookie(token)
         }
       },
 

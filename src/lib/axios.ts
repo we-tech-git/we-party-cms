@@ -1,4 +1,5 @@
 import Axios, { AxiosError, AxiosRequestConfig } from 'axios'
+import { useAuthStore } from '@/stores/auth.store'
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://api.wepartyapp.com'
@@ -24,10 +25,16 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (res) => res,
   (error: AxiosError) => {
-    if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('ACCESS_TOKEN')
-      localStorage.removeItem('LOGGED_USER')
-      document.cookie = 'access_token=; path=/; max-age=0; SameSite=Lax'
+    // 401 nas rotas de login = credencial errada (o formulário mostra o erro). Só derruba a sessão
+    // quando é uma chamada autenticada que expirou — senão o redirect recarrega a página e esconde o aviso.
+    const url = error.config?.url ?? ''
+    const isAuthAttempt = url.includes('/users/login') || url.includes('/users/google-auth')
+    if (error.response?.status === 401 && !isAuthAttempt && typeof window !== 'undefined') {
+      // logout() limpa store (inclui o `we-party-auth` persistido), localStorage e cookie. Sem isso o
+      // AuthHydration reescrevia o cookie a partir do estado persistido e o login redirecionava de volta.
+      useAuthStore.getState().logout()
+      // Navegação completa de propósito: descarta todo o estado em memória da sessão expirada.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/login'
     }
     return Promise.reject(error)

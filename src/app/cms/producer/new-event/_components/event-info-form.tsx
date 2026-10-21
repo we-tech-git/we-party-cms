@@ -1,83 +1,46 @@
 'use client'
 
+import { AlignLeft } from 'lucide-react'
 import { useController, useFormContext } from 'react-hook-form'
+import { Panel, PanelHeader } from '@/components/cms/panel'
+import { Field } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import type { CreateEventForm } from '../_schema'
 
+/** Detalhes do evento (Figma: Novo evento › painel "Detalhes do evento"). */
 export function EventInfoForm() {
   const { register, control, formState: { errors } } = useFormContext<CreateEventForm>()
   // Campo controlado (useController) em vez de register + watch: com o React Compiler ligado, o
   // textarea não controlado perdia o que era digitado e o contador não saía de 0.
   const { field: descField } = useController({ control, name: 'description' })
-  const descLen = (descField.value ?? '').length
-  const titleReg = register('title')
 
   return (
-    <div
-      className="rounded-(--r) p-6"
-      style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
-    >
-      <div className="flex items-center gap-2.75 mb-4.5">
-        <span
-          className="w-9.5 h-9.5 rounded-[12px] grid place-items-center flex-none"
-          style={{ background: '#FFE9F2', color: 'var(--pink)' }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="M4 7h16M4 12h16M4 17h10" />
-          </svg>
-        </span>
-        <h3 className="font-bold text-[18px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-          Detalhes do evento
-        </h3>
-      </div>
+    <Panel as="section" className="flex flex-col gap-4" data-testid="panel-details">
+      <PanelHeader title="Detalhes do evento" icon={<AlignLeft />} tone="pink" />
 
-      <div className="flex flex-col gap-1.5 mb-4">
-        <label className="font-extrabold text-[13px]" style={{ color: 'var(--ink-soft)' }}>
-          Nome do evento <span style={{ color: 'var(--pink)' }}>*</span>
-        </label>
-        <input
+      <Field label="Nome do evento" htmlFor="input-title" required error={errors.title?.message}>
+        <Input
           id="input-title"
-          {...titleReg}
           placeholder="Ex: Sunset Beach Party"
-          className="w-full rounded-[14px] border-[1.5px] px-3.75 py-3.25 text-[15px] font-medium outline-none transition-all"
-          style={{
-            background: '#FCFAFD',
-            borderColor: errors.title ? 'var(--pink)' : 'var(--line)',
-            color: 'var(--ink)',
-          }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)' }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = errors.title ? 'var(--pink)' : 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; void titleReg.onBlur(e) }}
+          aria-invalid={!!errors.title}
+          data-testid="event-title-input"
+          {...register('title')}
         />
-        {errors.title && (
-          <span className="text-[12px] font-semibold" style={{ color: 'var(--pink)' }}>
-            {errors.title.message}
-          </span>
-        )}
-      </div>
+      </Field>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="font-extrabold text-[13px]" style={{ color: 'var(--ink-soft)' }}>
-          Descrição
-        </label>
-        <textarea
+      <Field label="Descrição" htmlFor="input-description">
+        <Textarea
+          id="input-description"
+          rows={4}
+          maxLength={600}
+          showCount
+          placeholder="Conte o que rola no evento: line-up, atrações, clima, o que torna ele especial..."
+          data-testid="event-description-input"
           {...descField}
           value={descField.value ?? ''}
-          maxLength={600}
-          rows={4}
-          placeholder="Conte o que rola no evento: line-up, atrações, clima, o que torna ele especial..."
-          className="w-full rounded-[14px] border-[1.5px] px-3.75 py-3.25 text-[15px] font-medium outline-none transition-all resize-y"
-          style={{
-            background: '#FCFAFD',
-            borderColor: 'var(--line)',
-            color: 'var(--ink)',
-            minHeight: '110px',
-          }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)' }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none'; descField.onBlur() }}
         />
-        <div className="text-right text-[12px] font-semibold" style={{ color: 'var(--wp-muted)' }}>
-          {descLen}/600
-        </div>
-      </div>
-    </div>
+      </Field>
+    </Panel>
   )
 }

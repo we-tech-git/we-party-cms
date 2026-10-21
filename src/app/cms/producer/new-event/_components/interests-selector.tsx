@@ -1,9 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Flame, Lightbulb, Plus, RefreshCw, Tag, X, Info } from 'lucide-react'
 import { useFormContext, useWatch } from 'react-hook-form'
 import { useMutation } from '@tanstack/react-query'
-import { GRAD } from '@/lib/brand'
+import { Panel, PanelHeader } from '@/components/cms/panel'
+import { Button } from '@/components/ui/button'
+import { Chip } from '@/components/ui/chip'
+import { Field } from '@/components/ui/field'
+import { SearchField } from '@/components/ui/search-field'
+import { Input } from '@/components/ui/input'
 import { useInterests } from '@/hooks/use-interests'
 import { suggestInterest } from '@/services/interests.service'
 import type { CreateEventForm } from '../_schema'
@@ -12,6 +18,9 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5)
 }
 
+const interestBtn = 'inline-flex items-center gap-1.5 rounded-full border border-wp-line bg-white px-3.5 py-2 text-[13px] font-semibold text-wp-magenta outline-none transition-colors hover:bg-tint-pink focus-visible:ring-3 focus-visible:ring-wp-primary/30'
+
+/** Interesses do evento (Figma: Novo evento › painel "Interesses do evento"). */
 export function InterestsSelector() {
   const { setValue, control } = useFormContext<CreateEventForm>()
   const interestIds = useWatch({ control, name: 'interestIds' }) ?? []
@@ -26,29 +35,20 @@ export function InterestsSelector() {
   useEffect(() => {
     if (allInterests.length > 0 && suggestions.length === 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSuggestions(shuffle(allInterests.map(i => i.id)).slice(0, 5))
+      setSuggestions(shuffle(allInterests.map((i) => i.id)).slice(0, 5))
     }
   }, [allInterests, suggestions.length])
 
-  const selectedItems = allInterests.filter(i => interestIds.includes(i.id))
-  const availableForSearch = allInterests.filter(i => !interestIds.includes(i.id))
+  const selectedItems = allInterests.filter((i) => interestIds.includes(i.id))
+  const availableForSearch = allInterests.filter((i) => !interestIds.includes(i.id))
   const searchResults = search.trim().length > 0
-    ? availableForSearch.filter(i => i.name.toLowerCase().includes(search.toLowerCase())).slice(0, 6)
+    ? availableForSearch.filter((i) => i.name.toLowerCase().includes(search.toLowerCase())).slice(0, 6)
     : []
-  const suggestionItems = allInterests.filter(i => suggestions.includes(i.id) && !interestIds.includes(i.id))
+  const suggestionItems = allInterests.filter((i) => suggestions.includes(i.id) && !interestIds.includes(i.id))
 
-  function add(id: string) {
-    setValue('interestIds', [...interestIds, id], { shouldDirty: true })
-  }
-
-  function remove(id: string) {
-    setValue('interestIds', interestIds.filter(i => i !== id), { shouldDirty: true })
-  }
-
-  function reroll() {
-    const unselected = allInterests.filter(i => !interestIds.includes(i.id)).map(i => i.id)
-    setSuggestions(shuffle(unselected).slice(0, 5))
-  }
+  const add = (id: string) => setValue('interestIds', [...interestIds, id], { shouldDirty: true })
+  const remove = (id: string) => setValue('interestIds', interestIds.filter((i) => i !== id), { shouldDirty: true })
+  const reroll = () => setSuggestions(shuffle(allInterests.filter((i) => !interestIds.includes(i.id)).map((i) => i.id)).slice(0, 5))
 
   const suggestMutation = useMutation({
     mutationFn: (name: string) => suggestInterest(name),
@@ -66,163 +66,73 @@ export function InterestsSelector() {
   })
 
   return (
-    <div
-      className="rounded-[var(--r)] p-6"
-      style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
-    >
-      <div className="flex items-center gap-[11px] mb-[18px]">
-        <span
-          className="w-[38px] h-[38px] rounded-[12px] grid place-items-center flex-none"
-          style={{ background: '#FFEDD9', color: 'var(--amber)' }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="M20.6 13.4l-7.2 7.2a2 2 0 01-2.8 0l-7.2-7.2a2 2 0 01-.6-1.4V5a2 2 0 012-2h7a2 2 0 011.4.6l7.2 7.2a2 2 0 010 2.6z" />
-            <circle cx="8" cy="8" r="1.4" />
-          </svg>
-        </span>
-        <h3 className="font-bold text-[18px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-          Interesses do evento
-        </h3>
-        <span className="ml-auto text-[12.5px] font-semibold" style={{ color: 'var(--wp-muted)' }}>
-          ajuda o público certo a te encontrar
-        </span>
-      </div>
+    <Panel as="section" className="flex flex-col gap-4" data-testid="panel-interests">
+      <PanelHeader title="Interesses do evento" icon={<Tag />} tone="orange" action={<span className="font-medium text-wp-magenta">ajuda o público certo a te encontrar</span>} />
 
-      {/* Search */}
-      <div className="flex flex-col gap-1.5 mb-4">
-        <label className="font-extrabold text-[13px]" style={{ color: 'var(--ink-soft)' }}>Pesquisar interesses</label>
-        <div className="relative">
-          <span className="absolute left-[14px] top-1/2 -translate-y-1/2" style={{ color: 'var(--wp-muted)' }}>
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-              <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
-            </svg>
-          </span>
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Digite para buscar interesses..."
-            className="w-full rounded-[14px] border-[1.5px] pl-[42px] pr-[15px] py-[13px] text-[15px] font-medium outline-none transition-all"
-            style={{ background: '#FCFAFD', borderColor: 'var(--line)', color: 'var(--ink)' }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--pink)'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 4px rgba(240,48,154,.1)' }}
-            onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD'; e.currentTarget.style.boxShadow = 'none' }}
-          />
-        </div>
-      </div>
+      <Field label="Pesquisar interesses" htmlFor="interest-search">
+        <SearchField id="interest-search" placeholder="Digite para buscar interesses..." value={search} onChange={(e) => setSearch(e.target.value)} />
+      </Field>
 
-      {/* Search results */}
       {searchResults.length > 0 && (
-        <div className="flex flex-wrap gap-[9px] mb-4">
-          {searchResults.map(i => (
-            <button
-              key={i.id}
-              type="button"
-              onClick={() => { add(i.id); setSearch('') }}
-              className="inline-flex items-center gap-[7px] rounded-full px-[14px] py-[9px] font-extrabold text-[13px] border-[1.5px] transition-all hover:-translate-y-0.5"
-              style={{ borderColor: '#ffd0e3', color: 'var(--pink)', background: '#fff' }}
-            >
-              {i.name} <b>+</b>
+        <div className="flex flex-wrap gap-2">
+          {searchResults.map((i) => (
+            <button key={i.id} type="button" className={interestBtn} onClick={() => { add(i.id); setSearch('') }}>
+              {i.name} <Plus className="size-3.5" />
             </button>
           ))}
         </div>
       )}
 
-      {/* Suggestions */}
-      <div className="text-[11px] font-extrabold tracking-[.08em] uppercase flex items-center gap-[6px] my-4" style={{ color: 'var(--wp-muted)' }}>
-        🔥 Sugestões para você
-      </div>
-      <div className="flex flex-wrap gap-[9px]">
-        {suggestionItems.map(i => (
-          <button
-            key={i.id}
-            type="button"
-            onClick={() => add(i.id)}
-            className="inline-flex items-center gap-[7px] rounded-full px-[14px] py-[9px] font-extrabold text-[13px] border-[1.5px] transition-all hover:-translate-y-0.5"
-            style={{ borderColor: '#ffd0e3', color: 'var(--pink)', background: '#fff' }}
-          >
-            {i.name} <b>+</b>
+      <div className="flex flex-col gap-2.5">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold tracking-[.08em] text-wp-sub uppercase"><Flame className="size-3.5 text-wp-orange" /> Sugestões para você</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {suggestionItems.map((i) => (
+            <button key={i.id} type="button" className={interestBtn} onClick={() => add(i.id)}>
+              {i.name} <Plus className="size-3.5" />
+            </button>
+          ))}
+          <button type="button" aria-label="Novas sugestões" onClick={reroll} className="grid size-9 place-items-center rounded-full border border-wp-line text-wp-sub outline-none hover:bg-wp-bg focus-visible:ring-3 focus-visible:ring-wp-primary/30">
+            <RefreshCw className="size-4" />
           </button>
-        ))}
-        <button
-          type="button"
-          onClick={reroll}
-          className="w-[36px] h-[36px] rounded-full grid place-items-center border-[1.5px] transition-all hover:rotate-90"
-          style={{ borderColor: 'var(--line)', color: 'var(--wp-muted)' }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="M3 12a9 9 0 0115-6.7L21 8M21 3v5h-5" />
-          </svg>
-        </button>
+        </div>
       </div>
 
-      {/* Selected */}
-      <div className="text-[11px] font-extrabold tracking-[.08em] uppercase my-4" style={{ color: 'var(--wp-muted)' }}>
-        Selecionados
+      <div className="flex flex-col gap-2.5">
+        <p className="text-[11px] font-semibold tracking-[.08em] text-wp-sub uppercase">Selecionados</p>
+        {selectedItems.length === 0 ? (
+          <p className="flex items-center gap-2 rounded-xl border border-wp-line bg-wp-bg px-3.5 py-3 text-[13px] text-wp-sub"><Info className="size-4 shrink-0" /> Nenhum interesse selecionado ainda. Use a busca ou as sugestões acima.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2" data-testid="selected-interests">
+            {selectedItems.map((i) => (
+              <button key={i.id} type="button" onClick={() => remove(i.id)} aria-label={`Remover ${i.name}`}>
+                <Chip tone="selected" className="gap-1.5 px-3.5 py-2 text-[13px]">{i.name} <X className="size-3.5" /></Chip>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      {selectedItems.length === 0 ? (
-        <div className="flex items-center gap-2 rounded-[12px] px-[14px] py-3 font-semibold text-[13px]" style={{ color: 'var(--wp-muted)', background: '#FCFAFD', border: '1px solid var(--line-2)' }}>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" />
-          </svg>
-          Nenhum interesse selecionado ainda. Use a busca ou as sugestões acima.
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-[9px]">
-          {selectedItems.map(i => (
-            <button
-              key={i.id}
-              type="button"
-              onClick={() => remove(i.id)}
-              className="inline-flex items-center gap-[7px] rounded-full px-[14px] py-[9px] font-extrabold text-[13px] text-white border-0 transition-all"
-              style={{ background: GRAD }}
-            >
-              {i.name} <span className="opacity-85">×</span>
-            </button>
-          ))}
-        </div>
-      )}
 
-      {/* Suggest new */}
-      <div className="mt-4 pt-4" style={{ borderTop: '1px dashed var(--line)' }}>
-        <button
-          type="button"
-          onClick={() => setShowSuggest(!showSuggest)}
-          className="flex items-center gap-2 font-extrabold text-[13.5px]"
-          style={{ color: 'var(--violet)' }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7c.6.5 1 1.2 1 2h6c0-.8.4-1.5 1-2A7 7 0 0012 2z" />
-          </svg>
-          Não encontrou? Sugira um novo interesse
+      <div className="border-t border-dashed border-wp-line pt-4">
+        <button type="button" onClick={() => setShowSuggest(!showSuggest)} className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-wp-purple outline-none focus-visible:underline">
+          <Lightbulb className="size-4" /> Não encontrou? Sugira um novo interesse
         </button>
         {showSuggest && (
-          <div className="flex gap-2 mt-3">
-            <input
+          <div className="mt-3 flex gap-2">
+            <Input
               value={suggestValue}
               onChange={(e) => setSuggestValue(e.target.value)}
               placeholder="Nome do interesse..."
-              className="flex-1 rounded-[12px] border-[1.5px] px-[14px] py-[11px] text-[14px] font-medium outline-none"
-              style={{ background: '#FCFAFD', borderColor: 'var(--line)', color: 'var(--ink)' }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--violet)'; e.currentTarget.style.background = '#fff' }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--line)'; e.currentTarget.style.background = '#FCFAFD' }}
+              aria-label="Nome do interesse"
+              maxLength={60}
               onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
             />
-            <button
-              type="button"
-              disabled={!suggestValue.trim() || suggestMutation.isPending}
-              onClick={() => suggestMutation.mutate(suggestValue.trim())}
-              className="rounded-[12px] px-4 font-extrabold text-[13px] text-white transition disabled:opacity-50"
-              style={{ background: GRAD }}
-            >
+            <Button type="button" variant="primary" size="md" disabled={!suggestValue.trim() || suggestMutation.isPending} onClick={() => suggestMutation.mutate(suggestValue.trim())}>
               {suggestMutation.isPending ? '…' : 'Enviar'}
-            </button>
+            </Button>
           </div>
         )}
-        {suggestMsg && (
-          <p className="mt-2 text-[12px] font-semibold" style={{ color: suggestMsg.ok ? 'var(--green)' : 'var(--pink)' }}>
-            {suggestMsg.text}
-          </p>
-        )}
+        {suggestMsg && <p role="status" className={`mt-2 text-xs font-medium ${suggestMsg.ok ? 'text-wp-green' : 'text-wp-danger'}`}>{suggestMsg.text}</p>}
       </div>
-    </div>
+    </Panel>
   )
 }

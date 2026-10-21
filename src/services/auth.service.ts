@@ -10,3 +10,9 @@ export async function loginUser(credentials: LoginCredentials): Promise<LoginRes
   const { data } = await axiosInstance.post<LoginResponse>('/users/login', credentials)
   return data
 }
+
+/** Login com Google (fluxo authorization code). O backend valida o código e devolve a mesma sessão do login por senha. */
+export async function loginWithGoogle(code: string): Promise<LoginResponse> {
+  const { data } = await axiosInstance.post<LoginResponse>('/users/google-auth', { code })
+  return data
+}

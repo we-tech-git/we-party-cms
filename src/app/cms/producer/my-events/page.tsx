@@ -2,20 +2,23 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import Link from 'next/link'
+import { CalendarDays, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { GRAD } from '@/lib/brand'
+import { PageHeader } from '@/components/cms/page-header'
+import { EmptyState } from '@/components/cms/empty-state'
+import { EventCard } from '@/components/cms/event-card'
+import { BulkBar } from '@/components/cms/bulk-bar'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/components/ui/toast'
 import { useI18n } from '@/i18n/context'
 import { useMyEvents } from '@/hooks/use-my-events'
 import { deleteEvent, patchEvent } from '@/services/events.service'
 import type { EventDto } from '@/types/events.types'
 import { mapEventStatus, calcEventScore, calcPopularity, type UiEventStatus } from './_utils'
-import { EventCard } from './_components/event-card'
 import { EventsToolbar } from './_components/events-toolbar'
 import { CommentDrawer } from './_components/comment-drawer'
 import { ActivityDrawer } from './_components/activity-drawer'
 import { DeleteModal } from './_components/delete-modal'
-import { BulkBar } from './_components/bulk-bar'
 
 type TabFilter = 'todos' | UiEventStatus
 
@@ -24,6 +27,7 @@ export default function MyEventsPage() {
   const router = useRouter()
   const { t } = useI18n()
   const { data, isLoading } = useMyEvents()
+  const { toastNode, showToast } = useToast()
 
   // UI state
   const [filter, setFilter] = useState<TabFilter>('todos')
@@ -80,9 +84,14 @@ export default function MyEventsPage() {
   }, [eventsWithStatus, filter, query, sortMode])
 
   // Mutations
+  // Regra AGENTS.md #2: loading no gatilho + toast ao final (sucesso e erro).
   const archiveMutation = useMutation({
     mutationFn: (id: string) => patchEvent(id, { status: 'CANCELLED' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-events'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      showToast(t('myEvents.toast.archived'), 'success')
+    },
+    onError: () => showToast(t('myEvents.toast.error'), 'error'),
   })
 
   const deleteMutation = useMutation({
@@ -90,7 +99,9 @@ export default function MyEventsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       setPendingDelete(null)
+      showToast(t('myEvents.toast.deleted'), 'success')
     },
+    onError: () => showToast(t('myEvents.toast.error'), 'error'),
   })
 
   function handleSelect(id: string) {
@@ -102,17 +113,23 @@ export default function MyEventsPage() {
   }
 
   function handleBulkArchive() {
-    Promise.all([...selectedIds].map(id => patchEvent(id, { status: 'CANCELLED' }))).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['my-events'] })
-      setSelectedIds(new Set())
-    })
+    Promise.all([...selectedIds].map(id => patchEvent(id, { status: 'CANCELLED' })))
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['my-events'] })
+        setSelectedIds(new Set())
+        showToast(t('myEvents.toast.archived'), 'success')
+      })
+      .catch(() => showToast(t('myEvents.toast.error'), 'error'))
   }
 
   function handleBulkDelete() {
-    Promise.all([...selectedIds].map(id => deleteEvent(id))).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['my-events'] })
-      setSelectedIds(new Set())
-    })
+    Promise.all([...selectedIds].map(id => deleteEvent(id)))
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ['my-events'] })
+        setSelectedIds(new Set())
+        showToast(t('myEvents.toast.deleted'), 'success')
+      })
+      .catch(() => showToast(t('myEvents.toast.error'), 'error'))
   }
 
   // Summary line
@@ -123,32 +140,23 @@ export default function MyEventsPage() {
   return (
     <>
       <div className="flex flex-col gap-5 min-w-0">
-        {/* Page header */}
-        <div className="flex items-center gap-4 flex-wrap">
-          <div>
-            <h1 className="font-extrabold text-[clamp(22px,5vw,28px)] leading-[1.05]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-              {t('myEvents.title')}
-            </h1>
-            <p className="font-semibold text-[14.5px] mt-0.5" style={{ color: 'var(--ink-soft)' }}>
-              {hotCount > 0 && <><b style={{ color: 'var(--pink)' }}>{t('myEvents.hot', { count: hotCount })}</b> · </>}
+        <PageHeader
+          icon={<CalendarDays />}
+          title={t('myEvents.title')}
+          subtitle={
+            <>
+              {hotCount > 0 && <><b className="font-semibold text-wp-magenta">{t('myEvents.hot', { count: hotCount })}</b> · </>}
               {totalReach > 0 && <>{t('myEvents.reached', { count: fmtNum(totalReach) })} · </>}
-              {totalComments > 0 && <b style={{ color: 'var(--pink)' }}>{t('myEvents.comments', { count: totalComments })}</b>}
+              {totalComments > 0 && <b className="font-semibold text-wp-magenta">{t('myEvents.comments', { count: totalComments })}</b>}
               {totalComments === 0 && hotCount === 0 && t('myEvents.manageHere')}
-            </p>
-          </div>
-          <div className="ml-auto">
-            <Link
-              href="/cms/producer/new-event"
-              className="flex items-center gap-2.25 rounded-[14px] px-5 py-3.25 font-extrabold text-white transition-transform hover:-translate-y-0.5"
-              style={{ background: GRAD, boxShadow: '0 14px 28px -14px rgba(240,48,154,.7)' }}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
-                <path d="M12 5v14M5 12h14"/>
-              </svg>
-              {t('common.createEvent')}
-            </Link>
-          </div>
-        </div>
+            </>
+          }
+          actions={
+            <Button type="button" variant="primary" size="md" onClick={() => router.push('/cms/producer/new-event')} data-testid="create-event">
+              <Plus /> {t('common.createEvent')}
+            </Button>
+          }
+        />
 
         {/* Toolbar */}
         <EventsToolbar
@@ -165,29 +173,14 @@ export default function MyEventsPage() {
 
         {/* Events grid/list */}
         {isLoading ? (
-          <div className="flex items-center justify-center h-48 rounded-[20px] bg-white" style={{ border: '1px solid var(--line-2)' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--wp-muted)' }}>{t('myEvents.loadingEvents')}</p>
+          <div className="flex h-48 items-center justify-center rounded-panel border border-wp-line bg-white">
+            <p className="text-sm text-wp-sub">{t('myEvents.loadingEvents')}</p>
           </div>
         ) : visible.length === 0 ? (
-          <div
-            className="flex flex-col items-center text-center gap-1.5 py-15 px-5 rounded-[20px]"
-            style={{ border: '1px dashed var(--line)', color: 'var(--wp-muted)' }}
-          >
-            <div
-              className="w-16 h-16 rounded-[20px] flex items-center justify-center mb-1.5"
-              style={{ background: '#FBF4FA' }}
-            >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--wp-muted)" strokeWidth="2">
-                <rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/>
-              </svg>
-            </div>
-            <b className="text-[18px]" style={{ fontFamily: 'var(--font-bricolage)', color: 'var(--ink)' }}>
-              {t('myEvents.emptyTitle')}
-            </b>
-            <span>{t('myEvents.emptyDesc')}</span>
-          </div>
+          <EmptyState icon={<CalendarDays />} title={t('myEvents.emptyTitle')} description={t('myEvents.emptyDesc')} className="py-14" />
         ) : (
           <div
+            data-testid="events-list"
             className={viewMode === 'list' ? 'flex flex-col gap-5' : 'grid gap-5'}
             style={viewMode === 'grid' ? { gridTemplateColumns: 'repeat(auto-fill,minmax(min(100%,330px),1fr))' } : {}}
           >
@@ -233,6 +226,8 @@ export default function MyEventsPage() {
           onCancel={() => setPendingDelete(null)}
         />
       )}
+
+      {toastNode}
 
       {/* Bulk Bar */}
       <BulkBar

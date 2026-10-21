@@ -61,6 +61,28 @@
   --shadow-brand: var(--shadow);
   --shadow-brand-sm: var(--shadow-sm);
   --radius-wp: var(--r);
+
+  /* Visual B — espelha as variáveis do Figma (Cores/*, Raio e espaçamento/*) */
+  --color-wp-bg: var(--wp-bg);
+  --color-wp-line: var(--wp-line);
+  --color-wp-body: var(--wp-body);
+  --color-wp-sub: var(--wp-sub);
+  --color-wp-faint: var(--wp-faint);
+  --color-wp-primary: var(--wp-primary);
+  --color-wp-secondary: var(--wp-secondary);
+  --color-wp-magenta: var(--wp-magenta);
+  --color-wp-purple: var(--wp-purple);
+  --color-wp-green: var(--wp-green);
+  --color-wp-orange: var(--wp-orange);
+  --color-wp-danger: var(--wp-danger);
+  --color-tint-pink: var(--tint-pink);
+  --color-tint-orange: var(--tint-orange);
+  --color-tint-purple: var(--tint-purple);
+  --color-tint-green: var(--tint-green);
+  --radius-ctl: 14px;
+  --radius-panel: 20px;
+  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-dark: 0 8px 24px rgba(34, 26, 61, 0.3);
 }
 
 :root {
@@ -114,6 +136,27 @@
   --shadow: 0 18px 50px -22px rgba(123, 38, 96, 0.35);
   --shadow-sm: 0 6px 20px -12px rgba(123, 38, 96, 0.28);
   --r: 22px;
+
+  /* Visual B (Figma: Design System › 01 Cores, 03 Raio e sombras). Mudou aqui => mudar no Figma. */
+  --wp-bg: #fff6f8;
+  --wp-line: #f6e1e9;
+  --wp-body: #1f2937;
+  --wp-sub: #6a7282;
+  --wp-faint: #9ca3af;
+  --wp-primary: #ff5f8f;
+  --wp-secondary: #ff9a4d;
+  --wp-magenta: #d6336c;
+  --wp-purple: #6c5ce7;
+  --wp-green: #10a87d;
+  --wp-orange: #e8730c;
+  --wp-danger: #dc2626;
+  --tint-pink: #ffe8f1;
+  --tint-orange: #fff1e4;
+  --tint-purple: #efeaff;
+  --tint-green: #e3f7f0;
+  --wp-gradient: linear-gradient(90deg, #ff9a4d 0%, #ff5f8f 100%);
+  --wp-gradient-v: linear-gradient(180deg, #ff9a4d 0%, #ff5f8f 100%);
+  --wp-ink-card: linear-gradient(135deg, #3a2a5e 0%, #8a2f62 100%);
 }
 
 .dark {
@@ -162,11 +205,8 @@
     line-height: 1.45;
   }
   body {
-    background:
-      radial-gradient(1000px 600px at 92% -8%, #ffe3cb 0%, transparent 52%),
-      radial-gradient(900px 700px at -4% 6%, #ffd7e7 0%, transparent 48%),
-      radial-gradient(1000px 800px at 70% 115%, #efe3ff 0%, transparent 55%),
-      #fff4f7;
+    /* Visual B: fundo liso, sem manchas de gradiente */
+    background: var(--wp-bg);
     -webkit-font-smoothing: antialiased;
   }
   ::selection {

@@ -1,10 +1,12 @@
-import { GRAD } from '@/lib/brand'
+import { Funnel } from 'lucide-react'
+import { Panel, PanelHeader } from '@/components/cms/panel'
 
 type FunnelStep = {
   value: string
   label: string
   widthPct: number
-  gradient: string
+  bar: string
+  text: string
   conversion?: string
   conversionValue?: string
 }
@@ -28,6 +30,7 @@ function pct(a?: number, b?: number): string {
   return ((a / b) * 100).toFixed(1).replace('.', ',') + '%'
 }
 
+/** Jornada de engajamento (Figma: barras tintadas com valor colorido — sem degradês saturados). */
 export function EngagementFunnel({ totalViews, totalLikes, totalAttendances, totalShares }: EngagementFunnelProps) {
   const isLoading = totalViews === undefined && totalLikes === undefined && totalAttendances === undefined && totalShares === undefined
 
@@ -35,96 +38,41 @@ export function EngagementFunnel({ totalViews, totalLikes, totalAttendances, tot
   const likes = totalLikes ?? 0
   const attendances = totalAttendances ?? 0
   const shares = totalShares ?? 0
-
   const maxVal = Math.max(views, likes, attendances, shares, 1)
 
   const steps: FunnelStep[] = [
-    {
-      value: fmt(views),
-      label: 'Visualizações',
-      widthPct: Math.round((views / maxVal) * 100),
-      gradient: 'linear-gradient(120deg,#3E7BFB,#6BA0FF)',
-    },
-    {
-      value: fmt(likes),
-      label: 'Curtidas',
-      widthPct: Math.round((likes / maxVal) * 100),
-      gradient: 'linear-gradient(120deg,#9B6BFF,#7C5CFF)',
-      conversion: 'conversão',
-      conversionValue: pct(likes, views),
-    },
-    {
-      value: fmt(attendances),
-      label: 'Confirmados',
-      widthPct: Math.round((attendances / maxVal) * 100),
-      gradient: 'linear-gradient(120deg,#F0309A,#FF5F8D)',
-      conversion: 'conversão',
-      conversionValue: pct(attendances, likes),
-    },
-    {
-      value: fmt(shares),
-      label: 'Compartilhamentos',
-      widthPct: Math.round((shares / maxVal) * 100),
-      gradient: GRAD,
-      conversion: 'viralização',
-      conversionValue: pct(shares, attendances),
-    },
+    { value: fmt(views), label: 'Visualizações', widthPct: Math.round((views / maxVal) * 100), bar: 'bg-tint-purple', text: 'text-wp-purple' },
+    { value: fmt(likes), label: 'Curtidas', widthPct: Math.round((likes / maxVal) * 100), bar: 'bg-tint-pink', text: 'text-wp-magenta', conversion: 'conversão', conversionValue: pct(likes, views) },
+    { value: fmt(attendances), label: 'Confirmados', widthPct: Math.round((attendances / maxVal) * 100), bar: 'bg-tint-green', text: 'text-wp-green', conversion: 'conversão', conversionValue: pct(attendances, likes) },
+    { value: fmt(shares), label: 'Compartilhamentos', widthPct: Math.round((shares / maxVal) * 100), bar: 'bg-tint-orange', text: 'text-wp-orange', conversion: 'viralização', conversionValue: pct(shares, attendances) },
   ]
 
-  const minWidth = 120
-
   return (
-    <div
-      className="rounded-(--r) px-6 py-5.5"
-      style={{ background: '#fff', border: '1px solid var(--line-2)', boxShadow: 'var(--shadow-sm)' }}
-    >
-      {/* Card header */}
-      <div className="flex items-center gap-2.75 mb-4">
-        <span
-          className="w-9.5 h-9.5 rounded-[12px] grid place-items-center flex-none"
-          style={{ background: '#FFE9F2', color: 'var(--pink)' }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-            <path d="M3 5h18l-7 8v6l-4 2v-8z" />
-          </svg>
-        </span>
-        <h3 className="font-bold text-[18px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-          Jornada de engajamento
-        </h3>
-        <span className="ml-auto text-[13px] font-semibold" style={{ color: 'var(--wp-muted)' }}>
-          onde melhorar →
-        </span>
-      </div>
+    <Panel as="section" className="flex flex-col gap-4" data-testid="engagement-funnel">
+      <PanelHeader title="Jornada de engajamento" icon={<Funnel />} tone="pink" action="onde melhorar →" />
 
-      {isLoading && (
-        <p className="py-6 text-[13.5px] font-semibold text-center" style={{ color: 'var(--ink-soft)' }}>
-          Carregando métricas…
-        </p>
-      )}
+      {isLoading && <p className="py-6 text-center text-[13.5px] text-wp-sub">Carregando métricas…</p>}
 
       {!isLoading && (
-      <div className="flex flex-col gap-2.5">
-        {steps.map((step, i) => (
-          <div key={i} className="flex items-center gap-3.5">
-            <div
-              className="h-11.5 rounded-[13px] flex items-center px-4 text-white font-bold overflow-hidden"
-              style={{ width: `${step.widthPct}%`, background: step.gradient, minWidth }}
-            >
-              <span className="font-extrabold text-[18px]" style={{ fontFamily: 'var(--font-bricolage)' }}>
-                {step.value}
-              </span>
-              <span className="text-[12px] font-bold opacity-92 ml-2.5">{step.label}</span>
+        <div className="flex flex-col gap-2.5">
+          {steps.map((step) => (
+            <div key={step.label} className="flex items-center gap-3.5">
+              <div
+                className={`flex h-10 min-w-30 items-center gap-2.5 overflow-hidden rounded-xl px-4 ${step.bar} ${step.text}`}
+                style={{ width: `${step.widthPct}%` }}
+              >
+                <span className="font-heading text-lg font-bold">{step.value}</span>
+                <span className="truncate text-xs font-semibold">{step.label}</span>
+              </div>
+              {step.conversion && (
+                <span className="text-[13px] whitespace-nowrap text-wp-sub">
+                  {step.conversion} <strong className="text-wp-green">{step.conversionValue}</strong>
+                </span>
+              )}
             </div>
-            {step.conversion && (
-              <span className="font-extrabold text-[13px] whitespace-nowrap" style={{ color: 'var(--wp-muted)' }}>
-                {step.conversion}{' '}
-                <strong style={{ color: 'var(--green)' }}>{step.conversionValue}</strong>
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       )}
-    </div>
+    </Panel>
   )
 }

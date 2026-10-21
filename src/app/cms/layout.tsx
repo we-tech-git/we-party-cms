@@ -1,22 +1,17 @@
+import { CmsBottomNav } from '@/components/cms/bottom-nav'
 import { CmsSidebar } from '@/components/cms/sidebar'
 import { CmsTopbar } from '@/components/cms/topbar'
 
+/** Casca do CMS (Figma: CMS Desktop/Mobile). Topo branco; menu lateral no desktop e barra inferior no mobile. */
 export default function CmsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col bg-wp-bg">
       <CmsTopbar />
-
-      {/* Shell com max-width e grid sidebar + conteúdo */}
-      <div className="flex-1 w-full max-w-375 mx-auto flex flex-col">
-        <div
-          className="flex-1 grid items-start grid-cols-[64px_minmax(0,1fr)] lg:grid-cols-[230px_minmax(0,1fr)]"
-        >
-          <CmsSidebar />
-          <main className="min-w-0 px-[clamp(14px,3vw,34px)] py-6 pb-16">
-            {children}
-          </main>
-        </div>
+      <div className="mx-auto flex w-full max-w-375 flex-1 items-start gap-6 px-4 py-4 pb-24 sm:px-8 lg:pb-8">
+        <CmsSidebar />
+        <main className="min-w-0 flex-1 pt-2">{children}</main>
       </div>
+      <CmsBottomNav />
     </div>
   )
 }

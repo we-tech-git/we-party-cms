@@ -1,7 +1,8 @@
 'use client'
 
+import { ArrowRight, CircleAlert, CircleCheck, Info, Save } from 'lucide-react'
 import { useFormContext } from 'react-hook-form'
-import { GRAD } from '@/lib/brand'
+import { Button } from '@/components/ui/button'
 import { useI18n } from '@/i18n/context'
 import type { CreateEventForm } from '../_schema'
 
@@ -11,6 +12,7 @@ type ActionBarProps = {
   error: string | null
 }
 
+/** Barra de publicação (Figma: Novo evento › barra fixa). Botão com loading e bloqueio de duplo envio (AGENTS.md #2). */
 export function ActionBar({ mode, isSubmitting, error }: ActionBarProps) {
   const { t } = useI18n()
   const { watch } = useFormContext<CreateEventForm>()
@@ -21,73 +23,35 @@ export function ActionBar({ mode, isSubmitting, error }: ActionBarProps) {
 
   return (
     <div
-      className="sticky bottom-4 z-40 flex items-center gap-3.5 flex-wrap rounded-[20px] px-4.5 py-3.5 mt-1"
-      style={{
-        background: 'rgba(255,255,255,.86)',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid var(--line-2)',
-        boxShadow: 'var(--shadow)',
-      }}
+      data-testid="action-bar"
+      className="sticky bottom-20 z-40 mt-1 flex flex-wrap items-center gap-3.5 rounded-2xl border border-wp-line bg-white px-5 py-3 shadow-[0_6px_20px_rgba(16,24,40,.12)] lg:bottom-4"
     >
-      <span className="flex items-center gap-2 font-semibold text-[13.5px]" style={{ color: 'var(--ink-soft)' }}>
+      <span className="flex items-center gap-2 text-[13.5px] text-wp-sub" role="status">
         {error ? (
-          <>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.2">
-              <circle cx="12" cy="12" r="9" /><path d="M12 8v4M12 16h.01" />
-            </svg>
-            <span style={{ color: 'var(--pink)' }}>{error}</span>
-          </>
+          <><CircleAlert className="size-4 text-wp-danger" /><span className="font-medium text-wp-danger">{error}</span></>
         ) : isReady ? (
-          <>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.6">
-              <path d="M20 6L9 17l-5-5" />
-            </svg>
-            <span>{isEdit ? t('newEvent.readySave') : t('newEvent.readyPublish')}</span>
-          </>
+          <><CircleCheck className="size-4 text-wp-green" /><span>{isEdit ? t('newEvent.readySave') : t('newEvent.readyPublish')}</span></>
         ) : (
-          <>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" />
-            </svg>
-            {isEdit ? t('newEvent.needNameDateEdit') : t('newEvent.needNameDate')}
-          </>
+          <><Info className="size-4" />{isEdit ? t('newEvent.needNameDateEdit') : t('newEvent.needNameDate')}</>
         )}
       </span>
 
-      <div className="ml-auto flex gap-3">
+      <div className="ml-auto flex gap-2.5">
         {!isEdit && (
-          <button
-            type="button"
-            disabled
-            className="flex items-center gap-2 rounded-[14px] px-6 py-3.5 font-extrabold text-[14px] border transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{ background: '#fff', border: '1px solid var(--line)', color: 'var(--ink)' }}
-            title={`${t('newEvent.saveDraft')} — ${t('common.comingSoon')}`}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
-              <path d="M17 21v-8H7v8M7 3v5h8" />
-            </svg>
-            {t('newEvent.saveDraft')}
-          </button>
+          <Button type="button" variant="line" size="compact" disabled title={`${t('newEvent.saveDraft')} — ${t('common.comingSoon')}`}>
+            <Save /> {t('newEvent.saveDraft')}
+          </Button>
         )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="flex items-center gap-2 rounded-[14px] px-6 py-3.5 font-extrabold text-[14px] text-white transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0"
-          style={{ background: GRAD, boxShadow: '0 14px 28px -14px rgba(240,48,154,.7)' }}
-        >
+        <Button type="submit" variant="primary" size="md" disabled={isSubmitting} data-testid="event-submit">
           {isSubmitting ? (
-            isEdit ? t('newEvent.saving') : t('newEvent.publishing')
-          ) : (
             <>
-              {isEdit ? t('newEvent.saveChanges') : t('newEvent.publish')}
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
+              <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden />
+              {isEdit ? t('newEvent.saving') : t('newEvent.publishing')}
             </>
+          ) : (
+            <>{isEdit ? t('newEvent.saveChanges') : t('newEvent.publish')} <ArrowRight /></>
           )}
-        </button>
+        </Button>
       </div>
     </div>
   )

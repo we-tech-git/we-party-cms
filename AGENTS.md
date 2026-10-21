@@ -20,6 +20,7 @@ Este arquivo é lido por agents ANTES de qualquer alteração neste repo. É o *
 - `build` — `next build`
 - `start` — `next start`
 - `lint` — `eslint`
+- `storybook` — Storybook do CMS em http://localhost:6007 · `build-storybook` — build estático (CI)
 - `api:generate` — **`orval`**: regenera o client de API a partir do OpenAPI do backend (rodar quando o contrato do backend mudar)
 > Package manager não fixado no `package.json` — confirmar o padrão do time.
 
@@ -32,7 +33,7 @@ src/
 │       ├── home/
 │       ├── producer/     # fluxo do produtor (ex.: new-event)
 │       └── admin/        # admin (users, interests)
-├── components/           # ui/ (shadcn), dashboard/, cms/
+├── components/           # ui/ (primitivos do Design System), dashboard/, cms/ — cada um com *.stories.tsx
 ├── lib/
 │   ├── api/              # CLIENT GERADO pelo Orval (não editar à mão) + model/ (schemas)
 │   └── axios.ts          # axiosInstance (mutator do Orval) + baseURL
@@ -101,6 +102,33 @@ Métrica que o backend não sabe calcular deve chegar `null` e renderizar `—`.
 - Normalize a resposta na camada de service — a página recebe dado já em formato próprio.
 - Componente de página fino: orquestra hooks e delega render.
 
+## Design System: Figma ↔ código ↔ Storybook (regra OBRIGATÓRIA, vale para o web-app também)
+
+O Figma (arquivo **Venus Design**, páginas *Design System* e *Componentes*) e o código são **uma coisa só**.
+Nenhum dos dois pode andar na frente do outro sem o par ser atualizado **na mesma tarefa/PR**:
+
+| Quando… | …então, na mesma tarefa |
+|---|---|
+| Você cria ou altera um componente em `src/components/{ui,cms,dashboard}` | atualizar o componente no Figma (variantes, propriedades, tokens) **e** a ficha em *Componentes*; atualizar/criar a **story** |
+| Um componente muda no Figma (variante, medida, cor, propriedade) | refletir no código **e** na story; atualizar `docs/DESIGN_SYSTEM.md` |
+| Um token muda (cor, raio, sombra, tipografia) | mudar em `globals.css` (`--wp-*`) **e** na variável do Figma **e** em `.storybook` se houver espelho; nunca hex solto no componente |
+| Uma tela nova/alterada é aprovada no Figma (Playground → página CMS/Web) | implementar com componentes existentes; o que faltar vira componente novo + story + ficha no Figma |
+
+Regras práticas:
+1. **Todo componente em `ui/` ou `cms/` tem `*.stories.tsx`** com as variantes/estados do Figma e `parameters.design` apontando para o nó (`figmaNode('id')`, ver `src/lib/figma.ts`). Componente sem story não entra em PR.
+2. O nome do componente no código é o nome no Figma (ex.: `Stat card` → `StatCard`). A tabela de mapeamento vive em `docs/DESIGN_SYSTEM.md` — atualize-a.
+3. Mudou algo no código sem Figma (ou vice-versa)? **Declare no PR** o que ficou pendente do outro lado e abra a tarefa. Divergência silenciosa é bug de revisão.
+4. Antes de pedir revisão: `yarn storybook` abre sem erro e `yarn build-storybook` passa.
+5. Use a skill **`figma-code-sync`** (`.opencode/skills/figma-code-sync`) para executar este fluxo.
+
+## Testes e automação (definição de "pronto")
+
+Uma tela/componente novo só está pronto quando existe cobertura em **`weparty-automation`** (Cypress, `cypress/e2e/cms/`):
+- layout (elementos principais, desktop **e** mobile), estados vazio/erro/carregando e os fluxos de ação;
+- **testes retroativos**: o que já existia e foi tocado continua coberto (rode `cms-smoke` e os specs do módulo);
+- **segurança** quando a mudança toca login, sessão, dados exibidos, upload ou rota (ver `docs/SECURITY.md`).
+Componentes novos recebem `data-testid` estável (regra de seletores da automação). Specs mockam a API (`cy.intercept`) — ver `weparty-automation/docs/cms-cenarios.md`.
+
 ## Checklist de segurança (verificar a CADA nova implementação)
 
 Não é burocracia: a lista existe porque estes erros já apareceram neste código.
@@ -139,3 +167,10 @@ Antes de abrir PR, percorra a coluna que se aplica ao que você mexeu.
 - **Dependency confusion / typosquatting** — conferir o nome exato do pacote e se ele existe no registro público antes de instalar.
 - **Lockfile** — mudança de dependência sempre com lockfile versionado junto.
 - Rodar `yarn npm audit` (ou equivalente) quando adicionar dependência nova.
+
+### Prática obrigatória de segurança (a cada PR)
+1. Percorra o checklist acima para o que você tocou e **escreva no PR** quais itens se aplicam e como foram tratados (ou "n/a").
+2. Mudança em login/sessão/token/upload/rota/exibição de dados de usuário ⇒ rever `docs/SECURITY.md` e acrescentar/rodar o teste correspondente em `cms-seguranca.cy.js`.
+3. Achou algo que não cabe na tarefa? Registre em `docs/SECURITY.md` (backlog) e abra tarefa no Plane — **não deixe só na cabeça**.
+4. Use a skill **`security-review`** (`.opencode/skills/security-review`) antes de abrir o PR.
+

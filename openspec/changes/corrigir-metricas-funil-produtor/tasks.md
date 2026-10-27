@@ -1,13 +1,13 @@
 ## 1. Tipos e componente
 
-- [ ] 1.1 Em `src/types/events.types.ts`, adicionar `totalConfirmed?: number` ao tipo da resposta do dashboard (ao lado de `totalAttendances`, que continua)
-- [ ] 1.2 Em `src/components/dashboard/engagement-funnel.tsx`, trocar a prop `totalAttendances` por `totalConfirmed`; usar `totalConfirmed` na barra "Confirmados" e na largura relativa; quando `undefined`, exibir "—" no valor (a função `fmt` já faz isso)
-- [ ] 1.3 Em `src/app/cms/home/page.tsx`, passar `totalConfirmed={data?.totalConfirmed}`
-- [ ] 1.4 Conferir com `grep -rn totalAttendances src` que o funil não usa mais o campo antigo
+- [x] 1.1 Em `src/types/events.types.ts`, adicionar `totalConfirmed?: number` ao tipo da resposta do dashboard (ao lado de `totalAttendances`, que continua)
+- [x] 1.2 Em `src/components/dashboard/engagement-funnel.tsx`, trocar a prop `totalAttendances` por `totalConfirmed`; usar `totalConfirmed` na barra "Confirmados" e na largura relativa; quando `undefined`, exibir "—" no valor (a função `fmt` já faz isso)
+- [x] 1.3 Em `src/app/cms/home/page.tsx`, passar `totalConfirmed={data?.totalConfirmed}`
+- [x] 1.4 Conferir com `grep -rn totalAttendances src` que o funil não usa mais o campo antigo
 
 ## 2. Verificação
 
-- [ ] 2.1 `yarn lint`, `yarn type-check` e `yarn build` passam
+- [x] 2.1 `yarn lint`, `yarn type-check` e `yarn build` passam
 - [ ] 2.2 Conferir no preview da Vercel, com o backend já com `totalConfirmed`, que "Confirmados" difere de um total que inclui "não vou" (usar um produtor de teste com participações em mais de um status)
 
 ## 3. Teste automatizado (repositório `weparty-automation`, PR separado)

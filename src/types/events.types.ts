@@ -72,6 +72,8 @@ export interface ProducerDashboardResponse {
   totalLikes: number
   totalComments: number
   totalAttendances: number
+  /** Participações com status GOING. Ausente em respostas em cache anteriores ao deploy do backend. */
+  totalConfirmed?: number
   peopleReached: number
   totalEvents: number
   growthChart: ProducerDashboardGrowthPoint[]

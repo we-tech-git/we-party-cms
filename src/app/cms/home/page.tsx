@@ -98,7 +98,7 @@ export default function ProducerDashboard() {
           <EngagementFunnel
             totalViews={data?.totalViews}
             totalLikes={data?.totalLikes}
-            totalAttendances={data?.totalAttendances}
+            totalConfirmed={data?.totalConfirmed}
             totalShares={data?.totalShares}
           />
           <ActiveEvents spotlightId={data?.topEvent?.id} isLoading={isLoading} />

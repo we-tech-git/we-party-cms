@@ -12,8 +12,8 @@
 
 ## 3. Teste automatizado (repositório `weparty-automation`, PR separado)
 
-- [ ] 3.1 Adicionar `totalConfirmed` ao fixture `cypress/fixtures/cms/dashboard.json`, com valor diferente de `totalAttendances`
-- [ ] 3.2 Acrescentar em `CmsHomePage.js` uma verificação da barra "Confirmados" e um teste em `cypress/e2e/cms/` que confira o valor de `totalConfirmed`, e outro para a resposta sem o campo ("—")
+- [x] 3.1 Adicionar `totalConfirmed` ao fixture `cypress/fixtures/cms/dashboard.json`, com valor diferente de `totalAttendances`
+- [x] 3.2 Acrescentar em `CmsHomePage.js` uma verificação da barra "Confirmados" e um teste em `cypress/e2e/cms/` que confira o valor de `totalConfirmed`, e outro para a resposta sem o campo ("—")
 
 ## 4. Encerramento
 

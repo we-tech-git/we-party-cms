@@ -14,7 +14,7 @@ type FunnelStep = {
 type EngagementFunnelProps = {
   totalViews?: number
   totalLikes?: number
-  totalAttendances?: number
+  totalConfirmed?: number
   totalShares?: number
 }
 
@@ -31,20 +31,20 @@ function pct(a?: number, b?: number): string {
 }
 
 /** Jornada de engajamento (Figma: barras tintadas com valor colorido — sem degradês saturados). */
-export function EngagementFunnel({ totalViews, totalLikes, totalAttendances, totalShares }: EngagementFunnelProps) {
-  const isLoading = totalViews === undefined && totalLikes === undefined && totalAttendances === undefined && totalShares === undefined
+export function EngagementFunnel({ totalViews, totalLikes, totalConfirmed, totalShares }: EngagementFunnelProps) {
+  const isLoading = totalViews === undefined && totalLikes === undefined && totalConfirmed === undefined && totalShares === undefined
 
   const views = totalViews ?? 0
   const likes = totalLikes ?? 0
-  const attendances = totalAttendances ?? 0
+  const confirmed = totalConfirmed ?? 0
   const shares = totalShares ?? 0
-  const maxVal = Math.max(views, likes, attendances, shares, 1)
+  const maxVal = Math.max(views, likes, confirmed, shares, 1)
 
   const steps: FunnelStep[] = [
     { value: fmt(views), label: 'Visualizações', widthPct: Math.round((views / maxVal) * 100), bar: 'bg-tint-purple', text: 'text-wp-purple' },
     { value: fmt(likes), label: 'Curtidas', widthPct: Math.round((likes / maxVal) * 100), bar: 'bg-tint-pink', text: 'text-wp-magenta', conversion: 'conversão', conversionValue: pct(likes, views) },
-    { value: fmt(attendances), label: 'Confirmados', widthPct: Math.round((attendances / maxVal) * 100), bar: 'bg-tint-green', text: 'text-wp-green', conversion: 'conversão', conversionValue: pct(attendances, likes) },
-    { value: fmt(shares), label: 'Compartilhamentos', widthPct: Math.round((shares / maxVal) * 100), bar: 'bg-tint-orange', text: 'text-wp-orange', conversion: 'viralização', conversionValue: pct(shares, attendances) },
+    { value: fmt(totalConfirmed), label: 'Confirmados', widthPct: Math.round((confirmed / maxVal) * 100), bar: 'bg-tint-green', text: 'text-wp-green', conversion: 'conversão', conversionValue: pct(confirmed, likes) },
+    { value: fmt(shares), label: 'Compartilhamentos', widthPct: Math.round((shares / maxVal) * 100), bar: 'bg-tint-orange', text: 'text-wp-orange', conversion: 'viralização', conversionValue: pct(shares, confirmed) },
   ]
 
   return (

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   approveSocialPost,
   getSocialPosts,
+  publishSocialPost,
   rejectSocialPost,
 } from '@/services/social-posts.service'
 import type { SocialPostStatus } from '@/types/social-posts.types'
@@ -31,5 +32,10 @@ export function useSocialPostMutations() {
     onSuccess: invalidate,
   })
 
-  return { approve, reject }
+  const publish = useMutation({
+    mutationFn: (id: string) => publishSocialPost(id),
+    onSuccess: invalidate,
+  })
+
+  return { approve, reject, publish }
 }

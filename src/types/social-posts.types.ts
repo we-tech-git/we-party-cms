@@ -26,6 +26,19 @@ export interface SocialPostDto {
   publishedAt: string | null
   /** Resultado por plataforma, ex.: { INSTAGRAM: { externalId, url, publishedAt } }. */
   publications: Record<string, SocialPostPublication> | null
+  /** Quantas vezes o backend tentou publicar este post. */
+  publishAttempts: number
+  /** Motivo da última tentativa que falhou (post segue APPROVED). `REGISTRO PENDENTE:` = saiu numa rede mas não foi registrado. */
+  publishError: string | null
   createdAt: string
   updatedAt: string
+}
+
+export type PublishOutcome = 'PUBLISHED' | 'PARTIAL' | 'FAILED' | 'DISABLED' | 'SKIPPED'
+
+/** Mirrors POST /admin/social-posts/{id}/publish — PublishSocialPostResponseDto do backend. */
+export interface PublishSocialPostResponse {
+  outcome: PublishOutcome
+  message: string | null
+  post: SocialPostDto
 }

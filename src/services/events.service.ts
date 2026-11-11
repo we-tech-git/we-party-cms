@@ -10,6 +10,7 @@ import type {
   FaqItem,
   CommentsResponse,
   EventActivitiesResponse,
+  EventTrackingLinkDto,
 } from '@/types/events.types'
 
 export async function getMyDashboard(refresh?: boolean): Promise<ProducerDashboardResponse> {
@@ -118,4 +119,21 @@ export async function getEventActivities(
     params: { offset, limit },
   })
   return data
+}
+
+/** Links de divulgação do evento (só o criador) — GET /events/{eventId}/tracking-links. */
+export async function getEventTrackingLinks(eventId: string): Promise<EventTrackingLinkDto[]> {
+  const { data } = await axiosInstance.get<EventTrackingLinkDto[]>(`/events/${eventId}/tracking-links`)
+  return data
+}
+
+/** Cria um link de divulgação — POST /events/{eventId}/tracking-links. */
+export async function createEventTrackingLink(eventId: string, label: string): Promise<EventTrackingLinkDto> {
+  const { data } = await axiosInstance.post<EventTrackingLinkDto>(`/events/${eventId}/tracking-links`, { label })
+  return data
+}
+
+/** Remove o link e as contagens dele — DELETE /events/{eventId}/tracking-links/{linkId}. */
+export async function deleteEventTrackingLink(eventId: string, linkId: string): Promise<void> {
+  await axiosInstance.delete(`/events/${eventId}/tracking-links/${linkId}`)
 }

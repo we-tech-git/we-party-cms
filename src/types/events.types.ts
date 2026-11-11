@@ -288,3 +288,13 @@ export interface InterestDetailsResponse {
   totalEvents: number
   events: InterestDetailEventDto[]
 }
+
+/** Link de divulgação por canal — GET/POST /events/{id}/tracking-links (WEPARTY-239). */
+export interface EventTrackingLinkDto {
+  id: string
+  label: string
+  /** 8 caracteres; vai na URL do evento como `?ref=`. */
+  code: string
+  createdAt: string
+  totalViews: number
+}

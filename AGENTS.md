@@ -61,6 +61,8 @@ Config em `orval.config.ts` (origem corrigida, client ainda não gerado):
 ## Variáveis de ambiente (prefixo `NEXT_PUBLIC` p/ client)
 - `NEXT_PUBLIC_API_BASE_URL` — URL base da API (default `https://api.wepartyapp.com`)
 - `ORVAL_OPENAPI_URL` — só para `api:generate`: origem do contrato OpenAPI (default `https://api.wepartyapp.com/api-json`)
+- `NEXT_PUBLIC_FF_TRACKING_LINKS` — `true` mostra a seção "Links de divulgação" na edição do evento (WEPARTY-239; o backend tem a flag `FEATURE_TRACKING_LINKS`)
+- `NEXT_PUBLIC_WEB_APP_URL` — origem do web-app usada para montar a URL dos links de divulgação (default `https://wepartyapp.com`)
 
 ## Documentação (no repo)
 - `openspec/` — specs de capacidades/mudanças

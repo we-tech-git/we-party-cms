@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { EventForm } from '../../new-event/_components/event-form'
 import { mapEventToForm } from '../../new-event/_schema'
 import { useEvent } from '@/hooks/use-event'
+import { isTrackingLinksEnabled } from '@/lib/tracking-links'
+import { TrackingLinksSection } from './_components/tracking-links-section'
 
 export default function EditEventPage() {
   const params = useParams<{ id: string }>()
@@ -50,5 +52,10 @@ export default function EditEventPage() {
     )
   }
 
-  return <EventForm mode="edit" eventId={event.id} defaultValues={defaultValues} />
+  return (
+    <div className="flex flex-col gap-5">
+      <EventForm mode="edit" eventId={event.id} defaultValues={defaultValues} />
+      {isTrackingLinksEnabled() && <TrackingLinksSection eventId={event.id} />}
+    </div>
+  )
 }

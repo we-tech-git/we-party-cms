@@ -8,13 +8,16 @@ import { useI18n } from '@/i18n/context'
 
 type DeleteModalProps = {
   eventName: string
+  /** Sobrescreve título/descrição (padrão: textos de exclusão de evento). */
+  title?: string
+  description?: string
   isPending: boolean
   onConfirm: () => void
   onCancel: () => void
 }
 
 /** Diálogo de exclusão (Figma: Dialog › Tom=Perigo). Esc fecha; o foco inicia em "Cancelar". */
-export function DeleteModal({ eventName, isPending, onConfirm, onCancel }: DeleteModalProps) {
+export function DeleteModal({ eventName, title, description, isPending, onConfirm, onCancel }: DeleteModalProps) {
   const { t } = useI18n()
   const cancelRef = useRef<HTMLButtonElement>(null)
 
@@ -39,8 +42,8 @@ export function DeleteModal({ eventName, isPending, onConfirm, onCancel }: Delet
         <IconTile tone="pink" size="lg" className="mx-auto mb-3.5 text-wp-danger">
           <Trash2 />
         </IconTile>
-        <h3 id="delete-title" className="text-xl font-bold text-ink">{t('myEvents.deleteModal.title')}</h3>
-        <p id="delete-desc" className="mt-2 mb-6 text-sm text-wp-sub">{t('myEvents.deleteModal.desc', { name: eventName })}</p>
+        <h3 id="delete-title" className="text-xl font-bold text-ink">{title ?? t('myEvents.deleteModal.title')}</h3>
+        <p id="delete-desc" className="mt-2 mb-6 text-sm text-wp-sub">{description ?? t('myEvents.deleteModal.desc', { name: eventName })}</p>
         <div className="flex gap-2.5">
           <Button ref={cancelRef} type="button" variant="line" size="md" className="flex-1" onClick={onCancel} disabled={isPending} data-testid="delete-cancel">
             {t('myEvents.deleteModal.cancel')}

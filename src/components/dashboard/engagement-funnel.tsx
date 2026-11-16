@@ -11,6 +11,8 @@ export type FunnelStep = {
   conversionValue?: string
   /** data-testid opcional da linha (a página de desempenho usa; a home não). */
   testId?: string
+  /** data-testid opcional da taxa de conversão. */
+  rateTestId?: string
 }
 
 type EngagementFunnelProps = {
@@ -48,7 +50,7 @@ export function FunnelBars({ steps }: { steps: FunnelStep[] }) {
           {step.conversion && (
             <span className="text-[13px] whitespace-nowrap text-wp-sub">
               {step.conversion}{' '}
-              <strong className="text-wp-green" data-testid={step.testId ? `${step.testId}-rate` : undefined}>{step.conversionValue}</strong>
+              <strong className="text-wp-green" data-testid={step.rateTestId}>{step.conversionValue}</strong>
             </span>
           )}
         </div>

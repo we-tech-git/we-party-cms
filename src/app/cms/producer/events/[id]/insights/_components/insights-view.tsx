@@ -42,12 +42,12 @@ export function InsightsView({ eventId }: { eventId: string }) {
     const w = (n: number) => Math.round((n / max) * 100)
     const c = f.conversions
     return [
-      { testId: 'insights-step-views', value: fmtCount(f.views), label: t('insights.stepViews'), widthPct: w(f.views), bar: 'bg-tint-purple', text: 'text-wp-purple' },
-      { testId: 'insights-step-likes', value: fmtCount(f.likes), label: t('insights.stepLikes'), widthPct: w(f.likes), bar: 'bg-tint-pink', text: 'text-wp-magenta', conversion: t('insights.ofViews'), conversionValue: fmtRate(c.likesPerView) },
-      { testId: 'insights-step-favorites', value: fmtCount(f.favorites), label: t('insights.stepFavorites'), widthPct: w(f.favorites), bar: 'bg-tint-orange', text: 'text-wp-orange', conversion: t('insights.ofViews'), conversionValue: fmtRate(c.favoritesPerView) },
-      { testId: 'insights-step-interested', value: fmtCount(f.interested), label: t('insights.stepInterested'), widthPct: w(f.interested), bar: 'bg-tint-purple', text: 'text-wp-purple', conversion: t('insights.ofViews'), conversionValue: fmtRate(c.interestedPerView) },
-      { testId: 'insights-step-going', value: fmtCount(f.going), label: t('insights.stepGoing'), widthPct: w(f.going), bar: 'bg-tint-green', text: 'text-wp-green', conversion: t('insights.ofIntent'), conversionValue: fmtRate(c.confirmationRate) },
-      { testId: 'insights-step-shares', value: fmtCount(f.shares), label: t('insights.stepShares'), widthPct: w(f.shares), bar: 'bg-tint-orange', text: 'text-wp-orange', conversion: t('insights.ofViews'), conversionValue: fmtRate(c.sharesPerView) },
+      { testId: 'insights-step-views', rateTestId: 'insights-rate-views', value: fmtCount(f.views), label: t('insights.stepViews'), widthPct: w(f.views), bar: 'bg-tint-purple', text: 'text-wp-purple' },
+      { testId: 'insights-step-likes', rateTestId: 'insights-rate-likes', value: fmtCount(f.likes), label: t('insights.stepLikes'), widthPct: w(f.likes), bar: 'bg-tint-pink', text: 'text-wp-magenta', conversion: t('insights.ofViews'), conversionValue: fmtRate(c.likesPerView) },
+      { testId: 'insights-step-favorites', rateTestId: 'insights-rate-favorites', value: fmtCount(f.favorites), label: t('insights.stepFavorites'), widthPct: w(f.favorites), bar: 'bg-tint-orange', text: 'text-wp-orange', conversion: t('insights.ofViews'), conversionValue: fmtRate(c.favoritesPerView) },
+      { testId: 'insights-step-interested', rateTestId: 'insights-rate-interested', value: fmtCount(f.interested), label: t('insights.stepInterested'), widthPct: w(f.interested), bar: 'bg-tint-purple', text: 'text-wp-purple', conversion: t('insights.ofViews'), conversionValue: fmtRate(c.interestedPerView) },
+      { testId: 'insights-step-going', rateTestId: 'insights-rate-going', value: fmtCount(f.going), label: t('insights.stepGoing'), widthPct: w(f.going), bar: 'bg-tint-green', text: 'text-wp-green', conversion: t('insights.ofIntent'), conversionValue: fmtRate(c.confirmationRate) },
+      { testId: 'insights-step-shares', rateTestId: 'insights-rate-shares', value: fmtCount(f.shares), label: t('insights.stepShares'), widthPct: w(f.shares), bar: 'bg-tint-orange', text: 'text-wp-orange', conversion: t('insights.ofViews'), conversionValue: fmtRate(c.sharesPerView) },
     ]
   }
 

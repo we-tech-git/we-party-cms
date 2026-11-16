@@ -86,7 +86,7 @@ export function InsightsView({ eventId }: { eventId: string }) {
       {data && !isEmptyFunnel(data) && (
         <Panel as="section" className="flex flex-col gap-4">
           <PanelHeader title={t('insights.panelTitle')} icon={<Funnel />} tone="pink" />
-          <FunnelBars steps={buildSteps(data)} />
+          <FunnelBars steps={buildSteps(data)} stackOnMobile />
           <p className="text-xs text-wp-sub">{t('insights.viewsNote')}</p>
         </Panel>
       )}

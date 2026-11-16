@@ -35,11 +35,13 @@ function pct(a?: number, b?: number): string {
 }
 
 /** Lista de barras do funil (largura relativa, valor, rótulo e taxa opcional). Usada na home e na página de desempenho do evento. */
-export function FunnelBars({ steps }: { steps: FunnelStep[] }) {
+export function FunnelBars({ steps, stackOnMobile = false }: { steps: FunnelStep[]; stackOnMobile?: boolean }) {
   return (
     <div className="flex flex-col gap-2.5">
       {steps.map((step) => (
-        <div key={step.label} className="flex items-center gap-3.5" data-testid={step.testId}>
+        <div key={step.label} className={stackOnMobile ? 'flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3.5' : 'flex items-center gap-3.5'}
+          data-testid={step.testId}
+        >
           <div
             className={`flex h-10 min-w-30 items-center gap-2.5 overflow-hidden rounded-xl px-4 ${step.bar} ${step.text}`}
             style={{ width: `${step.widthPct}%` }}
@@ -48,7 +50,7 @@ export function FunnelBars({ steps }: { steps: FunnelStep[] }) {
             <span className="truncate text-xs font-semibold">{step.label}</span>
           </div>
           {step.conversion && (
-            <span className="text-[13px] whitespace-nowrap text-wp-sub">
+            <span className={stackOnMobile ? 'text-[13px] text-wp-sub sm:whitespace-nowrap' : 'text-[13px] whitespace-nowrap text-wp-sub'}>
               {step.conversion}{' '}
               <strong className="text-wp-green" data-testid={step.rateTestId}>{step.conversionValue}</strong>
             </span>

@@ -24,7 +24,7 @@ const meta = {
   decorators: [(Story) => <div className="w-88"><Story /></div>],
   args: {
     event: base, view: 'grid', popularityPct: 0, selected: false,
-    onSelect: () => {}, onArchive: () => {}, onDelete: () => {}, onComments: () => {}, onActivities: () => {}, onEdit: () => {},
+    onSelect: () => {}, onArchive: () => {}, onDelete: () => {}, onComments: () => {}, onActivities: () => {}, onEdit: () => {}, onDuplicate: () => {},
   },
 } satisfies Meta<typeof EventCard>
 

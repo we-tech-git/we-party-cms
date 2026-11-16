@@ -24,12 +24,13 @@ import { VisibilitySettings } from './visibility-settings'
 import { ActionBar } from './action-bar'
 
 type EventFormProps =
-  | { mode: 'create'; defaultValues: CreateEventForm }
+  | { mode: 'create'; defaultValues: CreateEventForm; asDraft?: boolean }
   | { mode: 'edit'; eventId: string; defaultValues: CreateEventForm }
 
 export function EventForm(props: EventFormProps) {
   const { mode, defaultValues } = props
   const isEdit = mode === 'edit'
+  const asDraft = props.mode === 'create' && !!props.asDraft
   const router = useRouter()
   const { t } = useI18n()
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -62,7 +63,7 @@ export function EventForm(props: EventFormProps) {
       if (isEdit) {
         await updateEvent.mutateAsync({ eventId: props.eventId, form })
       } else {
-        const payload = buildPayload(form)
+        const payload = buildPayload(form, { asDraft })
         await createEvent.mutateAsync({ payload, photos: form.photos })
       }
       router.push('/cms/producer/my-events')
@@ -101,8 +102,8 @@ export function EventForm(props: EventFormProps) {
         <div className="flex flex-col gap-5">
           <PageHeader
             icon={<Plus />}
-            title={isEdit ? t('newEvent.editTitle') : t('newEvent.createTitle')}
-            subtitle={isEdit ? t('newEvent.editSubtitle') : t('newEvent.createSubtitle')}
+            title={isEdit ? t('newEvent.editTitle') : asDraft ? t('newEvent.duplicateTitle') : t('newEvent.createTitle')}
+            subtitle={isEdit ? t('newEvent.editSubtitle') : asDraft ? t('newEvent.duplicateSubtitle') : t('newEvent.createSubtitle')}
           />
 
           {/* Two-column grid */}
@@ -128,7 +129,7 @@ export function EventForm(props: EventFormProps) {
             </div>
           </div>
 
-          <ActionBar mode={mode} isSubmitting={isSubmitting} error={submitError} />
+          <ActionBar mode={mode} asDraft={asDraft} isSubmitting={isSubmitting} error={submitError} />
         </div>
       </form>
 

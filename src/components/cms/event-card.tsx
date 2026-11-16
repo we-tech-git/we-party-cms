@@ -29,6 +29,7 @@ export type EventCardProps = {
   onComments: (event: EventDto) => void
   onActivities: (event: EventDto) => void
   onEdit: (event: EventDto) => void
+  onDuplicate: (event: EventDto) => void
 }
 
 const STATUS_NOTE: Record<UiEventStatus, { icon: React.ReactNode; text: string } | null> = {
@@ -48,7 +49,7 @@ function fmtNum(n: number): string {
  * Card de evento do CMS (Figma: CMS event card).
  * Capa com degradê da tinta #221A3D, status em vidro, métricas e ação Editar. Sem sombra rosa.
  */
-export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onActivities, onEdit }: EventCardProps) {
+export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onActivities, onEdit, onDuplicate }: EventCardProps) {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -76,7 +77,7 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
     { label: t("myEvents.card.boost"), icon: <TrendingUp />, disabled: true },
     { label: t("myEvents.card.manageComments"), icon: <MessageCircle />, act: () => onComments(event) },
     { label: t("myEvents.card.viewActivities"), icon: <Eye />, act: () => onActivities(event) },
-    { label: t("myEvents.card.duplicate"), icon: <Copy />, disabled: true },
+    { label: t("myEvents.card.duplicate"), icon: <Copy />, act: () => onDuplicate(event) },
   ]
 
   return (

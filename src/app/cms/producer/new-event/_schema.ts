@@ -73,7 +73,10 @@ export function buildLocationString(fields: {
   return [...parts, cityState].filter(Boolean).join(', ')
 }
 
-export function buildPayload(form: CreateEventForm): CreateEventPayload {
+export function buildPayload(
+  form: CreateEventForm,
+  options?: { asDraft?: boolean }
+): CreateEventPayload {
   return {
     title: form.title,
     description: form.description,
@@ -90,6 +93,7 @@ export function buildPayload(form: CreateEventForm): CreateEventPayload {
     allowComments: form.allowComments,
     showInMainFeed: true,
     interestIds: form.interestIds,
+    ...(options?.asDraft ? { status: 'DRAFT' as const } : {}),
     // Backend expects the singular field name `faq`. Drop blank pairs so an empty
     // trailing row never reaches the API ("FAQ vazio não é enviado").
     faq: form.faqs
@@ -190,6 +194,23 @@ export function mapEventToForm(event: EventDetailDto): CreateEventForm {
     faqs: (event.faq ?? []).map((f) => ({ question: f.question, answer: f.answer })),
     photos: [],
     existingPhotoUrls: event.photos ?? [],
+  }
+}
+
+/**
+ * Form values for duplicating an event: copies texts, address, visibility,
+ * interests and FAQ; dates/times/photos are NOT inherited (the producer sets the new date).
+ */
+export function mapEventToDuplicateForm(event: EventDetailDto, suffix: string): CreateEventForm {
+  return {
+    ...mapEventToForm(event),
+    title: `${event.title ?? ''}${suffix}`,
+    startDate: '',
+    startTime: EMPTY_EVENT_FORM.startTime,
+    endDate: '',
+    endTime: EMPTY_EVENT_FORM.endTime,
+    photos: [],
+    existingPhotoUrls: [],
   }
 }
 

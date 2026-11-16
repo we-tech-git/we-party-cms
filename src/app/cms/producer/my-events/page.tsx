@@ -197,6 +197,7 @@ export default function MyEventsPage() {
                 onComments={e => setOpenCommentEvent(e)}
                 onActivities={e => setOpenActivityEvent(e)}
                 onEdit={e => router.push(`/cms/producer/edit-event/${e.id}`)}
+                onDuplicate={e => router.push(`/cms/producer/new-event?from=${encodeURIComponent(e.id)}`)}
               />
             ))}
           </div>

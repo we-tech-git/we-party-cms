@@ -196,6 +196,8 @@ export interface CreateEventPayload {
   allowComments: boolean
   showInMainFeed: true
   interestIds: string[]
+  /** Só 'DRAFT' é enviado (cópia de evento); sem o campo o backend publica. */
+  status?: 'DRAFT'
   // The backend expects the singular field name `faq` (the create endpoints read
   // `faq`, with `faqs` only kept as a read fallback). Sending `faqs` here makes
   // the FAQs silently disappear on create.

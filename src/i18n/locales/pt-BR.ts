@@ -206,6 +206,13 @@ export const ptBR = {
       'Comentários aumentam o engajamento e ajudam o evento a subir na descoberta. Você consegue responder pelo painel.',
     tipsTitle: 'Dicas pra bombar',
     saveDraft: 'Salvar rascunho',
+    saveAsDraft: 'Salvar como rascunho',
+    duplicateTitle: 'Duplicar evento',
+    duplicateSubtitle:
+      'Revise os dados copiados, informe as novas datas e salve. A cópia fica como rascunho.',
+    duplicateSuffix: ' (cópia)',
+    sourceNotFound: 'Evento não encontrado',
+    backToMyEvents: '← Voltar para Meus eventos',
     publish: 'Publicar evento',
     publishing: 'Publicando…',
     saveChanges: 'Salvar alterações',

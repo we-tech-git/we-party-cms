@@ -36,17 +36,17 @@
 ## 7. Verificação
 
 - [x] 7.1 `yarn lint`, `yarn type-check` e `yarn build` passam; `yarn build-storybook` passa
-- [ ] 7.2 Com a flag desligada: item "Ver desempenho" ausente e `/cms/producer/events/<id>/insights` redireciona para `my-events`
-- [ ] 7.3 Com a flag ligada e o backend com `GET /events/{id}/funnel`: conferir com um produtor de teste que as seis contagens e taxas batem com o banco, e que o estado de erro aparece para um evento de outro produtor
-- [ ] 7.4 Conferir `/cms/home`: funil idêntico ao de antes
-- [ ] 7.5 Conferir layout em desktop e em mobile (barra inferior, sem rolagem horizontal)
+- [x] 7.2 Com a flag desligada: item "Ver desempenho" ausente e `/cms/producer/events/<id>/insights` redireciona para `my-events`
+- [x] 7.3 Com a flag ligada e o backend com `GET /events/{id}/funnel`: conferir com um produtor de teste que as seis contagens e taxas batem com o banco, e que o estado de erro aparece para um evento de outro produtor
+- [x] 7.4 Conferir `/cms/home`: funil idêntico ao de antes
+- [x] 7.5 Conferir layout em desktop e em mobile (barra inferior, sem rolagem horizontal)
 - [ ] 7.6 Atualizar o Figma (Venus Design) para o item de menu e a lista de etapas do funil, ou declarar a pendência no PR e abrir a tarefa
 
 ## 8. Teste automatizado (repositório `weparty-automation`, PR separado)
 
-- [ ] 8.1 Fixture `cypress/fixtures/cms/event-funnel.json` (dados com 200/40/10/15/5/8) e variantes vazia e de erro
-- [ ] 8.2 Page object e spec em `cypress/e2e/cms/` com `cy.intercept`: layout desktop e mobile, estados carregando/vazio/erro (403 e 500 com retry), navegação a partir do menu de `my-events`, e flag desligada (item ausente e redirecionamento)
-- [ ] 8.3 Rodar `cms-smoke` e os specs de `my-events` e do dashboard, que tocam os componentes alterados
+- [x] 8.1 Fixture `cypress/fixtures/cms/event-funnel.json` (dados com 200/40/10/15/5/8) e variantes vazia e de erro
+- [x] 8.2 Page object e spec em `cypress/e2e/cms/` com `cy.intercept`: layout desktop e mobile, estados carregando/vazio/erro (403 e 500 com retry), navegação a partir do menu de `my-events`, e flag desligada (item ausente e redirecionamento)
+- [x] 8.3 Rodar `cms-smoke` e os specs de `my-events` e do dashboard, que tocam os componentes alterados
 
 ## 9. Encerramento
 

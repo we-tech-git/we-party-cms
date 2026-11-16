@@ -60,6 +60,7 @@ Config em `orval.config.ts` (origem corrigida, client ainda não gerado):
 
 ## Variáveis de ambiente (prefixo `NEXT_PUBLIC` p/ client)
 - `NEXT_PUBLIC_API_BASE_URL` — URL base da API (default `https://api.wepartyapp.com`)
+- `NEXT_PUBLIC_FF_EVENT_INSIGHTS` — flag da página de desempenho por evento (`/cms/producer/events/[id]/insights` + item "Ver desempenho" em Meus eventos). Ligada **só** com o valor exato `true`; lida em `src/lib/feature-flags.ts`; embutida no build (mudar exige novo deploy); padrão desligada.
 - `ORVAL_OPENAPI_URL` — só para `api:generate`: origem do contrato OpenAPI (default `https://api.wepartyapp.com/api-json`)
 
 ## Documentação (no repo)

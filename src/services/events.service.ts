@@ -10,6 +10,7 @@ import type {
   FaqItem,
   CommentsResponse,
   EventActivitiesResponse,
+  EventFunnelDto,
 } from '@/types/events.types'
 
 export async function getMyDashboard(refresh?: boolean): Promise<ProducerDashboardResponse> {
@@ -102,6 +103,15 @@ export async function createEventFaq(eventId: string, faq: FaqItem): Promise<Eve
 /** Deletes a single FAQ — DELETE /events/{eventId}/faq/{faqId}. */
 export async function deleteEventFaq(eventId: string, faqId: string): Promise<void> {
   await axiosInstance.delete(`/events/${eventId}/faq/${faqId}`)
+}
+
+/**
+ * Funil de desempenho de um evento (visualização → interesse → confirmação) —
+ * GET /events/{id}/funnel. Restrito ao criador do evento ou admin.
+ */
+export async function getEventFunnel(eventId: string): Promise<EventFunnelDto> {
+  const { data } = await axiosInstance.get<EventFunnelDto>(`/events/${eventId}/funnel`)
+  return data
 }
 
 /**

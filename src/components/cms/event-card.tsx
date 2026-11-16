@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import {
-  Archive, CalendarDays, CheckCircle2, Check, Clock, Copy, Eye, FileText, MapPin, MessageCircle,
+  Archive, CalendarDays, ChartNoAxesColumn, CheckCircle2, Check, Clock, Copy, Eye, FileText, MapPin, MessageCircle,
   EllipsisVertical, Pencil, Trash2, TrendingUp,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,8 @@ export type EventCardProps = {
   onComments: (event: EventDto) => void
   onActivities: (event: EventDto) => void
   onEdit: (event: EventDto) => void
+  /** Quando definida, o menu ganha "Ver desempenho" (atrás da flag NEXT_PUBLIC_FF_EVENT_INSIGHTS). */
+  onInsights?: (event: EventDto) => void
 }
 
 const STATUS_NOTE: Record<UiEventStatus, { icon: React.ReactNode; text: string } | null> = {
@@ -48,7 +50,7 @@ function fmtNum(n: number): string {
  * Card de evento do CMS (Figma: CMS event card).
  * Capa com degradê da tinta #221A3D, status em vidro, métricas e ação Editar. Sem sombra rosa.
  */
-export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onActivities, onEdit }: EventCardProps) {
+export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onActivities, onEdit, onInsights }: EventCardProps) {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -76,6 +78,9 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
     { label: t("myEvents.card.boost"), icon: <TrendingUp />, disabled: true },
     { label: t("myEvents.card.manageComments"), icon: <MessageCircle />, act: () => onComments(event) },
     { label: t("myEvents.card.viewActivities"), icon: <Eye />, act: () => onActivities(event) },
+    ...(onInsights
+      ? [{ label: t("myEvents.card.viewInsights"), icon: <ChartNoAxesColumn />, act: () => onInsights(event), testid: "event-insights" }]
+      : []),
     { label: t("myEvents.card.duplicate"), icon: <Copy />, disabled: true },
   ]
 
@@ -133,6 +138,7 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
                   key={item.label}
                   type="button"
                   role="menuitem"
+                  data-testid={"testid" in item ? item.testid : undefined}
                   disabled={item.disabled}
                   onClick={() => { setMenuOpen(false); item.act?.() }}
                   className="flex w-full items-center gap-2.5 rounded-[10px] px-2.5 py-2.5 text-left text-sm font-medium text-neutral-600 transition-colors hover:bg-wp-bg disabled:cursor-not-allowed disabled:opacity-40 [&_svg]:size-4"

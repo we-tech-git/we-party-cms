@@ -1,7 +1,7 @@
 import { Funnel } from 'lucide-react'
 import { Panel, PanelHeader } from '@/components/cms/panel'
 
-type FunnelStep = {
+export type FunnelStep = {
   value: string
   label: string
   widthPct: number
@@ -9,6 +9,10 @@ type FunnelStep = {
   text: string
   conversion?: string
   conversionValue?: string
+  /** data-testid opcional da linha (a página de desempenho usa; a home não). */
+  testId?: string
+  /** data-testid opcional da taxa de conversão. */
+  rateTestId?: string
 }
 
 type EngagementFunnelProps = {
@@ -28,6 +32,33 @@ function fmt(n?: number): string {
 function pct(a?: number, b?: number): string {
   if (!a || !b) return '—'
   return ((a / b) * 100).toFixed(1).replace('.', ',') + '%'
+}
+
+/** Lista de barras do funil (largura relativa, valor, rótulo e taxa opcional). Usada na home e na página de desempenho do evento. */
+export function FunnelBars({ steps, stackOnMobile = false }: { steps: FunnelStep[]; stackOnMobile?: boolean }) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      {steps.map((step) => (
+        <div key={step.label} className={stackOnMobile ? 'flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-3.5' : 'flex items-center gap-3.5'}
+          data-testid={step.testId}
+        >
+          <div
+            className={`flex h-10 min-w-30 items-center gap-2.5 overflow-hidden rounded-xl px-4 ${step.bar} ${step.text}`}
+            style={{ width: `${step.widthPct}%` }}
+          >
+            <span className="font-heading text-lg font-bold" data-testid={step.testId ? `${step.testId}-value` : undefined}>{step.value}</span>
+            <span className="truncate text-xs font-semibold">{step.label}</span>
+          </div>
+          {step.conversion && (
+            <span className={stackOnMobile ? 'text-[13px] text-wp-sub sm:whitespace-nowrap' : 'text-[13px] whitespace-nowrap text-wp-sub'}>
+              {step.conversion}{' '}
+              <strong className="text-wp-green" data-testid={step.rateTestId}>{step.conversionValue}</strong>
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
 }
 
 /** Jornada de engajamento (Figma: barras tintadas com valor colorido — sem degradês saturados). */
@@ -53,26 +84,8 @@ export function EngagementFunnel({ totalViews, totalLikes, totalConfirmed, total
 
       {isLoading && <p className="py-6 text-center text-[13.5px] text-wp-sub">Carregando métricas…</p>}
 
-      {!isLoading && (
-        <div className="flex flex-col gap-2.5">
-          {steps.map((step) => (
-            <div key={step.label} className="flex items-center gap-3.5">
-              <div
-                className={`flex h-10 min-w-30 items-center gap-2.5 overflow-hidden rounded-xl px-4 ${step.bar} ${step.text}`}
-                style={{ width: `${step.widthPct}%` }}
-              >
-                <span className="font-heading text-lg font-bold">{step.value}</span>
-                <span className="truncate text-xs font-semibold">{step.label}</span>
-              </div>
-              {step.conversion && (
-                <span className="text-[13px] whitespace-nowrap text-wp-sub">
-                  {step.conversion} <strong className="text-wp-green">{step.conversionValue}</strong>
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {!isLoading && <FunnelBars steps={steps} />}
+
     </Panel>
   )
 }

@@ -36,3 +36,4 @@ export const EmAlta: Story = {
   args: { event: { ...base, startDate: new Date(Date.now() - 86_400_000).toISOString(), viewCount: 1200 } as EventDto, popularityPct: 72 },
 }
 export const Rascunho: Story = { args: { event: { ...base, status: 'DRAFT' } as EventDto } }
+export const ComDesempenho: Story = { args: { onInsights: () => {} } }

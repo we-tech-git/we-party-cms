@@ -1,8 +1,9 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createEvent, uploadEventImages, createEventFaq } from '@/services/events.service'
 import type { CreateEventPayload } from '@/types/events.types'
 
 export function useCreateEvent() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ payload, photos }: { payload: CreateEventPayload; photos: File[] }) => {
       // 1. Create the event (faq is NOT part of the create DTO).
@@ -16,6 +17,9 @@ export function useCreateEvent() {
         await createEventFaq(created.id, faq)
       }
       return created
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['my-events'] })
     },
   })
 }

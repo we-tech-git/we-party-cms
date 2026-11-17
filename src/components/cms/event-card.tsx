@@ -29,6 +29,7 @@ export type EventCardProps = {
   onComments: (event: EventDto) => void
   onActivities: (event: EventDto) => void
   onEdit: (event: EventDto) => void
+  onDuplicate: (event: EventDto) => void
   /** Quando definida, o menu ganha "Ver desempenho" (atrás da flag NEXT_PUBLIC_FF_EVENT_INSIGHTS). */
   onInsights?: (event: EventDto) => void
 }
@@ -50,7 +51,7 @@ function fmtNum(n: number): string {
  * Card de evento do CMS (Figma: CMS event card).
  * Capa com degradê da tinta #221A3D, status em vidro, métricas e ação Editar. Sem sombra rosa.
  */
-export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onActivities, onEdit, onInsights }: EventCardProps) {
+export function EventCard({ event, view, popularityPct, selected, onSelect, onArchive, onDelete, onComments, onActivities, onEdit, onDuplicate, onInsights }: EventCardProps) {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -81,7 +82,7 @@ export function EventCard({ event, view, popularityPct, selected, onSelect, onAr
     ...(onInsights
       ? [{ label: t("myEvents.card.viewInsights"), icon: <ChartNoAxesColumn />, act: () => onInsights(event), testid: "event-insights" }]
       : []),
-    { label: t("myEvents.card.duplicate"), icon: <Copy />, disabled: true },
+    { label: t("myEvents.card.duplicate"), icon: <Copy />, act: () => onDuplicate(event) },
   ]
 
   return (

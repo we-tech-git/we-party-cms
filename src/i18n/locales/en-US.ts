@@ -211,6 +211,13 @@ export const enUS: Dictionary = {
     publish: 'Publish event',
     publishing: 'Publishing…',
     saveChanges: 'Save changes',
+    saveAsDraft: 'Save as draft',
+    duplicateTitle: 'Duplicate event',
+    duplicateSubtitle:
+      'Review the copied details, set the new dates and save. The copy is saved as a draft.',
+    duplicateSuffix: ' (copy)',
+    sourceNotFound: 'Event not found',
+    backToMyEvents: '← Back to My events',
     saving: 'Saving…',
     readyPublish: 'All set to publish!',
     readySave: 'Ready to save changes!',

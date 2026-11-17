@@ -8,12 +8,13 @@ import type { CreateEventForm } from '../_schema'
 
 type ActionBarProps = {
   mode: 'create' | 'edit'
+  asDraft?: boolean
   isSubmitting: boolean
   error: string | null
 }
 
 /** Barra de publicação (Figma: Novo evento › barra fixa). Botão com loading e bloqueio de duplo envio (AGENTS.md #2). */
-export function ActionBar({ mode, isSubmitting, error }: ActionBarProps) {
+export function ActionBar({ mode, asDraft = false, isSubmitting, error }: ActionBarProps) {
   const { t } = useI18n()
   const { watch } = useFormContext<CreateEventForm>()
   const title = watch('title')
@@ -37,7 +38,7 @@ export function ActionBar({ mode, isSubmitting, error }: ActionBarProps) {
       </span>
 
       <div className="ml-auto flex gap-2.5">
-        {!isEdit && (
+        {!isEdit && !asDraft && (
           <Button type="button" variant="line" size="compact" disabled title={`${t('newEvent.saveDraft')} — ${t('common.comingSoon')}`}>
             <Save /> {t('newEvent.saveDraft')}
           </Button>
@@ -46,10 +47,10 @@ export function ActionBar({ mode, isSubmitting, error }: ActionBarProps) {
           {isSubmitting ? (
             <>
               <span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden />
-              {isEdit ? t('newEvent.saving') : t('newEvent.publishing')}
+              {isEdit || asDraft ? t('newEvent.saving') : t('newEvent.publishing')}
             </>
           ) : (
-            <>{isEdit ? t('newEvent.saveChanges') : t('newEvent.publish')} <ArrowRight /></>
+            <>{isEdit ? t('newEvent.saveChanges') : asDraft ? t('newEvent.saveAsDraft') : t('newEvent.publish')} <ArrowRight /></>
           )}
         </Button>
       </div>

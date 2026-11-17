@@ -57,6 +57,27 @@ export interface EventActivityDto {
   event: ActivityEventDto
 }
 
+/** Taxas de conversão do funil (frações; `null` = sem base de cálculo). */
+export interface EventFunnelConversionsDto {
+  likesPerView: number | null
+  favoritesPerView: number | null
+  interestedPerView: number | null
+  confirmationRate: number | null
+  sharesPerView: number | null
+}
+
+/** Response shape for `GET /events/{id}/funnel`. */
+export interface EventFunnelDto {
+  eventId: string
+  views: number
+  likes: number
+  favorites: number
+  interested: number
+  going: number
+  shares: number
+  conversions: EventFunnelConversionsDto
+}
+
 /** Response shape for `GET /events/{id}/activities`. */
 export interface EventActivitiesResponse {
   items: EventActivityDto[]

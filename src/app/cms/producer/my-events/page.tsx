@@ -11,6 +11,7 @@ import { BulkBar } from '@/components/cms/bulk-bar'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
 import { useI18n } from '@/i18n/context'
+import { EVENT_INSIGHTS_ENABLED } from '@/lib/feature-flags'
 import { useMyEvents } from '@/hooks/use-my-events'
 import { deleteEvent, patchEvent } from '@/services/events.service'
 import type { EventDto } from '@/types/events.types'
@@ -197,6 +198,7 @@ export default function MyEventsPage() {
                 onComments={e => setOpenCommentEvent(e)}
                 onActivities={e => setOpenActivityEvent(e)}
                 onEdit={e => router.push(`/cms/producer/edit-event/${e.id}`)}
+                onInsights={EVENT_INSIGHTS_ENABLED ? e => router.push(`/cms/producer/events/${e.id}/insights`) : undefined}
               />
             ))}
           </div>

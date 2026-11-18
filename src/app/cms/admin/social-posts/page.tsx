@@ -9,10 +9,11 @@
  *
  * Os posts chegam aqui via POST /social-posts, gerado pelo squad
  * `weparty-mkt-content` (Opensquad, repo separado) — carrossel/story já
- * renderizado com o texto aplicado, não uma descrição. Aprovar/Rejeitar
- * aqui só muda o status da fila. Quem publica no Instagram é o script
- * `cms-publisher` do Opensquad, que lê os APROVADOS, publica e registra o
- * resultado no backend (status → PUBLISHED, com o link do post).
+ * renderizado com o texto aplicado, não uma descrição. Ao aprovar, o backend
+ * publica no Instagram, no X e no Facebook; o status só vira PUBLISHED quando
+ * saiu em todas as redes. Se alguma falhar o post segue APROVADO com o motivo
+ * (`publishError`), e "Publicar agora" faz nova tentativa:
+ *   POST /admin/social-posts/{id}/publish
  */
 
 import { useMemo, useState } from 'react'
@@ -21,7 +22,7 @@ import { BackButton } from '@/components/cms/back-button'
 import { relativeTime } from '@/lib/date'
 import { useI18n } from '@/i18n/context'
 import { useAdminSocialPosts, useSocialPostMutations } from '@/hooks/use-admin-social-posts'
-import type { SocialPostDto, SocialPostFormat, SocialPostStatus } from '@/types/social-posts.types'
+import type { PublishOutcome, SocialPostDto, SocialPostFormat, SocialPostStatus } from '@/types/social-posts.types'
 
 /* ---------------------------------------------------------------- helpers -- */
 
@@ -39,6 +40,11 @@ const FORMAT_META: Record<SocialPostFormat, { label: string; ratio: string }> = 
   STORY: { label: 'Story', ratio: '9 / 16' },
 }
 
+const PLATFORM_LABEL: Record<string, string> = { INSTAGRAM: 'Instagram', X: 'X', FACEBOOK: 'Facebook' }
+
+/** Marca do backend: já saiu numa rede mas não foi registrado — republicar duplicaria. */
+const UNRECORDED_PREFIX = 'REGISTRO PENDENTE'
+
 const STATUS_TABS: { value: SocialPostStatus | undefined; label: string }[] = [
   { value: 'PENDING_APPROVAL', label: 'Pendentes' },
   { value: 'APPROVED', label: 'Aprovados' },
@@ -46,6 +52,14 @@ const STATUS_TABS: { value: SocialPostStatus | undefined; label: string }[] = [
   { value: 'REJECTED', label: 'Rejeitados' },
   { value: undefined, label: 'Todos' },
 ]
+
+const PUBLISH_TOAST: Record<PublishOutcome, (message: string | null) => string> = {
+  PUBLISHED: () => 'Publicado em todas as redes.',
+  PARTIAL: (m) => `Publicado só em parte${m ? `: ${m}` : '.'}`,
+  FAILED: (m) => `Não foi publicado${m ? `: ${m}` : '.'}`,
+  DISABLED: () => 'A publicação está desligada no backend.',
+  SKIPPED: () => 'Outra publicação deste post já está em andamento.',
+}
 
 /* ------------------------------------------------------------ media view -- */
 
@@ -134,19 +148,24 @@ function DetailPanel({
   post,
   onApprove,
   onReject,
+  onPublish,
   approving,
   rejecting,
+  publishing,
 }: {
   post: SocialPostDto
   onApprove: () => void
   onReject: (reason: string) => void
+  onPublish: () => void
   approving: boolean
   rejecting: boolean
+  publishing: boolean
 }) {
   const { locale } = useI18n()
   const [showRejectForm, setShowRejectForm] = useState(false)
   const [reason, setReason] = useState('')
-  const busy = approving || rejecting
+  const busy = approving || rejecting || publishing
+  const unrecorded = post.publishError?.startsWith(UNRECORDED_PREFIX) ?? false
 
   function submitReject() {
     if (!reason.trim()) return
@@ -215,7 +234,7 @@ function DetailPanel({
           <p className="text-[11.5px] font-extrabold" style={{ color: 'var(--violet)' }}>Publicado</p>
           {Object.entries(post.publications).map(([platform, pub]) => (
             <p key={platform} className="text-[13px] font-medium mt-0.5" style={{ color: 'var(--ink-soft)' }}>
-              {platform === 'INSTAGRAM' ? 'Instagram' : platform} · {relativeTime(pub.publishedAt, locale)}
+              {PLATFORM_LABEL[platform] ?? platform} · {relativeTime(pub.publishedAt, locale)}
               {pub.url && /^https?:\/\//i.test(pub.url) && (
                 <>
                   {' · '}
@@ -226,6 +245,48 @@ function DetailPanel({
               )}
             </p>
           ))}
+        </div>
+      )}
+
+      {post.status === 'APPROVED' && (
+        <div className="flex flex-col gap-2.5 pt-1 border-t" style={{ borderColor: 'var(--line-2)' }}>
+          <div className="rounded-[12px] px-3 py-2.5 mt-3" style={post.publishError ? { background: '#FEF2F2', border: '1px solid #FECACA' } : { background: '#FFF4E0', border: '1px solid #FDE2A8' }}>
+            <p className="text-[11.5px] font-extrabold" style={{ color: post.publishError ? '#DC2626' : 'var(--amber)' }}>
+              {unrecorded
+                ? 'Publicado, mas sem registro — confira as redes'
+                : post.publishError
+                  ? 'Ainda não publicado — a última tentativa falhou'
+                  : 'Aprovado — aguardando publicação'}
+            </p>
+            {post.publishError && (
+              <p className="text-[13px] font-medium mt-0.5 break-words" style={{ color: 'var(--ink-soft)' }}>{post.publishError}</p>
+            )}
+            {post.publications && Object.keys(post.publications).length > 0 && (
+              <p className="text-[12.5px] font-medium mt-1" style={{ color: 'var(--ink-soft)' }}>
+                Já publicado em: {Object.keys(post.publications).map((p) => PLATFORM_LABEL[p] ?? p).join(', ')}. Uma nova tentativa publica só o que falta.
+              </p>
+            )}
+            {post.publishAttempts > 0 && (
+              <p className="text-[11.5px] font-semibold mt-1" style={{ color: 'var(--wp-muted)' }}>
+                {post.publishAttempts} tentativa{post.publishAttempts > 1 ? 's' : ''}
+              </p>
+            )}
+            {unrecorded && (
+              <p className="text-[12px] font-medium mt-1" style={{ color: 'var(--ink-soft)' }}>
+                Não republique por aqui: o post já saiu e republicar duplicaria. Peça ao time de backend para registrar a publicação.
+              </p>
+            )}
+          </div>
+          {!unrecorded && (
+            <button
+              onClick={onPublish}
+              disabled={busy}
+              className="flex items-center justify-center gap-1.5 rounded-[12px] px-4 py-2.75 text-[13.5px] font-extrabold text-white transition hover:brightness-105 disabled:opacity-50"
+              style={{ background: GRAD }}
+            >
+              {publishing ? 'Publicando…' : post.publishError ? 'Tentar publicar de novo' : 'Publicar agora'}
+            </button>
+          )}
         </div>
       )}
 
@@ -303,7 +364,7 @@ export default function SocialPostsPage() {
   const [toast, setToast] = useState<string | null>(null)
 
   const { data: posts, isLoading, isError, refetch, isFetching } = useAdminSocialPosts(statusTab)
-  const { approve, reject } = useSocialPostMutations()
+  const { approve, reject, publish } = useSocialPostMutations()
 
   const list = useMemo(() => posts ?? [], [posts])
   const selected = useMemo(() => list.find((p) => p.id === selectedId) ?? list[0] ?? null, [list, selectedId])
@@ -315,7 +376,7 @@ export default function SocialPostsPage() {
 
   function handleApprove(id: string) {
     approve.mutate(id, {
-      onSuccess: () => showToast('Post aprovado.'),
+      onSuccess: () => showToast('Post aprovado. A publicação nas redes começa em seguida.'),
       onError: () => showToast('Não foi possível aprovar. Tente novamente.'),
     })
   }
@@ -324,6 +385,13 @@ export default function SocialPostsPage() {
     reject.mutate({ id, reason }, {
       onSuccess: () => showToast('Post rejeitado.'),
       onError: () => showToast('Não foi possível rejeitar. Tente novamente.'),
+    })
+  }
+
+  function handlePublish(id: string) {
+    publish.mutate(id, {
+      onSuccess: ({ outcome, message }) => showToast(PUBLISH_TOAST[outcome](message)),
+      onError: () => showToast('Não foi possível acionar a publicação. Tente novamente.'),
     })
   }
 
@@ -341,7 +409,7 @@ export default function SocialPostsPage() {
             <span style={{ background: 'linear-gradient(120deg,var(--violet),var(--pink))', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Posts Sociais</span>
           </h1>
           <p className="font-semibold mt-0.5 text-[14px]" style={{ color: 'var(--ink-soft)' }}>
-            Prévia dos carrosséis/stories gerados pelo squad — aprove ou rejeite antes de publicar
+            Prévia dos carrosséis/stories gerados pelo squad — ao aprovar, o post é publicado nas redes
             {isFetching && !isLoading && <span style={{ color: 'var(--violet)' }}> · atualizando…</span>}
           </p>
         </div>
@@ -418,8 +486,10 @@ export default function SocialPostsPage() {
                 post={selected}
                 onApprove={() => handleApprove(selected.id)}
                 onReject={(reason) => handleReject(selected.id, reason)}
+                onPublish={() => handlePublish(selected.id)}
                 approving={approve.isPending && approve.variables === selected.id}
                 rejecting={reject.isPending && reject.variables?.id === selected.id}
+                publishing={publish.isPending && publish.variables === selected.id}
               />
             )}
           </div>

@@ -1,5 +1,5 @@
 import { axiosInstance } from '@/lib/axios'
-import type { SocialPostDto, SocialPostStatus } from '@/types/social-posts.types'
+import type { PublishSocialPostResponse, SocialPostDto, SocialPostStatus } from '@/types/social-posts.types'
 
 /* Todos os endpoints abaixo são admin-only (GET/POST /admin/social-posts*, RoleGuard(['admin'])). */
 
@@ -17,7 +17,7 @@ export async function getSocialPostById(id: string): Promise<SocialPostDto> {
   return data
 }
 
-/** POST /admin/social-posts/{id}/approve — só muda o status; não publica no Instagram. */
+/** POST /admin/social-posts/{id}/approve — aprova; o backend publica em seguida (Instagram, X e Facebook). */
 export async function approveSocialPost(id: string): Promise<SocialPostDto> {
   const { data } = await axiosInstance.post<SocialPostDto>(`/admin/social-posts/${id}/approve`)
   return data
@@ -26,5 +26,14 @@ export async function approveSocialPost(id: string): Promise<SocialPostDto> {
 /** POST /admin/social-posts/{id}/reject — motivo obrigatório. */
 export async function rejectSocialPost(id: string, reason: string): Promise<SocialPostDto> {
   const { data } = await axiosInstance.post<SocialPostDto>(`/admin/social-posts/${id}/reject`, { reason })
+  return data
+}
+
+/**
+ * POST /admin/social-posts/{id}/publish — nova tentativa de publicação de um post APPROVED.
+ * O status só vira PUBLISHED quando saiu em todas as redes; senão segue APPROVED com o motivo em publishError.
+ */
+export async function publishSocialPost(id: string): Promise<PublishSocialPostResponse> {
+  const { data } = await axiosInstance.post<PublishSocialPostResponse>(`/admin/social-posts/${id}/publish`)
   return data
 }
